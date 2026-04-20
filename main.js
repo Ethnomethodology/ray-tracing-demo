@@ -18,7 +18,7 @@ const createScene = function () {
     let _samplePositions = null;
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
-    const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 6, Math.PI / 2.2, 45, new BABYLON.Vector3(0, 0, 0), scene);
+    const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 6, Math.PI / 2.2, 65, new BABYLON.Vector3(0, -5, 0), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
@@ -43,10 +43,10 @@ const createScene = function () {
     const legHeight = 15;
     const legDiameter = 0.6;
     const legPositions = [
-        new BABYLON.Vector3(5.5, -legHeight/2, 11.5),
-        new BABYLON.Vector3(-5.5, -legHeight/2, 11.5),
-        new BABYLON.Vector3(5.5, -legHeight/2, -11.5),
-        new BABYLON.Vector3(-5.5, -legHeight/2, -11.5)
+        new BABYLON.Vector3(5.5, -legHeight / 2, 11.5),
+        new BABYLON.Vector3(-5.5, -legHeight / 2, 11.5),
+        new BABYLON.Vector3(5.5, -legHeight / 2, -11.5),
+        new BABYLON.Vector3(-5.5, -legHeight / 2, -11.5)
     ];
     legPositions.forEach((pos, i) => {
         const leg = BABYLON.MeshBuilder.CreateCylinder(`tableLeg${i}`, { diameter: legDiameter, height: legHeight }, scene);
@@ -56,7 +56,7 @@ const createScene = function () {
     });
 
     // 3b. Environment: The Wall (For the Pulley)
-    const wallMesh = BABYLON.MeshBuilder.CreatePlane("wallMesh", { size: 40 }, scene);
+    const wallMesh = BABYLON.MeshBuilder.CreatePlane("wallMesh", { width: 40, height: 30 }, scene);
     wallMesh.position.z = 16;
     wallMesh.rotation.y = Math.PI; // Face towards the scene
     const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
@@ -198,7 +198,7 @@ const createScene = function () {
     // 8. Pulley and String System
     // PulleyNode at the "Eye" point (on the wall)
     const pulleyNode = new BABYLON.Vector3(0, 10, 15.5);
-    const maxStringLength = 35.0; // Reduced by 30% (originally 50.0)
+    const maxStringLength = 42; // Increased by 15% (originally 35.0)
 
     const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
     pulleyMesh.position.copyFrom(pulleyNode);
@@ -323,7 +323,7 @@ const createScene = function () {
         if (isAnimating) toggleAnimation();
 
         // Reset Camera
-        const targetPos = new BABYLON.Vector3(0, 0, 0);
+        const targetPos = new BABYLON.Vector3(0, -5, 0);
 
         // Animation
         const animationAlpha = new BABYLON.Animation("cameraAlpha", "alpha", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
@@ -332,7 +332,7 @@ const createScene = function () {
 
         const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: Math.PI / 6 }];
         const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.2 }];
-        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 45 }];
+        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 65 }];
 
         animationAlpha.setKeys(keysAlpha);
         animationBeta.setKeys(keysBeta);
