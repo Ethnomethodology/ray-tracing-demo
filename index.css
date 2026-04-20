@@ -104,11 +104,11 @@ body {
 
 .button-container {
     pointer-events: auto;
+    display: flex;
+    gap: 0.75rem;
 }
 
-.btn-reset {
-    background-color: #1e293b;
-    color: white;
+.btn-reset, .btn-animate {
     border: none;
     padding: 0.75rem 1.25rem;
     border-radius: 0.75rem;
@@ -122,14 +122,31 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.btn-reset:hover {
-    background-color: #334155;
+.btn-reset {
+    background-color: #1e293b;
+    color: white;
+}
+
+.btn-animate {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-reset:hover, .btn-animate:hover {
+    filter: brightness(1.1);
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
-.btn-reset:active {
+.btn-reset:active, .btn-animate:active {
     transform: translateY(0);
+}
+
+.btn-reset:disabled, .btn-animate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
 }
 
 .badge {

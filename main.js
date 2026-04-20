@@ -141,30 +141,85 @@ const createScene = function() {
         segmentB = BABYLON.MeshBuilder.CreateLines("segmentB", { points: [pulleyNode, weightMesh.position], instance: segmentB });
     });
 
-    // 9. Pointillist Drawing Interaction
+    // 9. Core Drawing Function (DRY)
+    const drawPointAtStick = () => {
+        const direction = stickMesh.position.subtract(pulleyNode);
+        const ray = new BABYLON.Ray(pulleyNode, direction.normalize(), 100);
+        const hit = ray.intersectsMesh(gridPlane);
+        
+        if (hit.hit) {
+            const uv = hit.getTextureCoordinates();
+            if (uv) {
+                const x = uv.x * textureSize;
+                const y = (1 - uv.y) * textureSize;
+
+                textureCtx.fillStyle = "#000000";
+                textureCtx.beginPath();
+                textureCtx.arc(x, y, 4, 0, Math.PI * 2);
+                textureCtx.fill();
+                drawingTexture.update();
+            }
+        }
+    };
+
+    // Pointillist Drawing Interaction
     scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
-            const direction = stickMesh.position.subtract(pulleyNode);
-            const ray = new BABYLON.Ray(pulleyNode, direction.normalize(), 100);
-            const hit = ray.intersectsMesh(gridPlane);
-            
-            if (hit.hit) {
-                const uv = hit.getTextureCoordinates();
-                if (uv) {
-                    const x = uv.x * textureSize;
-                    const y = (1 - uv.y) * textureSize;
-
-                    textureCtx.fillStyle = "#000000";
-                    textureCtx.beginPath();
-                    textureCtx.arc(x, y, 4, 0, Math.PI * 2);
-                    textureCtx.fill();
-                    drawingTexture.update();
-                }
-            }
+            if (!isAnimating) drawPointAtStick();
         }
     });
 
-    // 10. UI Controller
+    // 10. Auto-Animator Logic
+    let isAnimating = false;
+    let dotsDrawn = 0;
+    let animationInterval = null;
+
+    const toggleAnimation = () => {
+        const animateBtn = document.getElementById("animateBtn");
+        const resetBtn = document.getElementById("resetBtn");
+
+        if (isAnimating) {
+            // Stop logic
+            clearInterval(animationInterval);
+            isAnimating = false;
+            animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Animate';
+            resetBtn.disabled = false;
+        } else {
+            // Start logic
+            isAnimating = true;
+            dotsDrawn = 0;
+            animateBtn.textContent = "Stop";
+            resetBtn.disabled = true;
+
+            const positions = targetMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+            
+            animationInterval = setInterval(() => {
+                if (dotsDrawn >= 1000) {
+                    toggleAnimation();
+                    return;
+                }
+
+                // Pick a random vertex and transform to world space
+                const vertexIndex = Math.floor(Math.random() * (positions.length / 3)) * 3;
+                const localPos = new BABYLON.Vector3(
+                    positions[vertexIndex], 
+                    positions[vertexIndex + 1], 
+                    positions[vertexIndex + 2]
+                );
+                
+                targetMesh.computeWorldMatrix(true);
+                const worldPos = BABYLON.Vector3.TransformCoordinates(localPos, targetMesh.getWorldMatrix());
+
+                stickMesh.position.copyFrom(worldPos);
+                drawPointAtStick();
+                dotsDrawn++;
+            }, 10);
+        }
+    };
+
+    document.getElementById("animateBtn").addEventListener("click", toggleAnimation);
+
+    // 11. UI Controller
     const resetScene = () => {
         // Clear dots with proper alpha wipe
         textureCtx.clearRect(0, 0, textureSize, textureSize);
