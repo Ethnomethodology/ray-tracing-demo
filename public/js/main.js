@@ -137,6 +137,63 @@ const createScene = function () {
     borderRight.position = new BABYLON.Vector3(frameHalf + borderThickness / 2, 0, 0);
     borderRight.material = frameBorderMaterial;
 
+    // 5.5 Create Hinged Page (Dürer's drawing surface)
+    const pageHinge = new BABYLON.TransformNode("pageHinge", scene);
+    pageHinge.parent = gridPlane;
+    pageHinge.position = new BABYLON.Vector3(-frameHalf, 0, 0); // Hinge on the left border
+
+    const pageMesh = BABYLON.MeshBuilder.CreatePlane("pageMesh", { size: gridSize, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+    pageMesh.parent = pageHinge;
+    // Shift the plane to the right by frameHalf so its left edge is exactly at the hinge
+    // Push it slightly backward in Z so it doesn't Z-fight with the gridPlane lines
+    pageMesh.position = new BABYLON.Vector3(frameHalf, 0, -0.05);
+    
+    const pageMaterial = new BABYLON.StandardMaterial("pageMaterial", scene);
+    pageMaterial.diffuseTexture = drawingTexture;
+    pageMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // White paper background
+    pageMaterial.disableLighting = true; // Flat shading like paper
+    pageMesh.material = pageMaterial;
+    pageMesh.isPickable = false; // Don't block raycasts
+
+    // Add a black border around the page
+    const pageBorderPoints = [
+        new BABYLON.Vector3(-frameHalf, -frameHalf, 0),
+        new BABYLON.Vector3(frameHalf, -frameHalf, 0),
+        new BABYLON.Vector3(frameHalf, frameHalf, 0),
+        new BABYLON.Vector3(-frameHalf, frameHalf, 0),
+        new BABYLON.Vector3(-frameHalf, -frameHalf, 0)
+    ];
+    const pageBorder = BABYLON.MeshBuilder.CreateTube("pageBorder", { path: pageBorderPoints, radius: 0.1, cap: BABYLON.Mesh.CAP_ALL }, scene);
+    pageBorder.parent = pageMesh;
+    pageBorder.material = frameBorderMaterial;
+    pageBorder.isPickable = false;
+
+    pageHinge.setEnabled(false); // Hidden initially
+
+    let isPageOpen = false;
+    const togglePage = () => {
+        if (isPageOpen) {
+            // Close animation
+            const anim = new BABYLON.Animation("closePage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+            anim.setKeys([{ frame: 0, value: 2 * Math.PI / 3 }, { frame: 30, value: 0 }]);
+            pageHinge.animations = [anim];
+            scene.beginAnimation(pageHinge, 0, 30, false, 1, () => {
+                pageHinge.setEnabled(false);
+                planeMaterial.diffuseTexture = drawingTexture; // Restore drawing on the glass
+            });
+            isPageOpen = false;
+        } else {
+            // Open animation
+            planeMaterial.diffuseTexture = null; // Hide drawing on the glass
+            pageHinge.setEnabled(true);
+            const anim = new BABYLON.Animation("openPage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+            anim.setKeys([{ frame: 0, value: 0 }, { frame: 30, value: 2 * Math.PI / 3 }]);
+            pageHinge.animations = [anim];
+            scene.beginAnimation(pageHinge, 0, 30, false);
+            isPageOpen = true;
+        }
+    };
+
     // 6. Create stylus (stickMesh) to match Dürer's original design
     const stickMesh = BABYLON.MeshBuilder.CreateCylinder("stickMesh", { diameterTop: 0.02, diameterBottom: 0.15, height: 3.5 }, scene);
 
@@ -268,10 +325,27 @@ const createScene = function () {
         }
     };
 
-    // Pointillist Drawing Interaction
+    // Pointillist Drawing and Frame Interaction
     scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
-            if (!isAnimating) drawPointAtStick();
+            // Check for frame click to toggle the page
+            if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit) {
+                const pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                if (pickedMesh === gridPlane || pickedMesh === borderBottom || pickedMesh === borderTop || pickedMesh === borderLeft || pickedMesh === borderRight) {
+                    if (isAnimating) {
+                        toggleAnimation();
+                    }
+                    togglePage();
+                    return; // Prevent drawing if we clicked the frame
+                }
+            }
+
+            if (!isAnimating) {
+                if (isPageOpen) {
+                    togglePage();
+                }
+                drawPointAtStick();
+            }
         }
     });
 
@@ -290,6 +364,12 @@ const createScene = function () {
             resetBtn.disabled = false;
         } else {
             if (!targetMesh || !_samplePositions) return;
+            
+            // Force the page to close before starting the drawing animation
+            if (isPageOpen) {
+                togglePage();
+            }
+            
             isAnimating = true;
             if (_scanProgress >= _scanIndices.length) {
                 _scanProgress = 0;
