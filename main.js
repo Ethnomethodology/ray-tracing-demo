@@ -39,6 +39,22 @@ const createScene = function () {
     tableMaterial.diffuseColor = new BABYLON.Color3(0.35, 0.22, 0.12); // Richer wooden/walnut brown
     tableMesh.material = tableMaterial;
 
+    // 3a. Table Legs
+    const legHeight = 15;
+    const legDiameter = 0.6;
+    const legPositions = [
+        new BABYLON.Vector3(5.5, -legHeight/2, 11.5),
+        new BABYLON.Vector3(-5.5, -legHeight/2, 11.5),
+        new BABYLON.Vector3(5.5, -legHeight/2, -11.5),
+        new BABYLON.Vector3(-5.5, -legHeight/2, -11.5)
+    ];
+    legPositions.forEach((pos, i) => {
+        const leg = BABYLON.MeshBuilder.CreateCylinder(`tableLeg${i}`, { diameter: legDiameter, height: legHeight }, scene);
+        leg.parent = tableMesh;
+        leg.position = pos;
+        leg.material = tableMaterial;
+    });
+
     // 3b. Environment: The Wall (For the Pulley)
     const wallMesh = BABYLON.MeshBuilder.CreatePlane("wallMesh", { size: 40 }, scene);
     wallMesh.position.z = 16;
@@ -182,7 +198,7 @@ const createScene = function () {
     // 8. Pulley and String System
     // PulleyNode at the "Eye" point (on the wall)
     const pulleyNode = new BABYLON.Vector3(0, 10, 15.5);
-    const maxStringLength = 50.0; // Twice the length of the table (25 * 2)
+    const maxStringLength = 35.0; // Reduced by 30% (originally 50.0)
 
     const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
     pulleyMesh.position.copyFrom(pulleyNode);
