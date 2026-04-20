@@ -17,12 +17,12 @@ const createScene = function() {
     let _textureDirty = false;
     let _samplePositions = null;
 
-    // 1. ArcRotateCamera setup
-    const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 4, Math.PI / 2.5, 50, new BABYLON.Vector3(0, 0, -5), scene);
+    // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
+    const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 6, Math.PI / 2.2, 45, new BABYLON.Vector3(0, 0, 0), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
-    camera.upperRadiusLimit = 60;
+    camera.upperRadiusLimit = 80;
 
     // 2. Lighting setup
     const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
@@ -30,13 +30,21 @@ const createScene = function() {
     const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), scene);
     dirLight.intensity = 0.3;
 
-    // 3. Environment: The Table
-    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 15, height: 0.5, depth: 20 }, scene);
-    tableMesh.position.y = -5.25; // Top surface exactly at Y = -5
-    tableMesh.position.z = -1.66; // Maintain 1:2 ratio around the grid (z=-5)
+    // 3. Environment: The Table (Extended to bridge Lute and Frame)
+    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 12, height: 0.5, depth: 25 }, scene);
+    tableMesh.position.y = -5.25; 
+    tableMesh.position.z = -7.5; // Offset to sit under both Lute (-10) and Frame (0)
     const tableMaterial = new BABYLON.StandardMaterial("tableMaterial", scene);
-    tableMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.85, 0.8); // Light wood/parchment
+    tableMaterial.diffuseColor = new BABYLON.Color3(0.85, 0.8, 0.75);
     tableMesh.material = tableMaterial;
+
+    // 3b. Environment: The Wall (For the Pulley)
+    const wallMesh = BABYLON.MeshBuilder.CreatePlane("wallMesh", { size: 40 }, scene);
+    wallMesh.position.z = 16;
+    wallMesh.rotation.y = Math.PI; // Face towards the scene
+    const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
+    wallMaterial.diffuseColor = new BABYLON.Color3(0.95, 0.95, 0.95);
+    wallMesh.material = wallMaterial;
 
     // 4. Create targetMesh (Historical Lute)
     let targetMesh = null;
@@ -65,15 +73,24 @@ const createScene = function() {
                 const size = boundingInfo.maximum.subtract(boundingInfo.minimum);
                 const maxDim = Math.max(size.x, size.y, size.z);
                 
-                const scaleFactor = (maxDim > 0.001) ? 4 / maxDim : 1;
+                const scaleFactor = (maxDim > 0.001) ? 15 / maxDim : 2.5; // 2.5x size (was 18/maxDim)
                 targetMesh.scaling.setAll(scaleFactor);
 
+                // HISTORICAL ORIENTATION - Rotate Face Up and Point Neck towards Frame
+                targetMesh.rotation.x = Math.PI; // Flip from "upside down"
+                targetMesh.rotation.y = Math.PI; // Neck points towards +Z (the Frame)
+
+                // Refresh bounding info after rotation and scaling to "put it on the table" correctly
+                targetMesh.computeWorldMatrix(true);
+                const postTransformBoundingInfo = targetMesh.getBoundingInfo();
+                const currentMinY = postTransformBoundingInfo.boundingBox.minimumWorld.y;
+                
                 // Position the model so its base is exactly on the table (Y = -5)
-                const minY = boundingInfo.minimum.y * scaleFactor;
-                targetMesh.position.set(0, -5 - minY, 0);
+                // We adjust Y by the difference between current minimum and target (-5)
+                targetMesh.position.set(0, -5 - currentMinY, -10);
                 
                 targetMesh.computeWorldMatrix(true);
-                // Picking Optimization: Freeze matrix for a static merged mesh
+                // Picking Optimization
                 targetMesh.freezeWorldMatrix();
                 
                 // Pre-cache positions for the animator
@@ -95,7 +112,7 @@ const createScene = function() {
         size: gridSize,
         sideOrientation: BABYLON.Mesh.DOUBLESIDE
     }, scene);
-    gridPlane.position = new BABYLON.Vector3(0, 0, -5); // Bottom edge is at Y = -5
+    gridPlane.position = new BABYLON.Vector3(0, 0, 0); // Frame at Origin (Center of world)
 
     // Setup DynamicTexture for the drawing engine
     const textureSize = 1024;
@@ -152,13 +169,14 @@ const createScene = function() {
     });
 
     // 8. Pulley and String System
-    // PulleyNode adjusted for better table clearance
-    const pulleyNode = new BABYLON.Vector3(0, 8, -25);
-    const maxStringLength = 50.0;
+    // PulleyNode at the "Eye" point (on the wall)
+    const pulleyNode = new BABYLON.Vector3(0, 0, 15);
+    const maxStringLength = 60.0;
 
     const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
     pulleyMesh.position.copyFrom(pulleyNode);
-    pulleyMesh.rotation.z = Math.PI / 2;
+    pulleyMesh.position.z += 0.5; // Offset slightly from wall
+    pulleyMesh.rotation.x = Math.PI / 2;
     const pulleyMaterial = new BABYLON.StandardMaterial("pulleyMaterial", scene);
     pulleyMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.2, 0.1);
     pulleyMesh.material = pulleyMaterial;
@@ -277,16 +295,16 @@ const createScene = function() {
         if (isAnimating) toggleAnimation();
 
         // Reset Camera
-        const targetPos = new BABYLON.Vector3(0, 0, -5);
+        const targetPos = new BABYLON.Vector3(0, 0, 0);
         
         // Animation
         const animationAlpha = new BABYLON.Animation("cameraAlpha", "alpha", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
         const animationBeta = new BABYLON.Animation("cameraBeta", "beta", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
         
-        const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: Math.PI / 4 }];
-        const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.5 }];
-        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 50 }];
+        const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: Math.PI / 6 }];
+        const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.2 }];
+        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 45 }];
         
         animationAlpha.setKeys(keysAlpha);
         animationBeta.setKeys(keysBeta);

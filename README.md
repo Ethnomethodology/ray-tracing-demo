@@ -28,15 +28,15 @@ This project bridges 16th-century artistic technology with 21st-century computer
 Because the application loads external 3D assets (`.obj` files), it requires a local web server to bypass browser CORS restrictions.
 
 1.  **Clone the repository** (or navigate to the project folder).
-2.  **Start a local server**:
+2.  **Install dependencies**:
     ```bash
-    # Using Python 3
-    python3 -m http.server 8000
-    
-    # Or using npx
-    npx serve .
+    npm install
     ```
-3.  **Open in Browser**: Navigate to `http://localhost:8000`.
+3.  **Start the server**:
+    ```bash
+    npm start
+    ```
+4.  **Open in Browser**: Navigate to `http://localhost:8000`.
 
 ## Instructions for use
 

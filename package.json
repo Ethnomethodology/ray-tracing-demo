@@ -1,0 +1,17 @@
+{
+  "name": "ray-tracing-demo",
+  "version": "1.0.0",
+  "description": "An interactive, high-fidelity 3D simulation of Albrecht Dürer's 1525 perspective drawing apparatus, as described in his seminal work *Underweysung der Messung mit dem Zirckel und Richtscheyt* (A Course in the Art of Measurement with a Compass and Ruler).",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
