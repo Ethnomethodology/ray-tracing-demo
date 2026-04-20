@@ -341,10 +341,13 @@ const createScene = function () {
             }
 
             if (!isAnimating) {
-                if (isPageOpen) {
-                    togglePage();
+                // Only take a sample and close the page if the actual object (Lute, etc.) was clicked
+                if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh === targetMesh) {
+                    if (isPageOpen) {
+                        togglePage();
+                    }
+                    drawPointAtStick();
                 }
-                drawPointAtStick();
             }
         }
     });
