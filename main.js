@@ -37,29 +37,43 @@ const createScene = function() {
     targetMaterial.diffuseColor = new BABYLON.Color3(0.38, 0.4, 0.95);
     targetMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 
-    BABYLON.SceneLoader.ImportMeshAsync("", "./", "lute.obj", scene).then((result) => {
-        // Merge all meshes into a single one for easier vertex sampling and raycasting
-        const merged = BABYLON.Mesh.MergeMeshes(result.meshes, true, true, undefined, false, true);
-        if (merged) {
-            targetMesh = merged;
-            targetMesh.name = "targetMesh";
-            targetMesh.material = targetMaterial;
-
-            // Normalize scale to fit the workspace (~4 units)
-            const boundingInfo = targetMesh.getBoundingInfo();
-            const size = boundingInfo.maximum.subtract(boundingInfo.minimum);
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const scaleFactor = 4 / maxDim;
-            targetMesh.scaling.scaleInPlace(scaleFactor);
-
-            // Position it so the bottom rests exactly on the table (Y = -5)
-            const centerY = (boundingInfo.maximum.y + boundingInfo.minimum.y) / 2 * scaleFactor;
-            const minY = boundingInfo.minimum.y * scaleFactor;
-            targetMesh.position.set(0, -5 - minY, 0);
+    BABYLON.SceneLoader.ImportMeshAsync("", "./", "lute.glb", scene).then((result) => {
+        // Find the root and all meshes with geometry
+        const root = result.meshes[0];
+        const actualMeshes = result.meshes.filter(m => m instanceof BABYLON.Mesh && m.getTotalVertices() > 0);
+        
+        if (actualMeshes.length > 0) {
+            // Bake world transforms into a single merged mesh for the animator/raycaster
+            // This avoids coordinate system mismatches between GLB (Y-up) and Babylon (Y-up with root rotation)
+            actualMeshes.forEach(m => m.computeWorldMatrix(true));
+            const merged = BABYLON.Mesh.MergeMeshes(actualMeshes, true, true, undefined, false, true);
             
-            // Ensure targetMesh has valid world matrix for first interaction
-            targetMesh.computeWorldMatrix(true);
+            if (merged) {
+                targetMesh = merged;
+                targetMesh.name = "targetMesh";
+                targetMesh.material = targetMaterial;
+
+                // Accurately calculate the scale based on the merged geometry
+                const boundingInfo = targetMesh.getBoundingInfo();
+                const size = boundingInfo.maximum.subtract(boundingInfo.minimum);
+                const maxDim = Math.max(size.x, size.y, size.z);
+                
+                const scaleFactor = (maxDim > 0.001) ? 4 / maxDim : 1;
+                targetMesh.scaling.setAll(scaleFactor);
+
+                // Position the model so its base is exactly on the table (Y = -5)
+                const minY = boundingInfo.minimum.y * scaleFactor;
+                targetMesh.position.set(0, -5 - minY, 0);
+                
+                targetMesh.computeWorldMatrix(true);
+            }
         }
+        
+        // Remove the original root if it's still floating around empty
+        if (root && root !== targetMesh) {
+            root.dispose();
+        }
+
     }).catch(err => console.error("Lute failed to load:", err));
     
 
