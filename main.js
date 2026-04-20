@@ -11,7 +11,7 @@ const createScene = function() {
     scene.clearColor = new BABYLON.Color4(1, 1, 1, 1); // Laboratory White
 
     // 1. ArcRotateCamera setup
-    const camera = new BABYLON.ArcRotateCamera("camera", 0.5, Math.PI / 2.2, 35, new BABYLON.Vector3(0, 0, -5), scene);
+    const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 4, Math.PI / 2.5, 50, new BABYLON.Vector3(0, 0, -5), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
@@ -24,8 +24,8 @@ const createScene = function() {
     dirLight.intensity = 0.3;
 
     // 3. Environment: The Table
-    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 30, height: 0.5, depth: 30 }, scene);
-    tableMesh.position.y = -3.5;
+    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 15, height: 0.5, depth: 40 }, scene);
+    tableMesh.position.y = -5.25; // Top surface exactly at Y = -5
     const tableMaterial = new BABYLON.StandardMaterial("tableMaterial", scene);
     tableMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.85, 0.8); // Light wood/parchment
     tableMesh.material = tableMaterial;
@@ -47,12 +47,12 @@ const createScene = function() {
     targetMesh.material = targetMaterial;
 
     // 5. Create gridPlane (Dürer's Frame)
-    const gridSize = 12;
+    const gridSize = 10;
     const gridPlane = BABYLON.MeshBuilder.CreatePlane("gridPlane", {
         size: gridSize,
         sideOrientation: BABYLON.Mesh.DOUBLESIDE
     }, scene);
-    gridPlane.position = new BABYLON.Vector3(0, 2, -5); 
+    gridPlane.position = new BABYLON.Vector3(0, 0, -5); // Bottom edge is at Y = -5
 
     // Setup DynamicTexture for the drawing engine
     const textureSize = 1024;
@@ -72,6 +72,7 @@ const createScene = function() {
     const planeMaterial = new BABYLON.StandardMaterial("planeMaterial", scene);
     planeMaterial.diffuseTexture = drawingTexture;
     planeMaterial.useAlphaFromDiffusetexture = true;
+    planeMaterial.alpha = 0.4; // Transparency polish
     planeMaterial.backFaceCulling = false;
     gridPlane.material = planeMaterial;
 
@@ -108,8 +109,9 @@ const createScene = function() {
     });
 
     // 8. Pulley and String System
-    const pulleyNode = new BABYLON.Vector3(0, 5, -15);
-    const maxStringLength = 40.0;
+    // PulleyNode adjusted for better table clearance
+    const pulleyNode = new BABYLON.Vector3(0, 8, -25);
+    const maxStringLength = 50.0;
 
     const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
     pulleyMesh.position.copyFrom(pulleyNode);
@@ -163,23 +165,21 @@ const createScene = function() {
 
     // 10. UI Controller
     const resetScene = () => {
-        // Clear dots
+        // Clear dots with proper alpha wipe
+        textureCtx.clearRect(0, 0, textureSize, textureSize);
         clearCanvas();
 
         // Reset Camera
-        // alpha: 0 is from the side (+X), Looking at center.
-        // beta: PI/2 is horizontal.
-        // target: grid center.
-        const targetPos = new BABYLON.Vector3(0, 2, -5);
+        const targetPos = new BABYLON.Vector3(0, 0, -5);
         
         // Animation
         const animationAlpha = new BABYLON.Animation("cameraAlpha", "alpha", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
         const animationBeta = new BABYLON.Animation("cameraBeta", "beta", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
         
-        const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: 0 }];
-        const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.2 }];
-        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 40 }];
+        const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: Math.PI / 4 }];
+        const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.5 }];
+        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 50 }];
         
         animationAlpha.setKeys(keysAlpha);
         animationBeta.setKeys(keysBeta);
