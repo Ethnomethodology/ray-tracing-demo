@@ -104,18 +104,38 @@ const createScene = function () {
     planeMaterial.backFaceCulling = false;
     gridPlane.material = planeMaterial;
 
-    // Frame Border
+    // Frame Border (Physical black frame, constructed from 4 boxes)
     const frameHalf = gridSize / 2;
-    const framePoints = [
-        new BABYLON.Vector3(-frameHalf, -frameHalf, 0),
-        new BABYLON.Vector3(frameHalf, -frameHalf, 0),
-        new BABYLON.Vector3(frameHalf, frameHalf, 0),
-        new BABYLON.Vector3(-frameHalf, frameHalf, 0),
-        new BABYLON.Vector3(-frameHalf, -frameHalf, 0)
-    ];
-    const frameBorder = BABYLON.MeshBuilder.CreateLines("frameBorder", { points: framePoints }, scene);
-    frameBorder.parent = gridPlane;
-    frameBorder.color = new BABYLON.Color3(0.2, 0.2, 0.2);
+    const borderThickness = 0.2;
+    const borderDepth = 0.2;
+    
+    const frameBorderMaterial = new BABYLON.StandardMaterial("frameBorderMat", scene);
+    frameBorderMaterial.diffuseColor = new BABYLON.Color3(0.02, 0.02, 0.02); // Black
+    frameBorderMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+
+    // Bottom border (shifted up by borderThickness/2 so bottom edge sits exactly at -frameHalf, i.e., -5.0)
+    const borderBottom = BABYLON.MeshBuilder.CreateBox("borderBottom", { width: gridSize + borderThickness * 2, height: borderThickness, depth: borderDepth }, scene);
+    borderBottom.parent = gridPlane;
+    borderBottom.position = new BABYLON.Vector3(0, -frameHalf + borderThickness / 2, 0);
+    borderBottom.material = frameBorderMaterial;
+
+    // Top border
+    const borderTop = BABYLON.MeshBuilder.CreateBox("borderTop", { width: gridSize + borderThickness * 2, height: borderThickness, depth: borderDepth }, scene);
+    borderTop.parent = gridPlane;
+    borderTop.position = new BABYLON.Vector3(0, frameHalf + borderThickness / 2, 0);
+    borderTop.material = frameBorderMaterial;
+
+    // Left border
+    const borderLeft = BABYLON.MeshBuilder.CreateBox("borderLeft", { width: borderThickness, height: gridSize, depth: borderDepth }, scene);
+    borderLeft.parent = gridPlane;
+    borderLeft.position = new BABYLON.Vector3(-frameHalf - borderThickness / 2, 0, 0);
+    borderLeft.material = frameBorderMaterial;
+
+    // Right border
+    const borderRight = BABYLON.MeshBuilder.CreateBox("borderRight", { width: borderThickness, height: gridSize, depth: borderDepth }, scene);
+    borderRight.parent = gridPlane;
+    borderRight.position = new BABYLON.Vector3(frameHalf + borderThickness / 2, 0, 0);
+    borderRight.material = frameBorderMaterial;
 
     // 6. Create stylus (stickMesh) to match Dürer's original design
     const stickMesh = BABYLON.MeshBuilder.CreateCylinder("stickMesh", { diameterTop: 0.02, diameterBottom: 0.15, height: 3.5 }, scene);
