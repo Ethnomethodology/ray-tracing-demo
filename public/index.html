@@ -14,55 +14,94 @@
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 </head>
 <body>
-    <div class="ui-container left">
-        <div class="ui-overlay">
-            <h1>Dürer's Drawing Apparatus</h1>
-            <p>An interactive demo of Albrecht Dürer's perspective drawing apparatus based on <i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525).</p>
+    <section class="intro-section">
+        <h1>Ray Tracing Demo</h1>
+        <div class="intro-content">
+            <img src="images/durer_lute_woodcut.jpg" alt="Dürer's Woodcut" class="header-image">
+            <div class="intro-text">
+                <!-- Text will be added here later -->
+            </div>
+        </div>
+    </section>
+
+    <section class="demo-section">
+        <div class="ui-container left">
+            <div class="ui-overlay">
+                <h1>Dürer's Drawing Apparatus</h1>
+                <p>An interactive demo of Albrecht Dürer's perspective drawing apparatus based on <i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525).</p>
+            </div>
+            
+            <div class="button-container">
+                <div class="object-toggles">
+                    <button class="btn-toggle active" data-target="lute">Lute</button>
+                    <button class="btn-toggle" data-target="teapot">Teapot</button>
+                    <button class="btn-toggle" data-target="sphere">Sphere</button>
+                </div>
+                <div class="action-buttons">
+                    <button id="animateBtn" class="btn-animate">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        Animate
+                    </button>
+                    <button id="resetBtn" class="btn-reset">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                        Reset Scene
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ui-container right">
+            <div class="ui-overlay">
+                <h1>Instructions for the Draughtsman</h1>
+                <div class="instruction-steps">
+                    <div class="step">
+                        <span class="step-num">I</span>
+                        <p>Guide the stylus to a point of interest on the object's surface.</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">II</span>
+                        <p>Click to mark where the taut thread passes through the frame.</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">III</span>
+                        <p>Repeat the above two steps to draw multiple points from the object.</p>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">IV</span>
+                        <p>Observe how a perspective drawing of the object emerges like a pointillist depiction of it.</p>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="button-container">
-            <div class="object-toggles">
-                <button class="btn-toggle active" data-target="lute">Lute</button>
-                <button class="btn-toggle" data-target="teapot">Teapot</button>
-                <button class="btn-toggle" data-target="sphere">Sphere</button>
-            </div>
-            <div class="action-buttons">
-                <button id="animateBtn" class="btn-animate">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                    Animate
-                </button>
-                <button id="resetBtn" class="btn-reset">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-                    Reset Scene
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="ui-container right">
-        <div class="ui-overlay">
-            <h1>Instructions for the Draughtsman</h1>
-            <div class="instruction-steps">
-                <div class="step">
-                    <span class="step-num">I</span>
-                    <p>Guide the stylus to a point of interest on the object's surface.</p>
-                </div>
-                <div class="step">
-                    <span class="step-num">II</span>
-                    <p>Click to mark where the taut thread passes through the frame.</p>
-                </div>
-                <div class="step">
-                    <span class="step-num">III</span>
-                    <p>Repeat the above two steps to draw multiple points from the object.</p>
-                </div>
-                <div class="step">
-                    <span class="step-num">IV</span>
-                    <p>Observe how a perspective drawing of the object emerges like a pointillist depiction of it.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <canvas id="renderCanvas"></canvas>
+        <canvas id="renderCanvas"></canvas>
+    </section>
+
+    <section class="references-section">
+        <h2>References</h2>
+        <ol class="references-list">
+            <li>
+                <a href="https://artsandculture.google.com/asset/the-draughtsman-of-the-lute/CQHQAZiHEhh0dQ?hl=en" target="_blank" rel="noopener noreferrer">
+                    The Draughtsman of the Lute - Google Arts & Culture
+                </a>
+            </li>
+            <li>
+                <a href="https://www.vanedwards.co.uk/month/jul99/month.htm" target="_blank" rel="noopener noreferrer">
+                    Lute Design and the Woodcut of Dürer - Van Edwards
+                </a>
+            </li>
+            <li>
+                <a href="https://www.pablogarcia.org/testpage-sportello" target="_blank" rel="noopener noreferrer">
+                    The Sportello - Pablo Garcia
+                </a>
+            </li>
+            <li>
+                <a href="https://blogs.unimelb.edu.au/librarycollections/2017/08/13/finding-durers-perspective/" target="_blank" rel="noopener noreferrer">
+                    Finding Dürer’s Perspective - University of Melbourne
+                </a>
+            </li>
+        </ol>
+    </section>
 
     <script src="js/main.js"></script>
 </body>
