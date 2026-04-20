@@ -44,6 +44,7 @@ const createScene = function() {
     wallMesh.rotation.y = Math.PI; // Face towards the scene
     const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
     wallMaterial.diffuseColor = new BABYLON.Color3(0.95, 0.95, 0.95);
+    wallMaterial.alpha = 0.1; // Make the wall transparent as requested
     wallMesh.material = wallMaterial;
 
     // 4. Create targetMesh (Historical Lute)
@@ -170,12 +171,11 @@ const createScene = function() {
 
     // 8. Pulley and String System
     // PulleyNode at the "Eye" point (on the wall)
-    const pulleyNode = new BABYLON.Vector3(0, 0, 15);
-    const maxStringLength = 60.0;
+    const pulleyNode = new BABYLON.Vector3(0, 5, 15.5);
+    const maxStringLength = 50.0; // Twice the length of the table (25 * 2)
 
     const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
     pulleyMesh.position.copyFrom(pulleyNode);
-    pulleyMesh.position.z += 0.5; // Offset slightly from wall
     pulleyMesh.rotation.x = Math.PI / 2;
     const pulleyMaterial = new BABYLON.StandardMaterial("pulleyMaterial", scene);
     pulleyMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.2, 0.1);
