@@ -31,21 +31,37 @@ const createScene = function() {
     tableMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.85, 0.8); // Light wood/parchment
     tableMesh.material = tableMaterial;
 
-    // 4. Create targetMesh (TorusKnot)
-    const targetMesh = BABYLON.MeshBuilder.CreateTorusKnot("targetMesh", {
-        radius: 1.5,
-        tube: 0.4,
-        radialSegments: 128,
-        tubularSegments: 64,
-        p: 2,
-        q: 3
-    }, scene);
-    targetMesh.position = new BABYLON.Vector3(0, 0, 0);
-
+    // 4. Create targetMesh (Historical Lute)
+    let targetMesh = null;
     const targetMaterial = new BABYLON.StandardMaterial("targetMaterial", scene);
     targetMaterial.diffuseColor = new BABYLON.Color3(0.38, 0.4, 0.95);
     targetMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-    targetMesh.material = targetMaterial;
+
+    BABYLON.SceneLoader.ImportMeshAsync("", "./", "lute.obj", scene).then((result) => {
+        // Merge all meshes into a single one for easier vertex sampling and raycasting
+        const merged = BABYLON.Mesh.MergeMeshes(result.meshes, true, true, undefined, false, true);
+        if (merged) {
+            targetMesh = merged;
+            targetMesh.name = "targetMesh";
+            targetMesh.material = targetMaterial;
+
+            // Normalize scale to fit the workspace (~4 units)
+            const boundingInfo = targetMesh.getBoundingInfo();
+            const size = boundingInfo.maximum.subtract(boundingInfo.minimum);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scaleFactor = 4 / maxDim;
+            targetMesh.scaling.scaleInPlace(scaleFactor);
+
+            // Position it so the bottom rests exactly on the table (Y = -5)
+            const centerY = (boundingInfo.maximum.y + boundingInfo.minimum.y) / 2 * scaleFactor;
+            const minY = boundingInfo.minimum.y * scaleFactor;
+            targetMesh.position.set(0, -5 - minY, 0);
+            
+            // Ensure targetMesh has valid world matrix for first interaction
+            targetMesh.computeWorldMatrix(true);
+        }
+    }).catch(err => console.error("Lute failed to load:", err));
+    
 
     // 5. Create gridPlane (Dürer's Frame)
     const gridSize = 10;
@@ -102,6 +118,7 @@ const createScene = function() {
     // 7. Raycasting Interaction
     scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
+            if (!targetMesh) return;
             const pickInfo = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === targetMesh);
             if (pickInfo.hit && pickInfo.pickedPoint) {
                 stickMesh.position.copyFrom(pickInfo.pickedPoint);
@@ -185,13 +202,18 @@ const createScene = function() {
             animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Animate';
             resetBtn.disabled = false;
         } else {
-            // Start logic
-            isAnimating = true;
-            dotsDrawn = 0;
-            animateBtn.textContent = "Stop";
-            resetBtn.disabled = true;
+            if (!targetMesh) {
+                isAnimating = false;
+                animateBtn.textContent = "Animate";
+                resetBtn.disabled = false;
+                return;
+            }
 
             const positions = targetMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+            if (!positions) {
+                toggleAnimation(); // Fallback stop
+                return;
+            }
             
             animationInterval = setInterval(() => {
                 if (dotsDrawn >= 1000) {
