@@ -91,16 +91,14 @@ const createScene = function () {
 
     // Initial clear/fill function
     const clearCanvas = () => {
-        textureCtx.fillStyle = "rgba(255, 255, 255, 0.3)";
+        textureCtx.fillStyle = "#ffffff"; // Solid white paper
         textureCtx.fillRect(0, 0, textureSize, textureSize);
         drawingTexture.update();
     };
     clearCanvas();
 
     const planeMaterial = new BABYLON.StandardMaterial("planeMaterial", scene);
-    planeMaterial.diffuseTexture = drawingTexture;
-    planeMaterial.useAlphaFromDiffusetexture = true;
-    planeMaterial.alpha = 0.4; // Transparency polish
+    planeMaterial.alpha = 0.15; // Very faint glass effect
     planeMaterial.backFaceCulling = false;
     gridPlane.material = planeMaterial;
 
@@ -137,23 +135,48 @@ const createScene = function () {
     borderRight.position = new BABYLON.Vector3(frameHalf + borderThickness / 2, 0, 0);
     borderRight.material = frameBorderMaterial;
 
+
     // 5.5 Create Hinged Page (Dürer's drawing surface)
     const pageHinge = new BABYLON.TransformNode("pageHinge", scene);
     pageHinge.parent = gridPlane;
     pageHinge.position = new BABYLON.Vector3(-frameHalf, 0, 0); // Hinge on the left border
 
-    const pageMesh = BABYLON.MeshBuilder.CreatePlane("pageMesh", { size: gridSize, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+    // Use a thin Box for the paper to properly handle front/back materials and orientation
+    const pageMesh = BABYLON.MeshBuilder.CreateBox("pageMesh", { 
+        width: gridSize, 
+        height: gridSize, 
+        depth: 0.02 
+    }, scene);
     pageMesh.parent = pageHinge;
-    // Shift the plane to the right by frameHalf so its left edge is exactly at the hinge
-    // Push it slightly backward in Z so it doesn't Z-fight with the gridPlane lines
-    pageMesh.position = new BABYLON.Vector3(frameHalf, 0, -0.05);
-    
-    const pageMaterial = new BABYLON.StandardMaterial("pageMaterial", scene);
-    pageMaterial.diffuseTexture = drawingTexture;
-    pageMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // White paper background
-    pageMaterial.disableLighting = true; // Flat shading like paper
-    pageMesh.material = pageMaterial;
-    pageMesh.isPickable = false; // Don't block raycasts
+    // Position it so the front face sits at z = -0.05
+    pageMesh.position = new BABYLON.Vector3(frameHalf, 0, -0.06);
+    pageMesh.isPickable = false;
+
+    // Materials for the page
+    const pageInnerMaterial = new BABYLON.StandardMaterial("pageInnerMaterial", scene);
+    pageInnerMaterial.diffuseTexture = drawingTexture;
+    pageInnerMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+    pageInnerMaterial.disableLighting = true;
+
+    const pageOuterMaterial = new BABYLON.StandardMaterial("pageOuterMaterial", scene);
+    pageOuterMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+    pageOuterMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
+    pageOuterMaterial.disableLighting = true;
+
+    const multiMat = new BABYLON.MultiMaterial("pageMultiMat", scene);
+    multiMat.subMaterials.push(pageInnerMaterial); // Drawing
+    multiMat.subMaterials.push(pageOuterMaterial); // White
+    multiMat.subMaterials.push(pageOuterMaterial); // Sides
+    pageMesh.material = multiMat;
+
+    // Define submeshes for the box faces
+    pageMesh.subMeshes = [];
+    const verticesCount = pageMesh.getTotalVertices();
+    // Mat 0 is Drawing, Mat 1 is White. 
+    // Front (+Z) faces the frame when closed, so it gets the drawing.
+    new BABYLON.SubMesh(0, 0, verticesCount, 0, 6, pageMesh); // Front (+Z) gets Mat 0 (Drawing)
+    new BABYLON.SubMesh(1, 0, verticesCount, 6, 6, pageMesh); // Back (-Z) gets Mat 1 (White)
+    new BABYLON.SubMesh(2, 0, verticesCount, 12, 24, pageMesh);
 
     // Add a black border around the page
     const pageBorderPoints = [
@@ -165,10 +188,11 @@ const createScene = function () {
     ];
     const pageBorder = BABYLON.MeshBuilder.CreateTube("pageBorder", { path: pageBorderPoints, radius: 0.1, cap: BABYLON.Mesh.CAP_ALL }, scene);
     pageBorder.parent = pageMesh;
+    pageBorder.position.z = 0.011; // Slightly in front of the front face
     pageBorder.material = frameBorderMaterial;
     pageBorder.isPickable = false;
 
-    pageHinge.setEnabled(false); // Hidden initially
+    pageHinge.setEnabled(true); // Always visible
 
     let isPageOpen = false;
     const togglePage = () => {
@@ -177,15 +201,10 @@ const createScene = function () {
             const anim = new BABYLON.Animation("closePage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
             anim.setKeys([{ frame: 0, value: 2 * Math.PI / 3 }, { frame: 30, value: 0 }]);
             pageHinge.animations = [anim];
-            scene.beginAnimation(pageHinge, 0, 30, false, 1, () => {
-                pageHinge.setEnabled(false);
-                planeMaterial.diffuseTexture = drawingTexture; // Restore drawing on the glass
-            });
+            scene.beginAnimation(pageHinge, 0, 30, false);
             isPageOpen = false;
         } else {
             // Open animation
-            planeMaterial.diffuseTexture = null; // Hide drawing on the glass
-            pageHinge.setEnabled(true);
             const anim = new BABYLON.Animation("openPage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
             anim.setKeys([{ frame: 0, value: 0 }, { frame: 30, value: 2 * Math.PI / 3 }]);
             pageHinge.animations = [anim];
@@ -314,7 +333,7 @@ const createScene = function () {
             const uv = hit.getTextureCoordinates();
             if (uv) {
                 const x = uv.x * textureSize;
-                const y = (1 - uv.y) * textureSize;
+                const y = uv.y * textureSize; // Fixed: Removing (1 - uv.y) to correct upside-down drawing
 
                 textureCtx.fillStyle = "#000000";
                 textureCtx.beginPath();
@@ -341,9 +360,9 @@ const createScene = function () {
             }
 
             if (!isAnimating) {
-                // Only take a sample and close the page if the actual object (Lute, etc.) was clicked
+                // Only take a sample and open the page if the actual object (Lute, etc.) was clicked
                 if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh === targetMesh) {
-                    if (isPageOpen) {
+                    if (!isPageOpen) {
                         togglePage();
                     }
                     drawPointAtStick();
@@ -368,8 +387,8 @@ const createScene = function () {
         } else {
             if (!targetMesh || !_samplePositions) return;
             
-            // Force the page to close before starting the drawing animation
-            if (isPageOpen) {
+            // Ensure the page is open during drawing animation
+            if (!isPageOpen) {
                 togglePage();
             }
             
