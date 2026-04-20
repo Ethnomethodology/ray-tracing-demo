@@ -24,8 +24,9 @@ const createScene = function() {
     dirLight.intensity = 0.3;
 
     // 3. Environment: The Table
-    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 15, height: 0.5, depth: 40 }, scene);
+    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 15, height: 0.5, depth: 20 }, scene);
     tableMesh.position.y = -5.25; // Top surface exactly at Y = -5
+    tableMesh.position.z = -1.66; // Maintain 1:2 ratio around the grid (z=-5)
     const tableMaterial = new BABYLON.StandardMaterial("tableMaterial", scene);
     tableMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.85, 0.8); // Light wood/parchment
     tableMesh.material = tableMaterial;
