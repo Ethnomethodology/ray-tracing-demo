@@ -10,6 +10,13 @@ const createScene = function() {
     const scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(1, 1, 1, 1); // Laboratory White
 
+    // Performance Optimization: Pre-allocated objects to reduce GC pressure
+    const _tempVec = new BABYLON.Vector3();
+    const _tempDirection = new BABYLON.Vector3();
+    const _sharedRay = new BABYLON.Ray(BABYLON.Vector3.Zero(), BABYLON.Vector3.Up(), 100);
+    let _textureDirty = false;
+    let _samplePositions = null;
+
     // 1. ArcRotateCamera setup
     const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 4, Math.PI / 2.5, 50, new BABYLON.Vector3(0, 0, -5), scene);
     camera.attachControl(canvas, true);
@@ -66,6 +73,11 @@ const createScene = function() {
                 targetMesh.position.set(0, -5 - minY, 0);
                 
                 targetMesh.computeWorldMatrix(true);
+                // Picking Optimization: Freeze matrix for a static merged mesh
+                targetMesh.freezeWorldMatrix();
+                
+                // Pre-cache positions for the animator
+                _samplePositions = targetMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
             }
         }
         
@@ -88,7 +100,6 @@ const createScene = function() {
     // Setup DynamicTexture for the drawing engine
     const textureSize = 1024;
     const drawingTexture = new BABYLON.DynamicTexture("drawingTexture", { width: textureSize, height: textureSize }, scene);
-    const ctx = drawingTexture.getScene().getEngine().getRenderingCanvas().getContext('2d'); // This is not correct, we need the texture ctx
     const textureCtx = drawingTexture.getContext();
     drawingTexture.hasAlpha = true;
     
@@ -164,19 +175,53 @@ const createScene = function() {
     segmentB.color = new BABYLON.Color3(0.3, 0.3, 0.3);
 
     scene.onBeforeRenderObservable.add(() => {
+        // 1. Update Pulleys and Weights
         const distanceA = BABYLON.Vector3.Distance(stickMesh.position, pulleyNode);
         const lengthB = maxStringLength - distanceA;
         weightMesh.position.set(pulleyNode.x, pulleyNode.y - lengthB, pulleyNode.z);
 
-        segmentA = BABYLON.MeshBuilder.CreateLines("segmentA", { points: [stickMesh.position, pulleyNode], instance: segmentA });
-        segmentB = BABYLON.MeshBuilder.CreateLines("segmentB", { points: [pulleyNode, weightMesh.position], instance: segmentB });
+        if (segmentA) BABYLON.MeshBuilder.CreateLines("segmentA", { points: [stickMesh.position, pulleyNode], instance: segmentA });
+        if (segmentB) BABYLON.MeshBuilder.CreateLines("segmentB", { points: [pulleyNode, weightMesh.position], instance: segmentB });
+
+        // 2. Throttled Drawing Update: Only update GPU texture once per frame if dirty
+        if (_textureDirty) {
+            drawingTexture.update();
+            _textureDirty = false;
+        }
+
+        // 3. Frame-synced Animator Logic
+        if (isAnimating && _samplePositions) {
+            if (dotsDrawn >= 1000) {
+                toggleAnimation();
+                return;
+            }
+
+            // Sample 2 points per frame at 60fps is faster and smoother than 1 point at 100fps
+            for (let i = 0; i < 2; i++) {
+                if (dotsDrawn >= 1000) break;
+                
+                const vertexIndex = Math.floor(Math.random() * (_samplePositions.length / 3)) * 3;
+                _tempVec.set(
+                    _samplePositions[vertexIndex], 
+                    _samplePositions[vertexIndex + 1], 
+                    _samplePositions[vertexIndex + 2]
+                );
+                
+                // Use cached world matrix for transformation (no computeWorldMatrix call)
+                BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
+                drawPointAtStick();
+                dotsDrawn++;
+            }
+        }
     });
 
     // 9. Core Drawing Function (DRY)
     const drawPointAtStick = () => {
-        const direction = stickMesh.position.subtract(pulleyNode);
-        const ray = new BABYLON.Ray(pulleyNode, direction.normalize(), 100);
-        const hit = ray.intersectsMesh(gridPlane);
+        stickMesh.position.subtractToRef(pulleyNode, _tempDirection);
+        _sharedRay.origin.copyFrom(pulleyNode);
+        _sharedRay.direction.copyFrom(_tempDirection.normalize());
+        
+        const hit = _sharedRay.intersectsMesh(gridPlane);
         
         if (hit.hit) {
             const uv = hit.getTextureCoordinates();
@@ -188,7 +233,7 @@ const createScene = function() {
                 textureCtx.beginPath();
                 textureCtx.arc(x, y, 4, 0, Math.PI * 2);
                 textureCtx.fill();
-                drawingTexture.update();
+                _textureDirty = true; // Mark for update at end of frame
             }
         }
     };
@@ -210,46 +255,14 @@ const createScene = function() {
         const resetBtn = document.getElementById("resetBtn");
 
         if (isAnimating) {
-            // Stop logic
-            clearInterval(animationInterval);
             isAnimating = false;
             animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Animate';
             resetBtn.disabled = false;
         } else {
-            if (!targetMesh) {
-                isAnimating = false;
-                animateBtn.textContent = "Animate";
-                resetBtn.disabled = false;
-                return;
-            }
-
-            const positions = targetMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-            if (!positions) {
-                toggleAnimation(); // Fallback stop
-                return;
-            }
-            
-            animationInterval = setInterval(() => {
-                if (dotsDrawn >= 1000) {
-                    toggleAnimation();
-                    return;
-                }
-
-                // Pick a random vertex and transform to world space
-                const vertexIndex = Math.floor(Math.random() * (positions.length / 3)) * 3;
-                const localPos = new BABYLON.Vector3(
-                    positions[vertexIndex], 
-                    positions[vertexIndex + 1], 
-                    positions[vertexIndex + 2]
-                );
-                
-                targetMesh.computeWorldMatrix(true);
-                const worldPos = BABYLON.Vector3.TransformCoordinates(localPos, targetMesh.getWorldMatrix());
-
-                stickMesh.position.copyFrom(worldPos);
-                drawPointAtStick();
-                dotsDrawn++;
-            }, 10);
+            if (!targetMesh || !_samplePositions) return;
+            isAnimating = true;
+            animateBtn.textContent = "Stop Animation";
+            resetBtn.disabled = true;
         }
     };
 
@@ -260,6 +273,8 @@ const createScene = function() {
         // Clear dots with proper alpha wipe
         textureCtx.clearRect(0, 0, textureSize, textureSize);
         clearCanvas();
+        dotsDrawn = 0;
+        if (isAnimating) toggleAnimation();
 
         // Reset Camera
         const targetPos = new BABYLON.Vector3(0, 0, -5);
