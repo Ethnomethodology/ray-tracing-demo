@@ -1,4 +1,4 @@
-# Dürer's Perspective Machine
+# Dürer's Perspective Apparatus
 
 An interactive, high-fidelity 3D simulation of Albrecht Dürer's 1525 perspective drawing apparatus, as described in his seminal work *Underweysung der Messung mit dem Zirckel und Richtscheyt* (A Course in the Art of Measurement with a Compass and Ruler).
 
