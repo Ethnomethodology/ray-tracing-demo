@@ -202,13 +202,15 @@ const createScene = function () {
             for (let i = 0; i < 2; i++) {
                 if (dotsDrawn >= currentLimit) break;
 
-                // Reset scan if we reach the end
-                if (_scanProgress >= _scanIndices.length) _scanProgress = 0;
+                // Wrap scan around cleanly if we reach the end
+                if (_scanProgress >= _scanIndices.length) _scanProgress = _scanProgress % _scanIndices.length;
 
                 const vertexIndex = _scanIndices[_scanProgress];
-                // Distribute 1000 points over the entire object per pass
+                // Distribute points over the entire object per pass
                 const stride = _scanIndices.length / 1000;
-                _scanProgress += Math.floor(Math.random() * stride * 1.5) + Math.floor(stride * 0.25);
+                // Ensure we advance by AT LEAST 1 index, otherwise small meshes get stuck drawing the same point
+                const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
+                _scanProgress += Math.max(1, advance);
 
                 _tempVec.set(
                     _samplePositions[vertexIndex],
@@ -400,7 +402,7 @@ const createScene = function () {
                     const merged = BABYLON.Mesh.MergeMeshes(actualMeshes, true, true, undefined, false, true);
                     if (merged) {
                         merged.rotation.y = -Math.PI / 2;
-                        setupTargetMesh(merged, 12);
+                        setupTargetMesh(merged, 9); // 25% reduction from 12
                         finalizeTargetMesh();
                     }
                 }
