@@ -347,12 +347,15 @@ const createScene = function () {
         targetMesh.freezeWorldMatrix();
 
         _samplePositions = targetMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        const _normals = targetMesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+
         _scanIndices = [];
         const matrix = targetMesh.getWorldMatrix();
         const tempV = new BABYLON.Vector3();
+        const tempN = new BABYLON.Vector3();
 
         const vertexCount = _samplePositions.length / 3;
-        const sortEntries = new Array(vertexCount);
+        const sortEntries = [];
         for (let i = 0; i < vertexCount; i++) {
             const localX = _samplePositions[i * 3];
             const localY = _samplePositions[i * 3 + 1];
@@ -360,8 +363,23 @@ const createScene = function () {
 
             BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(localX, localY, localZ, matrix, tempV);
 
+            // Physically realistic culling: ignore vertices on the "back" of the object
+            // The physical string from the wall cannot pass through the solid object
+            if (_normals) {
+                const nx = _normals[i * 3];
+                const ny = _normals[i * 3 + 1];
+                const nz = _normals[i * 3 + 2];
+                BABYLON.Vector3.TransformNormalFromFloatsToRef(nx, ny, nz, matrix, tempN);
+                
+                const toPulley = pulleyNode.subtract(tempV);
+                // If the normal points away from the pulley, the point is physically occluded
+                if (BABYLON.Vector3.Dot(tempN, toPulley) < 0) {
+                    continue;
+                }
+            }
+
             const yBucket = Math.round(tempV.y / 0.2);
-            sortEntries[i] = { index: i * 3, sortVal: -yBucket * 10000 + tempV.x };
+            sortEntries.push({ index: i * 3, sortVal: -yBucket * 10000 + tempV.x });
         }
 
         sortEntries.sort((a, b) => a.sortVal - b.sortVal);
