@@ -16,6 +16,8 @@ const createScene = function () {
     const _sharedRay = new BABYLON.Ray(BABYLON.Vector3.Zero(), BABYLON.Vector3.Up(), 100);
     let _textureDirty = false;
     let _samplePositions = null;
+    let _scanIndices = [];
+    let _scanProgress = 0;
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 6, Math.PI / 2.2, 65, new BABYLON.Vector3(0, -5, 0), scene);
@@ -120,8 +122,29 @@ const createScene = function () {
                 // Picking Optimization
                 targetMesh.freezeWorldMatrix();
 
-                // Pre-cache positions for the animator
+                // Pre-cache positions and generate structured scan path
                 _samplePositions = targetMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+                _scanIndices = [];
+                const matrix = targetMesh.getWorldMatrix();
+                const tempV = new BABYLON.Vector3();
+                
+                const vertexCount = _samplePositions.length / 3;
+                const sortEntries = new Array(vertexCount);
+                for(let i=0; i<vertexCount; i++) {
+                    const localX = _samplePositions[i*3];
+                    const localY = _samplePositions[i*3+1];
+                    const localZ = _samplePositions[i*3+2];
+                    
+                    BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(localX, localY, localZ, matrix, tempV);
+                    
+                    // Bucket Y into 0.2 unit scanlines (descending Y, ascending X)
+                    const yBucket = Math.round(tempV.y / 0.2);
+                    sortEntries[i] = { index: i * 3, sortVal: -yBucket * 10000 + tempV.x };
+                }
+                
+                sortEntries.sort((a,b) => a.sortVal - b.sortVal);
+                _scanIndices = sortEntries.map(e => e.index);
+                _scanProgress = 0;
             }
         }
 
@@ -243,8 +266,15 @@ const createScene = function () {
             // Sample 2 points per frame at 60fps is faster and smoother than 1 point at 100fps
             for (let i = 0; i < 2; i++) {
                 if (dotsDrawn >= currentLimit) break;
+                
+                // Reset scan if we reach the end
+                if (_scanProgress >= _scanIndices.length) _scanProgress = 0;
 
-                const vertexIndex = Math.floor(Math.random() * (_samplePositions.length / 3)) * 3;
+                const vertexIndex = _scanIndices[_scanProgress];
+                // Distribute 1000 points over the entire object per pass
+                const stride = _scanIndices.length / 1000;
+                _scanProgress += Math.floor(Math.random() * stride * 1.5) + Math.floor(stride * 0.25);
+
                 _tempVec.set(
                     _samplePositions[vertexIndex],
                     _samplePositions[vertexIndex + 1],
