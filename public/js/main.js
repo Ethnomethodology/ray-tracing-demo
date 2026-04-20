@@ -149,7 +149,7 @@ const createScene = function () {
     // 8. Pulley and String System
     // PulleyNode at the "Eye" point (on the wall)
     const pulleyNode = new BABYLON.Vector3(0, 10, 15.5);
-    const maxStringLength = 42; // Increased by 15% (originally 35.0)
+    const maxStringLength = 35.7; // Reduced by 15% from 42
 
     const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
     pulleyMesh.position.copyFrom(pulleyNode);
@@ -193,21 +193,20 @@ const createScene = function () {
 
         // 3. Frame-synced Animator Logic
         if (isAnimating && _samplePositions) {
-            if (dotsDrawn >= currentLimit) {
+            if (_scanProgress >= _scanIndices.length) {
                 toggleAnimation();
                 return;
             }
 
             // Sample 2 points per frame at 60fps is faster and smoother than 1 point at 100fps
             for (let i = 0; i < 2; i++) {
-                if (dotsDrawn >= currentLimit) break;
-
-                // Wrap scan around cleanly if we reach the end
-                if (_scanProgress >= _scanIndices.length) _scanProgress = _scanProgress % _scanIndices.length;
+                if (_scanProgress >= _scanIndices.length) break;
 
                 const vertexIndex = _scanIndices[_scanProgress];
                 // Distribute points over the entire object per pass
-                const stride = _scanIndices.length / 1000;
+                // We want at least 1000 steps, more for dense meshes so they get covered uniformly
+                const targetPoints = Math.max(1000, Math.min(5000, _scanIndices.length * 0.1));
+                const stride = _scanIndices.length / targetPoints;
                 // Ensure we advance by AT LEAST 1 index, otherwise small meshes get stuck drawing the same point
                 const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
                 _scanProgress += Math.max(1, advance);
@@ -259,7 +258,6 @@ const createScene = function () {
     // 10. Auto-Animator Logic
     let isAnimating = false;
     let dotsDrawn = 0;
-    let currentLimit = 1000;
     let animationInterval = null;
 
     const toggleAnimation = () => {
@@ -273,7 +271,9 @@ const createScene = function () {
         } else {
             if (!targetMesh || !_samplePositions) return;
             isAnimating = true;
-            currentLimit = dotsDrawn + 1000; // Increment the target by another 1000
+            if (_scanProgress >= _scanIndices.length) {
+                _scanProgress = 0;
+            }
             animateBtn.textContent = "Stop Animation";
             resetBtn.disabled = true;
         }
@@ -390,7 +390,7 @@ const createScene = function () {
     const loadObject = (type) => {
         resetScene();
         if (type === "lute") {
-            BABYLON.SceneLoader.ImportMeshAsync("", "./", "lute.glb", scene).then((result) => {
+            BABYLON.SceneLoader.ImportMeshAsync("", "models/", "lute.glb", scene).then((result) => {
                 const root = result.meshes[0];
                 const actualMeshes = result.meshes.filter(m => m instanceof BABYLON.Mesh && m.getTotalVertices() > 0);
                 if (actualMeshes.length > 0) {
@@ -412,7 +412,7 @@ const createScene = function () {
                 if (root && root !== targetMesh) root.dispose();
             });
         } else if (type === "teapot") {
-            BABYLON.SceneLoader.ImportMeshAsync("", "./", "teapot.glb", scene).then((result) => {
+            BABYLON.SceneLoader.ImportMeshAsync("", "models/", "teapot.glb", scene).then((result) => {
                 const root = result.meshes[0];
                 const actualMeshes = result.meshes.filter(m => m instanceof BABYLON.Mesh && m.getTotalVertices() > 0);
                 if (actualMeshes.length > 0) {
