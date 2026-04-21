@@ -419,11 +419,11 @@ const createScene = function () {
         if (_crossThreadV) _crossThreadV.dispose();
 
         _crossThreadH = BABYLON.MeshBuilder.CreateLines("crossH", { points: hPts }, scene);
-        _crossThreadH.color = new BABYLON.Color3(0.15, 0.1, 0.05);
+        _crossThreadH.color = new BABYLON.Color3(0.1, 0.3, 0.9);
         _crossThreadH.isPickable = false;
 
         _crossThreadV = BABYLON.MeshBuilder.CreateLines("crossV", { points: vPts }, scene);
-        _crossThreadV.color = new BABYLON.Color3(0.15, 0.1, 0.05);
+        _crossThreadV.color = new BABYLON.Color3(0.1, 0.3, 0.9);
         _crossThreadV.isPickable = false;
 
         _crossThreadTimeoutId = setTimeout(hideCrossThreads, CROSS_THREAD_MS);
