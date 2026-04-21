@@ -18,6 +18,7 @@ const createScene = function () {
     let _samplePositions = null;
     let _scanIndices = [];
     let _scanProgress = 0;
+    let _surfaceNormal = new BABYLON.Vector3(0, 1, 0); // Outward surface normal at current pick point
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 2.2, 45, new BABYLON.Vector3(0, -5, 0), scene);
@@ -241,6 +242,10 @@ const createScene = function () {
             if (pickInfo.hit && pickInfo.pickedPoint) {
                 stickMesh.position.copyFrom(pickInfo.pickedPoint);
 
+                // Capture the outward surface normal for stylus orientation (essentially free)
+                const pickedNormal = pickInfo.getNormal(true, true);
+                if (pickedNormal) _surfaceNormal.copyFrom(pickedNormal);
+
                 // Use the same pulley-ray test as the click guard for consistency
                 const dirToJoint = pickInfo.pickedPoint.subtract(pulleyNode).normalize();
                 const checkRay = new BABYLON.Ray(pulleyNode, dirToJoint, 200);
@@ -286,28 +291,16 @@ const createScene = function () {
         //   - The STYLUS is held perpendicular (90°) to the thread
         //   - Someone holds the stylus and pulls the thread taut to the point of interest
         //
-        // Thread direction: from joint toward pulleyNode
-        const threadDir = pulleyNode.subtract(stickMesh.position);
-        threadDir.normalize();
-
-        // Build a perpendicular axis for the stylus handle to point upward/away from the surface.
-        // The stylus (Y axis in local space) should be perpendicular to the thread.
-        // We pick the world-up vector and orthogonalize it against the thread direction.
-        const worldUp = new BABYLON.Vector3(0, 1, 0);
-        // Remove the component of worldUp along threadDir to get a perpendicular direction
-        const dot = BABYLON.Vector3.Dot(worldUp, threadDir);
-        const stylusUp = worldUp.subtract(threadDir.scale(dot));
-        if (stylusUp.length() < 0.001) {
-            // Degenerate case: thread is perfectly vertical; use Z instead
-            stylusUp.copyFrom(new BABYLON.Vector3(0, 0, 1));
-        }
-        stylusUp.normalize();
-
-        // Orient the stylus: its local +Y (handle) points along stylusUp,
-        // local -Y (tip/joint) is already at origin.
-        // Use a rotation quaternion that maps (0,1,0) → stylusUp
-        const fromVec = new BABYLON.Vector3(0, 1, 0);
-        stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(fromVec, stylusUp, stickMesh.rotationQuaternion || new BABYLON.Quaternion());
+        // Orient the stylus along the outward surface normal at the current pick point.
+        // _surfaceNormal is updated on every POINTERMOVE/POINTERDOWN from pickInfo.getNormal()
+        // which is free — it only interpolates already-computed vertex normals.
+        // The stylus tip stays at origin (joint); +Y (handle) points out along the normal.
+        const _fromVec = new BABYLON.Vector3(0, 1, 0);
+        stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(
+            _fromVec,
+            _surfaceNormal,
+            stickMesh.rotationQuaternion || new BABYLON.Quaternion()
+        );
 
         // Thread goes from joint (stickMesh.position) to pulleyNode
         const jointPos = stickMesh.position;
@@ -408,6 +401,10 @@ const createScene = function () {
                     // Update stickMesh to the freshly-picked point so the stylus and
                     // the back-face guard are always in sync.
                     stickMesh.position.copyFrom(freshPick.pickedPoint);
+
+                    // Capture the outward surface normal for stylus orientation
+                    const clickedNormal = freshPick.getNormal(true, true);
+                    if (clickedNormal) _surfaceNormal.copyFrom(clickedNormal);
 
                     // Back-face guard: ray from pulley eye toward the picked point.
                     // Front face → ray hits the mesh at the same distance as the point.
@@ -578,6 +575,16 @@ const createScene = function () {
                     if (merged) {
                         merged.rotation.y = Math.PI;
                         merged.rotation.x = Math.PI + 5 * (Math.PI / 180);
+
+                        // The lute GLB has reversed vertex normals — negate them so
+                        // lighting is correct (outward-facing) and surface-normal
+                        // stylus orientation points away from the surface.
+                        const luteNormals = merged.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+                        if (luteNormals) {
+                            for (let i = 0; i < luteNormals.length; i++) luteNormals[i] = -luteNormals[i];
+                            merged.setVerticesData(BABYLON.VertexBuffer.NormalKind, luteNormals);
+                        }
+
                         setupTargetMesh(merged, 15);
 
                         // FINE-TUNING: If the lute floats or sinks, adjust the number `3.5` below. 
