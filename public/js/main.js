@@ -20,7 +20,7 @@ const createScene = function () {
     let _scanProgress = 0;
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
-    const camera = new BABYLON.ArcRotateCamera("camera", Math.PI / 6, Math.PI / 2.2, 65, new BABYLON.Vector3(0, -5, 0), scene);
+    const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 2.2, 45, new BABYLON.Vector3(0, -5, 0), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
@@ -103,7 +103,7 @@ const createScene = function () {
     const frameHalf = gridSize / 2;
     const borderThickness = 0.2;
     const borderDepth = 0.2;
-    
+
     const frameBorderMaterial = new BABYLON.StandardMaterial("frameBorderMat", scene);
     frameBorderMaterial.diffuseColor = new BABYLON.Color3(0.02, 0.02, 0.02); // Black
     frameBorderMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
@@ -139,10 +139,10 @@ const createScene = function () {
     pageHinge.position = new BABYLON.Vector3(-frameHalf, 0, 0); // Hinge on the left border
 
     // Use a thin Box for the paper to properly handle front/back materials and orientation
-    const pageMesh = BABYLON.MeshBuilder.CreateBox("pageMesh", { 
-        width: gridSize, 
-        height: gridSize, 
-        depth: 0.02 
+    const pageMesh = BABYLON.MeshBuilder.CreateBox("pageMesh", {
+        width: gridSize,
+        height: gridSize,
+        depth: 0.02
     }, scene);
     pageMesh.parent = pageHinge;
     // Position it so the front face sits at z = -0.05
@@ -191,7 +191,8 @@ const createScene = function () {
 
     pageHinge.setEnabled(true); // Always visible
 
-    let isPageOpen = false;
+    let isPageOpen = true;
+    pageHinge.rotation.y = 2 * Math.PI / 3; // Open immediately on load, no animation
     const togglePage = () => {
         if (isPageOpen) {
             // Close animation
@@ -238,8 +239,16 @@ const createScene = function () {
             if (!targetMesh) return;
             const pickInfo = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === targetMesh);
             if (pickInfo.hit && pickInfo.pickedPoint) {
-                canvas.style.cursor = "grabbing"; // Closed fist over the object
                 stickMesh.position.copyFrom(pickInfo.pickedPoint);
+
+                // Use the same pulley-ray test as the click guard for consistency
+                const dirToJoint = pickInfo.pickedPoint.subtract(pulleyNode).normalize();
+                const checkRay = new BABYLON.Ray(pulleyNode, dirToJoint, 200);
+                const checkHit = checkRay.intersectsMesh(targetMesh, false);
+                const distToPoint = BABYLON.Vector3.Distance(pulleyNode, pickInfo.pickedPoint);
+                const isFrontFace = checkHit.hit && Math.abs(checkHit.distance - distToPoint) < 0.5;
+
+                canvas.style.cursor = isFrontFace ? "grabbing" : "not-allowed";
             } else {
                 canvas.style.cursor = "default";
             }
@@ -393,6 +402,17 @@ const createScene = function () {
             if (!isAnimating) {
                 // Only take a sample and open the page if the actual object (Lute, etc.) was clicked
                 if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh === targetMesh) {
+                    // Back-face guard using a ray from the pulley eye toward the stylus joint.
+                    // If the stylus is on a front face, the ray hits the mesh at ~the same distance
+                    // as the stylus. If it's on a back face, the ray enters the front of the mesh
+                    // first (shorter distance) — mismatch means no draw.
+                    const dirToJoint = stickMesh.position.subtract(pulleyNode).normalize();
+                    const checkRay = new BABYLON.Ray(pulleyNode, dirToJoint, 200);
+                    const checkHit = checkRay.intersectsMesh(targetMesh, false);
+                    const distToStylus = BABYLON.Vector3.Distance(pulleyNode, stickMesh.position);
+                    const isFrontFace = checkHit.hit && Math.abs(checkHit.distance - distToStylus) < 0.5;
+                    if (!isFrontFace) return; // Back-face — no dot drawn
+
                     if (!isPageOpen) {
                         togglePage();
                     }
@@ -417,12 +437,12 @@ const createScene = function () {
             resetBtn.disabled = false;
         } else {
             if (!targetMesh || !_samplePositions) return;
-            
+
             // Ensure the page is open during drawing animation
             if (!isPageOpen) {
                 togglePage();
             }
-            
+
             isAnimating = true;
             if (_scanProgress >= _scanIndices.length) {
                 _scanProgress = 0;
@@ -450,9 +470,9 @@ const createScene = function () {
         const animationBeta = new BABYLON.Animation("cameraBeta", "beta", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
-        const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: Math.PI / 6 }];
+        const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: -Math.PI / 6 }];
         const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.2 }];
-        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 65 }];
+        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 45 }];
 
         animationAlpha.setKeys(keysAlpha);
         animationBeta.setKeys(keysBeta);
@@ -523,7 +543,7 @@ const createScene = function () {
                 const ny = _normals[i * 3 + 1];
                 const nz = _normals[i * 3 + 2];
                 BABYLON.Vector3.TransformNormalFromFloatsToRef(nx, ny, nz, matrix, tempN);
-                
+
                 const toPulley = pulleyNode.subtract(tempV);
                 // If the normal points away from the pulley, the point is physically occluded
                 if (BABYLON.Vector3.Dot(tempN, toPulley) < 0) {
