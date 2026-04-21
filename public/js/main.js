@@ -400,17 +400,23 @@ const createScene = function () {
             }
 
             if (!isAnimating) {
-                // Only take a sample and open the page if the actual object (Lute, etc.) was clicked
-                if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh === targetMesh) {
-                    // Back-face guard using a ray from the pulley eye toward the stylus joint.
-                    // If the stylus is on a front face, the ray hits the mesh at ~the same distance
-                    // as the stylus. If it's on a back face, the ray enters the front of the mesh
-                    // first (shorter distance) — mismatch means no draw.
-                    const dirToJoint = stickMesh.position.subtract(pulleyNode).normalize();
+                // Re-pick targetMesh fresh on every click so we are never relying on
+                // a stale stickMesh.position from the last POINTERMOVE (e.g. after a
+                // scene rotation without hovering over the target first).
+                const freshPick = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === targetMesh);
+                if (freshPick && freshPick.hit && freshPick.pickedMesh === targetMesh) {
+                    // Update stickMesh to the freshly-picked point so the stylus and
+                    // the back-face guard are always in sync.
+                    stickMesh.position.copyFrom(freshPick.pickedPoint);
+
+                    // Back-face guard: ray from pulley eye toward the picked point.
+                    // Front face → ray hits the mesh at the same distance as the point.
+                    // Back face  → ray hits the near side first (shorter distance) → reject.
+                    const dirToJoint = freshPick.pickedPoint.subtract(pulleyNode).normalize();
                     const checkRay = new BABYLON.Ray(pulleyNode, dirToJoint, 200);
                     const checkHit = checkRay.intersectsMesh(targetMesh, false);
-                    const distToStylus = BABYLON.Vector3.Distance(pulleyNode, stickMesh.position);
-                    const isFrontFace = checkHit.hit && Math.abs(checkHit.distance - distToStylus) < 0.5;
+                    const distToPoint = BABYLON.Vector3.Distance(pulleyNode, freshPick.pickedPoint);
+                    const isFrontFace = checkHit.hit && Math.abs(checkHit.distance - distToPoint) < 0.5;
                     if (!isFrontFace) return; // Back-face — no dot drawn
 
                     if (!isPageOpen) {
