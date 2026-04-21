@@ -324,32 +324,27 @@ const createScene = function () {
                 return;
             }
 
-            // Sample 2 points per frame at 60fps is faster and smoother than 1 point at 100fps
-            for (let i = 0; i < 2; i++) {
-                if (_scanProgress >= _scanIndices.length) break;
+            // 1 dot every 3 frames ≈ 20 dots/s at 60fps — slow enough to follow comfortably
+            if (scene.getFrameId() % 3 !== 0) return;
 
-                const vertexIndex = _scanIndices[_scanProgress];
-                // Distribute points over the entire object per pass
-                // We want at least 1000 steps, more for dense meshes so they get covered uniformly
-                const targetPoints = Math.max(1000, Math.min(5000, _scanIndices.length * 0.1));
-                const stride = _scanIndices.length / targetPoints;
-                // Ensure we advance by AT LEAST 1 index, otherwise small meshes get stuck drawing the same point
-                const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
-                _scanProgress += Math.max(1, advance);
+            if (_scanProgress >= _scanIndices.length) return;
 
-                _tempVec.set(
-                    _samplePositions[vertexIndex],
-                    _samplePositions[vertexIndex + 1],
-                    _samplePositions[vertexIndex + 2]
-                );
+            const vertexIndex = _scanIndices[_scanProgress];
+            const targetPoints = Math.max(1000, Math.min(5000, _scanIndices.length * 0.1));
+            const stride = _scanIndices.length / targetPoints;
+            const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
+            _scanProgress += Math.max(1, advance);
 
-                // Use cached world matrix for transformation (no computeWorldMatrix call)
-                BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
-                const animHit = drawPointAtStick();
-                // Update cross-threads once per frame (not per dot) to avoid GC churn
-                if (animHit && i === 0) showCrossThreads(animHit);
-                dotsDrawn++;
-            }
+            _tempVec.set(
+                _samplePositions[vertexIndex],
+                _samplePositions[vertexIndex + 1],
+                _samplePositions[vertexIndex + 2]
+            );
+
+            BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
+            const animHit = drawPointAtStick();
+            if (animHit) showCrossThreads(animHit);
+            dotsDrawn++;
         }
     });
 
