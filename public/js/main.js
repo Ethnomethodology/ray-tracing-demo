@@ -60,11 +60,8 @@ const createScene = function () {
     // 3b. Environment: The Wall (For the Pulley)
     const wallMesh = BABYLON.MeshBuilder.CreatePlane("wallMesh", { width: 40, height: 30 }, scene);
     wallMesh.position.z = 16;
-    wallMesh.rotation.y = Math.PI; // Face towards the scene
-    const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
-    wallMaterial.diffuseColor = new BABYLON.Color3(0.95, 0.95, 0.95);
-    wallMaterial.alpha = 0.1; // Make the wall transparent as requested
-    wallMesh.material = wallMaterial;
+    wallMesh.rotation.y = Math.PI;
+    wallMesh.isVisible = false; // Fully hidden
 
     // 4. Create targetMesh (Historical Lute)
     let targetMesh = null;
@@ -216,11 +213,15 @@ const createScene = function () {
     // 6. Create stylus (stickMesh) to match Dürer's original design
     const stickMesh = BABYLON.MeshBuilder.CreateCylinder("stickMesh", { diameterTop: 0.02, diameterBottom: 0.15, height: 3.5 }, scene);
 
-    // Reorient to align with Z axis so lookAt works perfectly
-    // Rotate -90 on X so top (tip) points to -Z and bottom (back) points to +Z
-    stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(-Math.PI / 2));
-    // Shift geometry so the origin is exactly at the sharp tip (tip is now at Z = -1.75, move by +1.75)
-    stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0, 0, 1.75));
+    // The stylus geometry: rotate so the cylinder runs along the Y axis (default).
+    // The JOINT (thread attachment) is at the ORIGIN of stickMesh.
+    // The tip (narrow end) is at Y = -1.75 (pointing down toward the object)
+    // and the handle (wide end) is at Y = +1.75 (pointing up, held by operator).
+    // We shift geometry so the joint is exactly at Y = 0 (origin stays at joint).
+    // Default cylinder: center at origin, so no extra baking needed — origin = joint mid-point.
+    // We translate so the joint is at the narrow-tip end (Y = -1.75 → origin):
+    stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0, 1.75, 0));
+    // Now tip is at Y = 0 (origin/joint), handle at Y = 3.5 (upward).
 
     const stickMaterial = new BABYLON.StandardMaterial("stickMaterial", scene);
     // Red material for visibility while keeping the historical shape
@@ -237,7 +238,10 @@ const createScene = function () {
             if (!targetMesh) return;
             const pickInfo = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === targetMesh);
             if (pickInfo.hit && pickInfo.pickedPoint) {
+                canvas.style.cursor = "grabbing"; // Closed fist over the object
                 stickMesh.position.copyFrom(pickInfo.pickedPoint);
+            } else {
+                canvas.style.cursor = "default";
             }
         }
     });
@@ -267,18 +271,42 @@ const createScene = function () {
 
     scene.onBeforeRenderObservable.add(() => {
         // 1. Update Pulleys, Weights, and Stylus Alignment
-        // Make the stylus align perfectly with the string (pointing back towards the pulley)
-        stickMesh.lookAt(pulleyNode);
+        //
+        // Historical mechanic (Dürer's woodcut):
+        //   - The THREAD ties at the JOINT (stickMesh.position)
+        //   - The STYLUS is held perpendicular (90°) to the thread
+        //   - Someone holds the stylus and pulls the thread taut to the point of interest
+        //
+        // Thread direction: from joint toward pulleyNode
+        const threadDir = pulleyNode.subtract(stickMesh.position);
+        threadDir.normalize();
 
-        // Compute world position of the back of the stylus (Z = +3.5 in local space)
-        stickMesh.computeWorldMatrix(true);
-        const stickBackPos = BABYLON.Vector3.TransformCoordinates(new BABYLON.Vector3(0, 0, 3.5), stickMesh.getWorldMatrix());
+        // Build a perpendicular axis for the stylus handle to point upward/away from the surface.
+        // The stylus (Y axis in local space) should be perpendicular to the thread.
+        // We pick the world-up vector and orthogonalize it against the thread direction.
+        const worldUp = new BABYLON.Vector3(0, 1, 0);
+        // Remove the component of worldUp along threadDir to get a perpendicular direction
+        const dot = BABYLON.Vector3.Dot(worldUp, threadDir);
+        const stylusUp = worldUp.subtract(threadDir.scale(dot));
+        if (stylusUp.length() < 0.001) {
+            // Degenerate case: thread is perfectly vertical; use Z instead
+            stylusUp.copyFrom(new BABYLON.Vector3(0, 0, 1));
+        }
+        stylusUp.normalize();
 
-        const distanceA = BABYLON.Vector3.Distance(stickBackPos, pulleyNode);
+        // Orient the stylus: its local +Y (handle) points along stylusUp,
+        // local -Y (tip/joint) is already at origin.
+        // Use a rotation quaternion that maps (0,1,0) → stylusUp
+        const fromVec = new BABYLON.Vector3(0, 1, 0);
+        stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(fromVec, stylusUp, stickMesh.rotationQuaternion || new BABYLON.Quaternion());
+
+        // Thread goes from joint (stickMesh.position) to pulleyNode
+        const jointPos = stickMesh.position;
+        const distanceA = BABYLON.Vector3.Distance(jointPos, pulleyNode);
         const lengthB = maxStringLength - distanceA;
         weightMesh.position.set(pulleyNode.x, pulleyNode.y - lengthB, pulleyNode.z);
 
-        if (segmentA) BABYLON.MeshBuilder.CreateLines("segmentA", { points: [stickBackPos, pulleyNode], instance: segmentA });
+        if (segmentA) BABYLON.MeshBuilder.CreateLines("segmentA", { points: [jointPos, pulleyNode], instance: segmentA });
         if (segmentB) BABYLON.MeshBuilder.CreateLines("segmentB", { points: [pulleyNode, weightMesh.position], instance: segmentB });
 
         // 2. Throttled Drawing Update: Only update GPU texture once per frame if dirty
@@ -322,8 +350,11 @@ const createScene = function () {
     });
 
     // 9. Core Drawing Function (DRY)
+    // Ray is cast from the pulleyNode (eye/fixpoint on wall) through the JOINT
+    // (stickMesh.position) — the point where thread meets stylus — as per Dürer's design.
     const drawPointAtStick = () => {
-        stickMesh.position.subtractToRef(pulleyNode, _tempDirection);
+        pulleyNode.subtractToRef(stickMesh.position, _tempDirection);
+        _tempDirection.negateInPlace(); // direction: pulleyNode → joint
         _sharedRay.origin.copyFrom(pulleyNode);
         _sharedRay.direction.copyFrom(_tempDirection.normalize());
 
