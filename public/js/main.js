@@ -330,7 +330,7 @@ const createScene = function () {
             if (_scanProgress >= _scanIndices.length) return;
 
             const vertexIndex = _scanIndices[_scanProgress];
-            const targetPoints = Math.max(1000, Math.min(5000, _scanIndices.length * 0.1));
+            const targetPoints = Math.max(333, Math.min(1667, _scanIndices.length * 0.033)); // 1/3 density; run again to layer more
             const stride = _scanIndices.length / targetPoints;
             const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
             _scanProgress += Math.max(1, advance);
