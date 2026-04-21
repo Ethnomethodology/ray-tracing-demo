@@ -202,6 +202,12 @@ const createScene = function () {
             pageHinge.animations = [anim];
             scene.beginAnimation(pageHinge, 0, 30, false);
             isPageOpen = false;
+            
+            // Park the stylus on the right side of the table when the page is closed.
+            // By putting it at z=4 (between the frame at z=0 and pulley at z=15.5),
+            // the thread NEVER crosses the z=0 plane, guaranteeing no intersections.
+            stickMesh.position.copyFrom(new BABYLON.Vector3(8, -5, 4));
+            _surfaceNormal.copyFrom(new BABYLON.Vector3(0, 1, 0)); // Point handle straight up
         } else {
             // Open animation
             const anim = new BABYLON.Animation("openPage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
@@ -238,6 +244,8 @@ const createScene = function () {
     scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
             if (!targetMesh) return;
+            if (!isPageOpen) return; // Do not track stylus to mouse when the page is closed
+
             const pickInfo = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === targetMesh);
             if (pickInfo.hit && pickInfo.pickedPoint) {
                 stickMesh.position.copyFrom(pickInfo.pickedPoint);
