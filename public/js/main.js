@@ -408,17 +408,36 @@ const createScene = function () {
     const showCrossThreads = (hitPoint) => {
         const z = hitPoint.z - 0.04; // sits behind the page when closed, but in front of gridPlane
 
-        // Straight horizontal thread: left border → hitPoint → right border
-        const hPts = [
-            new BABYLON.Vector3(-FRAME_HALF, hitPoint.y, z),
-            new BABYLON.Vector3( FRAME_HALF, hitPoint.y, z)
-        ];
+        // Helper to find intersections of a line (passing through px, py with angle) with the frame bounding box
+        const getIntersections = (px, py, angle) => {
+            const dx = Math.cos(angle);
+            const dy = Math.sin(angle);
+            
+            const tx1 = (-FRAME_HALF - px) / dx;
+            const tx2 = (FRAME_HALF - px) / dx;
+            const tMinX = Math.min(tx1, tx2);
+            const tMaxX = Math.max(tx1, tx2);
 
-        // Straight vertical thread: bottom border → hitPoint → top border
-        const vPts = [
-            new BABYLON.Vector3(hitPoint.x, -FRAME_HALF, z),
-            new BABYLON.Vector3(hitPoint.x,  FRAME_HALF, z)
-        ];
+            const ty1 = (-FRAME_HALF - py) / dy;
+            const ty2 = (FRAME_HALF - py) / dy;
+            const tMinY = Math.min(ty1, ty2);
+            const tMaxY = Math.max(ty1, ty2);
+
+            const tMin = Math.max(tMinX, tMinY);
+            const tMax = Math.min(tMaxX, tMaxY);
+
+            return [
+                new BABYLON.Vector3(px + tMin * dx, py + tMin * dy, z),
+                new BABYLON.Vector3(px + tMax * dx, py + tMax * dy, z)
+            ];
+        };
+
+        // Add slight randomness to angles to look natural (roughly +/- 10 degrees offset)
+        const angleH = (Math.random() - 0.5) * 0.35; // slightly off horizontal
+        const angleV = Math.PI / 2 + (Math.random() - 0.5) * 0.35; // slightly off vertical
+
+        const hPts = getIntersections(hitPoint.x, hitPoint.y, angleH);
+        const vPts = getIntersections(hitPoint.x, hitPoint.y, angleV);
 
         if (_crossThreadH) _crossThreadH.dispose();
         if (_crossThreadV) _crossThreadV.dispose();
