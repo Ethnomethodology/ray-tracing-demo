@@ -21,11 +21,13 @@ const createScene = function () {
     let _surfaceNormal = new BABYLON.Vector3(0, 1, 0); // Outward surface normal at current pick point
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
-    const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 2.2, 45, new BABYLON.Vector3(0, -5, 0), scene);
+    const isMobile = window.innerWidth <= 900;
+    const defaultRadius = isMobile ? 65 : 45;
+    const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 2.2, defaultRadius, new BABYLON.Vector3(0, -5, 0), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
-    camera.upperRadiusLimit = 80;
+    camera.upperRadiusLimit = 100;
 
     // 2. Lighting setup - Positioned to highlight the Lute from above
     const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
@@ -556,9 +558,12 @@ const createScene = function () {
         const animationBeta = new BABYLON.Animation("cameraBeta", "beta", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
+        const currentIsMobile = window.innerWidth <= 900;
+        const targetRadius = currentIsMobile ? 65 : 45;
+
         const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: -Math.PI / 6 }];
         const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.2 }];
-        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: 45 }];
+        const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: targetRadius }];
 
         animationAlpha.setKeys(keysAlpha);
         animationBeta.setKeys(keysBeta);
