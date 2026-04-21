@@ -345,7 +345,9 @@ const createScene = function () {
 
                 // Use cached world matrix for transformation (no computeWorldMatrix call)
                 BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
-                drawPointAtStick();
+                const animHit = drawPointAtStick();
+                // Update cross-threads once per frame (not per dot) to avoid GC churn
+                if (animHit && i === 0) showCrossThreads(animHit);
                 dotsDrawn++;
             }
         }
@@ -363,23 +365,79 @@ const createScene = function () {
         const hit = _sharedRay.intersectsMesh(gridPlane);
 
         if (hit.hit) {
+            // World-space point where the sighting thread pierces the frame
+            const hitPoint = new BABYLON.Vector3(
+                pulleyNode.x + _sharedRay.direction.x * hit.distance,
+                pulleyNode.y + _sharedRay.direction.y * hit.distance,
+                pulleyNode.z + _sharedRay.direction.z * hit.distance
+            );
             const uv = hit.getTextureCoordinates();
             if (uv) {
                 const x = uv.x * textureSize;
-                const y = uv.y * textureSize; // Fixed: Removing (1 - uv.y) to correct upside-down drawing
+                const y = uv.y * textureSize;
 
                 textureCtx.fillStyle = "#000000";
                 textureCtx.beginPath();
                 textureCtx.arc(x, y, 4, 0, Math.PI * 2);
                 textureCtx.fill();
-                _textureDirty = true; // Mark for update at end of frame
+                _textureDirty = true;
             }
+            return hitPoint;
         }
+        return null;
+    };
+
+    // ── Cross-Thread Overlay ─────────────────────────────────────────────────
+    // Two slightly-curved threads spanning the frame, crossing at the point
+    // where the main sighting thread pierces the gridPlane — as in Dürer's
+    // original apparatus where the assistant knotted two threads at that spot.
+    let _crossThreadH = null;
+    let _crossThreadV = null;
+    let _crossThreadTimeoutId = null;
+    const CROSS_THREAD_MS = 1000;
+    const FRAME_HALF = gridSize / 2;
+
+    const hideCrossThreads = () => {
+        if (_crossThreadH) _crossThreadH.setEnabled(false);
+        if (_crossThreadV) _crossThreadV.setEnabled(false);
+        if (_crossThreadTimeoutId) { clearTimeout(_crossThreadTimeoutId); _crossThreadTimeoutId = null; }
+    };
+
+    const showCrossThreads = (hitPoint) => {
+        if (_crossThreadTimeoutId) { clearTimeout(_crossThreadTimeoutId); _crossThreadTimeoutId = null; }
+
+        const z = hitPoint.z - 0.12; // just in front of the frame plane
+
+        // Straight horizontal thread: left border → hitPoint → right border
+        const hPts = [
+            new BABYLON.Vector3(-FRAME_HALF, hitPoint.y, z),
+            new BABYLON.Vector3( FRAME_HALF, hitPoint.y, z)
+        ];
+
+        // Straight vertical thread: bottom border → hitPoint → top border
+        const vPts = [
+            new BABYLON.Vector3(hitPoint.x, -FRAME_HALF, z),
+            new BABYLON.Vector3(hitPoint.x,  FRAME_HALF, z)
+        ];
+
+        if (_crossThreadH) _crossThreadH.dispose();
+        if (_crossThreadV) _crossThreadV.dispose();
+
+        _crossThreadH = BABYLON.MeshBuilder.CreateLines("crossH", { points: hPts }, scene);
+        _crossThreadH.color = new BABYLON.Color3(0.15, 0.1, 0.05);
+        _crossThreadH.isPickable = false;
+
+        _crossThreadV = BABYLON.MeshBuilder.CreateLines("crossV", { points: vPts }, scene);
+        _crossThreadV.color = new BABYLON.Color3(0.15, 0.1, 0.05);
+        _crossThreadV.isPickable = false;
+
+        _crossThreadTimeoutId = setTimeout(hideCrossThreads, CROSS_THREAD_MS);
     };
 
     // Pointillist Drawing and Frame Interaction
     scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
+            hideCrossThreads(); // Any click clears the overlay immediately
             // Check for frame click to toggle the page
             if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit) {
                 const pickedMesh = pointerInfo.pickInfo.pickedMesh;
@@ -419,7 +477,8 @@ const createScene = function () {
                     if (!isPageOpen) {
                         togglePage();
                     }
-                    drawPointAtStick();
+                    const manualHit = drawPointAtStick();
+                    if (manualHit) showCrossThreads(manualHit);
                 }
             }
         }
