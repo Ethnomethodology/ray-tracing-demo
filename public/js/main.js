@@ -492,6 +492,27 @@ const createScene = function () {
             isAnimating = false;
             animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Animate';
             resetBtn.disabled = false;
+
+            // Instantly finish the remaining points in the pass
+            if (targetMesh && _samplePositions) {
+                while (_scanProgress < _scanIndices.length) {
+                    const vertexIndex = _scanIndices[_scanProgress];
+                    const targetPoints = Math.max(333, Math.min(1667, _scanIndices.length * 0.033));
+                    const stride = _scanIndices.length / targetPoints;
+                    const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
+                    _scanProgress += Math.max(1, advance);
+
+                    _tempVec.set(
+                        _samplePositions[vertexIndex],
+                        _samplePositions[vertexIndex + 1],
+                        _samplePositions[vertexIndex + 2]
+                    );
+
+                    BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
+                    drawPointAtStick();
+                    dotsDrawn++;
+                }
+            }
         } else {
             if (!targetMesh || !_samplePositions) return;
 
