@@ -398,20 +398,15 @@ const createScene = function () {
     // original apparatus where the assistant knotted two threads at that spot.
     let _crossThreadH = null;
     let _crossThreadV = null;
-    let _crossThreadTimeoutId = null;
-    const CROSS_THREAD_MS = 1000;
     const FRAME_HALF = gridSize / 2;
 
     const hideCrossThreads = () => {
         if (_crossThreadH) _crossThreadH.setEnabled(false);
         if (_crossThreadV) _crossThreadV.setEnabled(false);
-        if (_crossThreadTimeoutId) { clearTimeout(_crossThreadTimeoutId); _crossThreadTimeoutId = null; }
     };
 
     const showCrossThreads = (hitPoint) => {
-        if (_crossThreadTimeoutId) { clearTimeout(_crossThreadTimeoutId); _crossThreadTimeoutId = null; }
-
-        const z = hitPoint.z - 0.12; // just in front of the frame plane
+        const z = hitPoint.z - 0.04; // sits behind the page when closed, but in front of gridPlane
 
         // Straight horizontal thread: left border → hitPoint → right border
         const hPts = [
@@ -435,14 +430,11 @@ const createScene = function () {
         _crossThreadV = BABYLON.MeshBuilder.CreateLines("crossV", { points: vPts }, scene);
         _crossThreadV.color = new BABYLON.Color3(0.1, 0.3, 0.9);
         _crossThreadV.isPickable = false;
-
-        _crossThreadTimeoutId = setTimeout(hideCrossThreads, CROSS_THREAD_MS);
     };
 
     // Pointillist Drawing and Frame Interaction
     scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
-            hideCrossThreads(); // Any click clears the overlay immediately
             // Check for frame click to toggle the page
             if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit) {
                 const pickedMesh = pointerInfo.pickInfo.pickedMesh;
@@ -461,6 +453,7 @@ const createScene = function () {
                 // scene rotation without hovering over the target first).
                 const freshPick = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === targetMesh);
                 if (freshPick && freshPick.hit && freshPick.pickedMesh === targetMesh) {
+                    hideCrossThreads(); // Only clear overlay if we clicked the object itself
                     // Update stickMesh to the freshly-picked point so the stylus and
                     // the back-face guard are always in sync.
                     stickMesh.position.copyFrom(freshPick.pickedPoint);
