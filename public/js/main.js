@@ -742,7 +742,7 @@ const createScene = function () {
             tessellation: 20
         }, scene);
         neck.scaling.z = 0.5;
-        neck.position.set(0, L + neckHeight / 2, 0.1);
+        neck.position.set(0, L + neckHeight / 2, 0.2); // Shifted from 0.1 to 0.2 to align with bowl depth
         parts.push(neck);
 
         // 7. Fingerboard (flat dark plate over neck)
@@ -756,7 +756,7 @@ const createScene = function () {
             tessellation: 20
         }, scene);
         fb.scaling.z = 0.04;
-        fb.position.set(0, fbStartY + fbHeight / 2, -0.02);
+        fb.position.set(0, fbStartY + fbHeight / 2, 0.08); // Shifted to match neck move
         parts.push(fb);
 
         // 8. Pegbox (angled box)
@@ -771,7 +771,7 @@ const createScene = function () {
             width: pegboxWidth, height: pegboxHeight, depth: 0.25
         }, scene);
         pegbox.setPivotMatrix(BABYLON.Matrix.Translation(0, -pegboxHeight / 2, 0), false);
-        pegbox.position.set(0, fbEndY - pegboxOverlap, 0);
+        pegbox.position.set(0, fbEndY - pegboxOverlap, 0.1); // Shifted to match neck move
         pegbox.rotation.x = -115 * (Math.PI / 180);
         pegbox.computeWorldMatrix(true);
         parts.push(pegbox);
@@ -815,7 +815,7 @@ const createScene = function () {
             const xTop = -(pegboxWidth - 0.2) / 2 + (i * (pegboxWidth - 0.2) / (numStrings - 1));
             const stringPath = [
                 new BABYLON.Vector3(xBot, bridgeY, -0.1),
-                new BABYLON.Vector3(xTop, fbEndY, -0.05)
+                new BABYLON.Vector3(xTop, fbEndY,  0.05) // Shifted to match neck move
             ];
             const str = BABYLON.MeshBuilder.CreateTube("lstr" + i, {
                 path: stringPath, radius: 0.008, tessellation: 4
