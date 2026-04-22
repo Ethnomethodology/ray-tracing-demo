@@ -204,7 +204,7 @@ const createScene = function () {
             pageHinge.animations = [anim];
             scene.beginAnimation(pageHinge, 0, 30, false);
             isPageOpen = false;
-            
+
             // Park the stylus on the right side of the table when the page is closed.
             // By putting it at z=4 (between the frame at z=0 and pulley at z=15.5),
             // the thread NEVER crosses the z=0 plane, guaranteeing no intersections.
@@ -412,7 +412,7 @@ const createScene = function () {
         const getIntersections = (px, py, angle) => {
             const dx = Math.cos(angle);
             const dy = Math.sin(angle);
-            
+
             const tx1 = (-FRAME_HALF - px) / dx;
             const tx2 = (FRAME_HALF - px) / dx;
             const tMinX = Math.min(tx1, tx2);
@@ -530,11 +530,11 @@ const createScene = function () {
 
     const finishAnimation = () => {
         if (isAnimating) toggleAnimation(); // Pause animation if running
-        
+
         // Instantly finish the remaining points in the pass
         if (targetMesh && _samplePositions) {
             if (!isPageOpen) togglePage();
-            
+
             while (_scanProgress < _scanIndices.length) {
                 const vertexIndex = _scanIndices[_scanProgress];
                 const targetPoints = Math.max(333, Math.min(1667, _scanIndices.length * 0.033));
@@ -669,10 +669,10 @@ const createScene = function () {
 
     const buildProceduralLute = () => {
         // ── Mathematical profile: teardrop outline (round bottom → tapered top) ──
-        const R      = 2.5;    // bulbous bottom radius
-        const L      = 6.0;    // body length
-        const neckR  = 0.45;   // half-width at neck join
-        const STEPS  = 60;
+        const R = 2.5;    // bulbous bottom radius
+        const L = 6.0;    // body length
+        const neckR = 0.45;   // half-width at neck join
+        const STEPS = 60;
 
         const profile = [];
         for (let i = 0; i <= STEPS; i++) {
@@ -706,8 +706,8 @@ const createScene = function () {
         parts.push(topPlate);
 
         // 3. Soundhole disc (dark plug)
-        const holeY   = R + (L - R) * 0.4;
-        const holeR   = 0.65;
+        const holeY = R + (L - R) * 0.4;
+        const holeR = 0.65;
         const hole = BABYLON.MeshBuilder.CreateCylinder("lhole", {
             height: 0.05, diameter: holeR * 2, tessellation: 32
         }, scene);
@@ -747,7 +747,7 @@ const createScene = function () {
 
         // 7. Fingerboard (flat dark plate over neck)
         const fbStartY = holeY + holeR + 0.15;
-        const fbEndY   = L + neckHeight;
+        const fbEndY = L + neckHeight;
         const fbHeight = fbEndY - fbStartY;
         const fb = BABYLON.MeshBuilder.CreateCylinder("lfb", {
             height: fbHeight,
@@ -760,13 +760,18 @@ const createScene = function () {
         parts.push(fb);
 
         // 8. Pegbox (angled box)
+        // Adjust pegbox to eliminate the "notch":
+        // 1. Set Z to 0 to align its front face flush with the neck front.
+        // 2. Match width (0.85) to the fingerboard top.
+        // 3. Use a minimal overlap (0.02) to cover the joint gap smoothly.
+        const pegboxOverlap = 0.12;
         const pegboxHeight = 2.4;
-        const pegboxWidth  = neckR * 2 - 0.15;
+        const pegboxWidth = neckR * 2 - 0.05; // Matches fingerboard top width
         const pegbox = BABYLON.MeshBuilder.CreateBox("lpegbox", {
             width: pegboxWidth, height: pegboxHeight, depth: 0.25
         }, scene);
         pegbox.setPivotMatrix(BABYLON.Matrix.Translation(0, -pegboxHeight / 2, 0), false);
-        pegbox.position.set(0, fbEndY, 0.1);
+        pegbox.position.set(0, fbEndY - pegboxOverlap, 0);
         pegbox.rotation.x = -115 * (Math.PI / 180);
         pegbox.computeWorldMatrix(true);
         parts.push(pegbox);
@@ -792,9 +797,9 @@ const createScene = function () {
         const numFrets = 9;
         for (let i = 0; i < numFrets; i++) {
             const fretDist = Math.pow((i + 1) / (numFrets + 1), 0.8) * fbHeight * 0.85;
-            const fretY    = fbEndY - fretDist;
-            const t        = (fretY - fbStartY) / fbHeight;
-            const w        = (neckR * 2 + 0.25) * (1 - t) + (neckR * 2 - 0.05) * t;
+            const fretY = fbEndY - fretDist;
+            const t = (fretY - fbStartY) / fbHeight;
+            const w = (neckR * 2 + 0.25) * (1 - t) + (neckR * 2 - 0.05) * t;
             const fret = BABYLON.MeshBuilder.CreateCylinder("lfret" + i, {
                 height: w * 0.98, diameter: 0.018, tessellation: 8
             }, scene);
@@ -810,7 +815,7 @@ const createScene = function () {
             const xTop = -(pegboxWidth - 0.2) / 2 + (i * (pegboxWidth - 0.2) / (numStrings - 1));
             const stringPath = [
                 new BABYLON.Vector3(xBot, bridgeY, -0.1),
-                new BABYLON.Vector3(xTop, fbEndY,  -0.05)
+                new BABYLON.Vector3(xTop, fbEndY, -0.05)
             ];
             const str = BABYLON.MeshBuilder.CreateTube("lstr" + i, {
                 path: stringPath, radius: 0.008, tessellation: 4
