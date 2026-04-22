@@ -830,9 +830,10 @@ const createScene = function () {
         const merged = BABYLON.Mesh.MergeMeshes(parts, true, true, undefined, false, false);
         if (!merged) return null;
 
-        // The lathe builds the body along +Y (round body bottom → neck top), already upright.
-        // A slight Y-rotation shows the ribbed bowl to the camera.
-        merged.rotation.y = Math.PI / 5;  // turn to reveal the ribbed back
+        // Lie the lute down on the table, neck pointing straight towards the frame
+        merged.rotation.x = Math.PI / 2;
+        merged.rotation.y = 0;
+        merged.rotation.z = 0;
 
         // Flip normals outward (lathe/MergeMeshes can invert them)
         const normals = merged.getVerticesData(BABYLON.VertexBuffer.NormalKind);
@@ -850,6 +851,7 @@ const createScene = function () {
             const merged = buildProceduralLute();
             if (merged) {
                 setupTargetMesh(merged, 15);
+                targetMesh.position.z = -18; // Move back to accommodate the lying lute's length
                 finalizeTargetMesh();
             }
         } else if (type === "teapot") {
