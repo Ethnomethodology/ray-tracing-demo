@@ -887,27 +887,14 @@ const createScene = function () {
         const pegboxHeight = 2.4;
         const pegboxWidth = neckR * 2 - 0.05; // Matches fingerboard top width
 
-        // Use a Cylinder to create a Box with subdivisions along its height!
-        const pegbox = BABYLON.MeshBuilder.CreateCylinder("lpegbox", {
+
+        // Use CreateTiledBox to get subdivided faces on all sides so the animator has vertices to draw.
+        const pegbox = BABYLON.MeshBuilder.CreateTiledBox("lpegbox", {
+            width: pegboxWidth,
             height: pegboxHeight,
-            diameter: 1, // Will scale to width/depth later
-            tessellation: 4, // 4 sides = box
-            subdivisions: 15 // Increased density for sampling along its length
+            depth: 0.25,
+            tileSize: 0.1 // Small tiles for dense vertices
         }, scene);
-
-        // Rotate so flat sides align with X and Z axes (instead of corners)
-        pegbox.rotation.y = Math.PI / 4;
-        pegbox.bakeCurrentTransformIntoVertices();
-
-        // Scale to match box dimensions
-        // diameter is 1, so after rotation by 45 deg, the width/depth bounding box is 1.
-        // wait, the bounding box of a unit square rotated by 45deg is sqrt(2).
-        // Let's just scale the vertices directly so its width = pegboxWidth, depth = 0.25
-        const pScaleX = pegboxWidth / Math.sqrt(0.5);
-        const pScaleZ = 0.25 / Math.sqrt(0.5);
-        pegbox.scaling.x = pScaleX;
-        pegbox.scaling.z = pScaleZ;
-        pegbox.bakeCurrentTransformIntoVertices();
 
         pegbox.setPivotMatrix(BABYLON.Matrix.Translation(0, -pegboxHeight / 2, 0), false);
         pegbox.position.set(0, fbEndY - pegboxOverlap, 0.1); // Shifted to match neck move
