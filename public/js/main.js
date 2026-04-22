@@ -340,7 +340,8 @@ const createScene = function () {
             if (_scanProgress >= _scanIndices.length) return;
 
             const vertexIndex = _scanIndices[_scanProgress];
-            const targetPoints = Math.max(333, Math.min(1667, _scanIndices.length * 0.033)); // 1/3 density; run again to layer more
+            // Increase density slightly (0.05 instead of 0.033) for better coverage
+            const targetPoints = Math.max(500, Math.min(2500, _scanIndices.length * 0.05)); 
             const stride = _scanIndices.length / targetPoints;
             const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
             _scanProgress += Math.max(1, advance);
@@ -593,6 +594,17 @@ const createScene = function () {
 
     document.getElementById("stopBtn").addEventListener("click", resetScene);
 
+    document.getElementById("normalsBtn").addEventListener("click", (e) => {
+        showNormals = !showNormals;
+        e.target.classList.toggle("active", showNormals);
+        document.getElementById("debugControls").style.display = showNormals ? "block" : "none";
+        updateNormalLines();
+    });
+
+    document.getElementById("lutePartSelect").addEventListener("change", () => {
+        updateNormalLines();
+    });
+
     // 12. Dynamic Object Loading
     const setupTargetMesh = (mesh, targetScale = 15) => {
         if (targetMesh) {
@@ -619,6 +631,8 @@ const createScene = function () {
         targetMesh.position.z = -10;
         targetMesh.position.x = 0;
 
+        updateNormalLines();
+
         return targetMesh;
     };
 
@@ -635,39 +649,93 @@ const createScene = function () {
         const tempN = new BABYLON.Vector3();
 
         const vertexCount = _samplePositions.length / 3;
-        const sortEntries = [];
-        for (let i = 0; i < vertexCount; i++) {
-            const localX = _samplePositions[i * 3];
-            const localY = _samplePositions[i * 3 + 1];
-            const localZ = _samplePositions[i * 3 + 2];
-
-            BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(localX, localY, localZ, matrix, tempV);
-
-            // Physically realistic culling: ignore vertices on the "back" of the object
-            // The physical string from the wall cannot pass through the solid object
-            if (_normals) {
-                const nx = _normals[i * 3];
-                const ny = _normals[i * 3 + 1];
-                const nz = _normals[i * 3 + 2];
-                BABYLON.Vector3.TransformNormalFromFloatsToRef(nx, ny, nz, matrix, tempN);
-
-                const toPulley = pulleyNode.subtract(tempV);
-                // If the normal points away from the pulley, the point is physically occluded
-                if (BABYLON.Vector3.Dot(tempN, toPulley) < 0) {
-                    continue;
+            const sortEntries = [];
+            for (let i = 0; i < vertexCount; i++) {
+                const localX = _samplePositions[i * 3];
+                const localY = _samplePositions[i * 3 + 1];
+                const localZ = _samplePositions[i * 3 + 2];
+    
+                BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(localX, localY, localZ, matrix, tempV);
+    
+                // Physically realistic culling: ignore vertices on the "back" of the object
+                if (_normals) {
+                    const nx = _normals[i * 3];
+                    const ny = _normals[i * 3 + 1];
+                    const nz = _normals[i * 3 + 2];
+                    BABYLON.Vector3.TransformNormalFromFloatsToRef(nx, ny, nz, matrix, tempN);
+    
+                    const toPulley = pulleyNode.subtract(tempV);
+                    // Slightly relax culling (-0.1 instead of 0) to capture silhouette edges on the neck/pegbox
+                    if (BABYLON.Vector3.Dot(tempN.normalize(), toPulley.normalize()) < -0.1) {
+                        continue;
+                    }
                 }
+    
+                // Sort along Z (longitudinal axis) to ensure even coverage from pegbox to bowl
+                const zBucket = Math.round(tempV.z / 0.2);
+                sortEntries.push({ index: i * 3, sortVal: -zBucket * 10000 + tempV.x });
             }
-
-            const yBucket = Math.round(tempV.y / 0.2);
-            sortEntries.push({ index: i * 3, sortVal: -yBucket * 10000 + tempV.x });
-        }
 
         sortEntries.sort((a, b) => a.sortVal - b.sortVal);
         _scanIndices = sortEntries.map(e => e.index);
         _scanProgress = 0;
     };
 
+    let normalLines = null;
+    let showNormals = false;
+
+    const updateNormalLines = () => {
+        if (normalLines) {
+            normalLines.dispose();
+            normalLines = null;
+        }
+
+        if (!showNormals || !targetMesh) return;
+
+        const partSelect = document.getElementById("lutePartSelect");
+        const selectedPart = partSelect ? partSelect.value : "all";
+        
+        let meshToVisualize = targetMesh;
+        if (selectedPart !== "all" && currentLuteParts[selectedPart]) {
+            meshToVisualize = currentLuteParts[selectedPart];
+        }
+
+        const positions = meshToVisualize.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        const normals = meshToVisualize.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+        if (!positions || !normals) return;
+
+        const lines = [];
+        const size = 0.5;
+        // Subsample slightly for performance if the mesh is dense
+        const step = positions.length > 3000 ? 6 : 3; 
+        
+        // Use the mesh's world matrix to transform normal lines
+        meshToVisualize.computeWorldMatrix(true);
+        const worldMatrix = meshToVisualize.getWorldMatrix();
+
+        for (let i = 0; i < positions.length; i += step) {
+            const startLocal = new BABYLON.Vector3(positions[i], positions[i+1], positions[i+2]);
+            const normalLocal = new BABYLON.Vector3(normals[i], normals[i+1], normals[i+2]);
+            
+            const startWorld = BABYLON.Vector3.TransformCoordinates(startLocal, worldMatrix);
+            
+            // Transform normal to world space and normalize it to ensure the debug line 
+            // is a consistent length even if the part is flattened (like the soundboard).
+            const normalWorld = BABYLON.Vector3.TransformNormal(normalLocal, worldMatrix).normalize();
+            const endWorld = startWorld.add(normalWorld.scale(size));
+            
+            lines.push([startWorld, endWorld]);
+        }
+
+        normalLines = BABYLON.MeshBuilder.CreateLineSystem("normalLines", { lines: lines }, scene);
+        normalLines.color = new BABYLON.Color3(0, 1, 1); // Cyan for high contrast
+        normalLines.isPickable = false;
+    };
+
+    let currentLuteParts = {};
+
     const buildProceduralLute = () => {
+        const partMap = {};
         // ── Mathematical profile: teardrop outline (round bottom → tapered top) ──
         const R = 2.5;    // bulbous bottom radius
         const L = 6.0;    // body length
@@ -695,14 +763,28 @@ const createScene = function () {
             sideOrientation: BABYLON.Mesh.DOUBLESIDE
         }, scene);
         bowl.convertToFlatShadedMesh();
+        partMap.bowl = bowl;
         parts.push(bowl);
 
-        // 2. Soundboard — full lathe flattened to near-zero depth
         const topPlate = BABYLON.MeshBuilder.CreateLathe("ltop", {
             shape: profile, arc: 1.0, tessellation: 40,
             sideOrientation: BABYLON.Mesh.DOUBLESIDE
         }, scene);
         topPlate.scaling.z = 0.001;
+
+        // Set soundboard normals to point consistently outwards (towards the viewer/upwards)
+        // Since it's a flattened lathe, the original normals were radial (pointing sideways).
+        // We replace them with a constant vector (0, 0, -1).
+        const topNormals = topPlate.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+        if (topNormals) {
+            for (let i = 0; i < topNormals.length; i += 3) {
+                topNormals[i] = 0;     // X
+                topNormals[i + 1] = 0; // Y
+                topNormals[i + 2] = -1; // Z (pointing towards viewer)
+            }
+            topPlate.setVerticesData(BABYLON.VertexBuffer.NormalKind, topNormals);
+        }
+        partMap.top = topPlate;
         parts.push(topPlate);
 
         // 3. Soundhole disc (dark plug)
@@ -713,9 +795,11 @@ const createScene = function () {
         }, scene);
         hole.rotation.x = Math.PI / 2;
         hole.position.set(0, holeY, -0.01);
+        partMap.hole = hole;
         parts.push(hole);
 
         // 4. Rosette rings
+        const rings = [];
         [0.75, 0.85, 0.95].forEach((r, idx) => {
             const ring = BABYLON.MeshBuilder.CreateTorus("lring" + idx, {
                 diameter: r * 2, thickness: 0.04, tessellation: 32
@@ -723,7 +807,11 @@ const createScene = function () {
             ring.rotation.x = Math.PI / 2;
             ring.position.set(0, holeY, -0.015);
             parts.push(ring);
+            rings.push(ring);
         });
+        // We'll merge rings into one logical part for simplicity
+        const mergedRings = BABYLON.Mesh.MergeMeshes(rings, true, true, undefined, false, false);
+        partMap.rings = mergedRings;
 
         // 5. Bridge
         const bridgeY = R * 0.4;
@@ -731,54 +819,98 @@ const createScene = function () {
             width: 2.4, height: 0.15, depth: 0.1
         }, scene);
         bridge.position.set(0, bridgeY, -0.05);
+        partMap.bridge = bridge;
         parts.push(bridge);
 
         // 6. Neck
         const neckHeight = 3.6;
-        const neck = BABYLON.MeshBuilder.CreateCylinder("lneck", {
+        const neckWidth = neckR * 2;
+        // Use a Box with subdivisions for the neck to get internal vertices
+        const neck = BABYLON.MeshBuilder.CreateBox("lneck", {
+            width: neckWidth,
             height: neckHeight,
-            diameterBottom: neckR * 2,
-            diameterTop: neckR * 2 - 0.15,
-            tessellation: 20
+            depth: neckWidth, // Semi-cylindrical look after scaling
+            subdivisions: 15
         }, scene);
-        neck.scaling.z = 0.5;
-        neck.position.set(0, L + neckHeight / 2, 0.2); // Shifted from 0.1 to 0.2 to align with bowl depth
+        
+        neck.scaling.z = 0.5; // Flatten to semi-circle-ish profile
+        neck.position.set(0, L + neckHeight / 2, 0.2);
+        
+        // Set neck normals to point upwards
+        const neckNormals = neck.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+        if (neckNormals) {
+            for (let i = 0; i < neckNormals.length; i += 3) {
+                neckNormals[i] = 0;
+                neckNormals[i + 1] = 0;
+                neckNormals[i + 2] = -1;
+            }
+            neck.setVerticesData(BABYLON.VertexBuffer.NormalKind, neckNormals);
+        }
+        partMap.neck = neck;
         parts.push(neck);
 
         // 7. Fingerboard (flat dark plate over neck)
         const fbStartY = holeY + holeR + 0.15;
         const fbEndY = L + neckHeight;
         const fbHeight = fbEndY - fbStartY;
-        const fb = BABYLON.MeshBuilder.CreateCylinder("lfb", {
+        const fbWidthBottom = neckR * 2 + 0.25;
+        const fbWidthTop = neckR * 2 - 0.05;
+
+        // Use a Box with subdivisions instead of a Cylinder to get vertices across the surface
+        const fb = BABYLON.MeshBuilder.CreateBox("lfb", {
+            width: fbWidthBottom,
             height: fbHeight,
-            diameterBottom: neckR * 2 + 0.25,
-            diameterTop: neckR * 2 - 0.05,
-            tessellation: 20
+            depth: 0.15, // Physical thickness
+            subdivisions: 20 // High density for the playing surface
         }, scene);
-        fb.scaling.z = 0.04;
-        fb.position.set(0, fbStartY + fbHeight / 2, 0.08); // Shifted to match neck move
+
+        // Taper the box: narrow the top vertices
+        const fbPositions = fb.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        if (fbPositions) {
+            for (let i = 0; i < fbPositions.length; i += 3) {
+                const y = fbPositions[i + 1]; // Local Y is the length of the box
+                const normalizedY = (y / (fbHeight / 2) + 1) / 2; // 0 at bottom, 1 at top
+                const scale = 1 - (1 - (fbWidthTop / fbWidthBottom)) * normalizedY;
+                fbPositions[i] *= scale; // Scale X (width) based on height
+            }
+            fb.setVerticesData(BABYLON.VertexBuffer.PositionKind, fbPositions);
+        }
+
+        fb.position.set(0, fbStartY + fbHeight / 2, 0.08);
+        
+        // Set fingerboard normals to point consistently outwards (towards the viewer/upwards)
+        const fbNormals = fb.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+        if (fbNormals) {
+            for (let i = 0; i < fbNormals.length; i += 3) {
+                fbNormals[i] = 0;
+                fbNormals[i + 1] = 0;
+                fbNormals[i + 2] = -1;
+            }
+            fb.setVerticesData(BABYLON.VertexBuffer.NormalKind, fbNormals);
+        }
+        partMap.fb = fb;
         parts.push(fb);
+        fb.computeWorldMatrix(true);
 
         // 8. Pegbox (angled box)
-        // Adjust pegbox to eliminate the "notch":
-        // 1. Set Z to 0 to align its front face flush with the neck front.
-        // 2. Match width (0.85) to the fingerboard top.
-        // 3. Use a minimal overlap (0.02) to cover the joint gap smoothly.
         const pegboxOverlap = 0.12;
         const pegboxHeight = 2.4;
         const pegboxWidth = neckR * 2 - 0.05; // Matches fingerboard top width
         const pegbox = BABYLON.MeshBuilder.CreateBox("lpegbox", {
-            width: pegboxWidth, height: pegboxHeight, depth: 0.25
+            width: pegboxWidth, 
+            height: pegboxHeight, 
+            depth: 0.25,
+            subdivisions: 10 // Increased density for sampling
         }, scene);
         pegbox.setPivotMatrix(BABYLON.Matrix.Translation(0, -pegboxHeight / 2, 0), false);
         pegbox.position.set(0, fbEndY - pegboxOverlap, 0.1); // Shifted to match neck move
         pegbox.rotation.x = -115 * (Math.PI / 180);
         pegbox.computeWorldMatrix(true);
+        partMap.pegbox = pegbox;
         parts.push(pegbox);
 
         // 9. Tuning pegs (8 total: 4 pairs)
-        // Keep pegs parented to pegbox — MergeMeshes uses each mesh's world matrix,
-        // so parented pegs are correctly placed on the angled headstock in the merged result.
+        const pegs = [];
         for (let i = 0; i < 4; i++) {
             const h = -pegboxHeight / 2 + 0.4 + i * 0.5;
             [-1, 1].forEach((side, si) => {
@@ -790,11 +922,16 @@ const createScene = function () {
                 peg.parent = pegbox;          // stay parented — world matrix is correct
                 peg.computeWorldMatrix(true); // force propagation through parent chain
                 parts.push(peg);
+                pegs.push(peg);
             });
         }
+        // Merge pegs for simplicity
+        const mergedPegs = BABYLON.Mesh.MergeMeshes(pegs, true, true, undefined, false, false);
+        partMap.pegs = mergedPegs;
 
         // 10. Frets (gut strings tied around neck — logarithmic spacing)
         const numFrets = 9;
+        const frets = [];
         for (let i = 0; i < numFrets; i++) {
             const fretDist = Math.pow((i + 1) / (numFrets + 1), 0.8) * fbHeight * 0.85;
             const fretY = fbEndY - fretDist;
@@ -806,10 +943,14 @@ const createScene = function () {
             fret.rotation.z = Math.PI / 2;
             fret.position.set(0, fretY, -0.035);
             parts.push(fret);
+            frets.push(fret);
         }
+        const mergedFrets = BABYLON.Mesh.MergeMeshes(frets, true, true, undefined, false, false);
+        partMap.frets = mergedFrets;
 
         // 11. Strings (8 tubes from bridge to pegbox)
         const numStrings = 8;
+        const strings = [];
         for (let i = 0; i < numStrings; i++) {
             const xBot = -1.0 + (i * 2.0 / (numStrings - 1));
             const xTop = -(pegboxWidth - 0.2) / 2 + (i * (pegboxWidth - 0.2) / (numStrings - 1));
@@ -821,26 +962,31 @@ const createScene = function () {
                 path: stringPath, radius: 0.008, tessellation: 4
             }, scene);
             parts.push(str);
+            strings.push(str);
         }
+        const mergedStrings = BABYLON.Mesh.MergeMeshes(strings, true, true, undefined, false, false);
+        partMap.strings = mergedStrings;
 
         // Force all world matrices before merge
-        parts.forEach(p => p.computeWorldMatrix(true));
+        const finalParts = Object.values(partMap);
+        finalParts.forEach(p => p.computeWorldMatrix(true));
 
         // Merge everything into a single mesh for the raycasting pipeline
-        const merged = BABYLON.Mesh.MergeMeshes(parts, true, true, undefined, false, false);
+        // We use disposeSource = false so we can still use the parts for visualization
+        const merged = BABYLON.Mesh.MergeMeshes(finalParts, false, true, undefined, false, false);
         if (!merged) return null;
+
+        // Hide source parts and parent them to the merged mesh so they follow its transform
+        finalParts.forEach(p => {
+            p.setEnabled(false);
+            p.parent = merged;
+        });
+        currentLuteParts = partMap;
 
         // Lie the lute down on the table, neck pointing straight towards the frame
         merged.rotation.x = Math.PI / 2;
         merged.rotation.y = 0;
         merged.rotation.z = 0;
-
-        // Flip normals outward (lathe/MergeMeshes can invert them)
-        const normals = merged.getVerticesData(BABYLON.VertexBuffer.NormalKind);
-        if (normals) {
-            for (let i = 0; i < normals.length; i++) normals[i] = -normals[i];
-            merged.setVerticesData(BABYLON.VertexBuffer.NormalKind, normals);
-        }
 
         return merged;
     };
@@ -855,6 +1001,8 @@ const createScene = function () {
                 finalizeTargetMesh();
             }
         } else if (type === "teapot") {
+            // Clear lute-specific debug state
+            currentLuteParts = {};
             BABYLON.SceneLoader.ImportMeshAsync("", "models/", "teapot.glb", scene).then((result) => {
                 const root = result.meshes[0];
                 const actualMeshes = result.meshes.filter(m => m instanceof BABYLON.Mesh && m.getTotalVertices() > 0);
@@ -870,6 +1018,8 @@ const createScene = function () {
                 if (root && root !== targetMesh) root.dispose();
             });
         } else if (type === "sphere") {
+            // Clear lute-specific debug state
+            currentLuteParts = {};
             const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 5, segments: 32 }, scene);
             setupTargetMesh(sphere, 5);
             finalizeTargetMesh();
