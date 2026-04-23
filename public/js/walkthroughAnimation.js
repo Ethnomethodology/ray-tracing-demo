@@ -52,8 +52,8 @@
     const FRAME_HALF = gridSize / 2;
     let _crossThreadH = null;
     let _crossThreadV = null;
-    const angleH = 0.02; 
-    const angleV = Math.PI / 2 - 0.02;
+    const angleH = 0.0; 
+    const angleV = Math.PI / 2 - 0.15;
 
     const threadMat = new BABYLON.StandardMaterial("threadMat", scene);
     threadMat.diffuseColor = new BABYLON.Color3(0.1, 0.3, 0.7);
@@ -78,24 +78,45 @@
         ];
     };
 
-    const updateCrossThreads = (hitPoint, progress) => {
+    const updateCrossThreads = (hGrowth, vGrowth) => {
         const z = hitPoint.z - 0.05;
-        const currentY = BABYLON.Scalar.Lerp(FRAME_HALF - 0.05, hitPoint.y, progress);
-        const currentX = BABYLON.Scalar.Lerp(-FRAME_HALF + 0.05, hitPoint.x, progress);
-        const hPts = getIntersections(hitPoint.x, currentY, angleH, z);
-        const vPts = getIntersections(currentX, hitPoint.y, angleV, z);
+        
+        // --- Vertical Thread (V) ---
+        // Find top and bottom intersections for the vertical line at hitPoint.x
+        const vBasePts = getIntersections(hitPoint.x, hitPoint.y, angleV, z);
+        // Sort by Y descending so p0 is top, p1 is bottom
+        const vTop = vBasePts[0].y > vBasePts[1].y ? vBasePts[0] : vBasePts[1];
+        const vBot = vBasePts[0].y > vBasePts[1].y ? vBasePts[1] : vBasePts[0];
+        
+        const vCurrent = BABYLON.Vector3.Lerp(vTop, vBot, vGrowth);
+        const vPts = [vTop, vCurrent];
+        // Ensure minimum length for Tube mesh
+        if (vGrowth < 0.001) vPts[1] = vTop.add(new BABYLON.Vector3(0, -0.01, 0));
 
-        if (!_crossThreadH) {
-            _crossThreadH = BABYLON.MeshBuilder.CreateTube("crossH", { path: hPts, radius: 0.015, cap: BABYLON.Mesh.CAP_ALL, updatable: true }, scene);
-            _crossThreadH.material = threadMat;
+        // --- Horizontal Thread (H) ---
+        // Find left and right intersections for the horizontal line at hitPoint.y
+        const hBasePts = getIntersections(hitPoint.x, hitPoint.y, angleH, z);
+        // Sort by X ascending so p0 is left, p1 is right
+        const hLeft = hBasePts[0].x < hBasePts[1].x ? hBasePts[0] : hBasePts[1];
+        const hRight = hBasePts[0].x < hBasePts[1].x ? hBasePts[1] : hBasePts[0];
+        
+        const hCurrent = BABYLON.Vector3.Lerp(hLeft, hRight, hGrowth);
+        const hPts = [hLeft, hCurrent];
+        // Ensure minimum length for Tube mesh
+        if (hGrowth < 0.001) hPts[1] = hLeft.add(new BABYLON.Vector3(0.01, 0, 0));
+
+        if (!_crossThreadV) {
             _crossThreadV = BABYLON.MeshBuilder.CreateTube("crossV", { path: vPts, radius: 0.015, cap: BABYLON.Mesh.CAP_ALL, updatable: true }, scene);
             _crossThreadV.material = threadMat;
+            _crossThreadH = BABYLON.MeshBuilder.CreateTube("crossH", { path: hPts, radius: 0.015, cap: BABYLON.Mesh.CAP_ALL, updatable: true }, scene);
+            _crossThreadH.material = threadMat;
         } else {
-            _crossThreadH = BABYLON.MeshBuilder.CreateTube("crossH", { path: hPts, instance: _crossThreadH });
             _crossThreadV = BABYLON.MeshBuilder.CreateTube("crossV", { path: vPts, instance: _crossThreadV });
+            _crossThreadH = BABYLON.MeshBuilder.CreateTube("crossH", { path: hPts, instance: _crossThreadH });
         }
-        _crossThreadH.setEnabled(progress > 0);
-        _crossThreadV.setEnabled(progress > 0);
+        
+        _crossThreadV.setEnabled(vGrowth > 0.0001);
+        _crossThreadH.setEnabled(hGrowth > 0.0001);
     };
 
     const dir = pEnd.subtract(pulleyNode).normalize();
@@ -176,31 +197,33 @@
             stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(
                 _fromVec, nEnd.normalize(), stickMesh.rotationQuaternion || new BABYLON.Quaternion());
 
-            if (cycle < 6.0) {
-                // Phase 1: Move threads (static camera)
-                camera.alpha = startAlpha;
-                camera.beta = startBeta;
-                camera.radius = startRadius;
-                camera.setTarget(startTarget);
-                
-                const t = cycle / 6.0;
+            camera.alpha = startAlpha;
+            camera.beta = startBeta;
+            camera.radius = startRadius;
+            camera.setTarget(startTarget);
+
+            if (cycle < 3.0) {
+                // Phase 1: Vertical thread grows top to bottom
+                const t = cycle / 3.0;
                 const easedT = t * t * (3 - 2 * t);
-                updateCrossThreads(hitPoint, easedT);
-            } else if (cycle < 10.0) {
-                // Phase 2: Transition camera to the new perspective
-                updateCrossThreads(hitPoint, 1.0);
-                const t = (cycle - 6.0) / 4.0;
+                updateCrossThreads(0, easedT); // hGrowth=0, vGrowth=easedT
+            } else if (cycle < 6.0) {
+                // Phase 2: Horizontal thread grows left to right
+                const t = (cycle - 3.0) / 3.0;
+                const easedT = t * t * (3 - 2 * t);
+                updateCrossThreads(easedT, 1.0); // hGrowth=easedT, vGrowth=1.0
+            } else if (cycle < 9.5) {
+                // Phase 3: Transition camera
+                updateCrossThreads(1.0, 1.0);
+                const t = (cycle - 6.0) / 3.5;
                 const easedT = t * t * (3 - 2 * t);
 
                 camera.alpha = BABYLON.Scalar.Lerp(startAlpha, endAlpha, easedT);
                 camera.beta = BABYLON.Scalar.Lerp(startBeta, endBeta, easedT);
                 camera.radius = BABYLON.Scalar.Lerp(startRadius, endRadius, easedT);
-                
-                // Keep target stable to avoid 'snapping'
                 camera.setTarget(BABYLON.Vector3.Lerp(startTarget, endTarget, easedT));
             } else {
-                // Phase 3: Hold new view
-                updateCrossThreads(hitPoint, 1.0);
+                updateCrossThreads(hitPoint, 1.0, 1.0);
                 camera.alpha = endAlpha;
                 camera.beta = endBeta;
                 camera.radius = endRadius;
