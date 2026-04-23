@@ -7,7 +7,7 @@
     const scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); 
 
-    const camera = new BABYLON.ArcRotateCamera("walkthroughCamera", -Math.PI / 5, Math.PI / 2.5, 38, new BABYLON.Vector3(0, -5, 0), scene);
+    const camera = new BABYLON.ArcRotateCamera("walkthroughCamera", -Math.PI / 5, Math.PI / 2.5, 45, new BABYLON.Vector3(0, -5, 0), scene);
     camera.attachControl(canvas, false);
 
     const { 
@@ -151,18 +151,24 @@
             
             camera.alpha = -Math.PI / 5;
             camera.beta = Math.PI / 2.5;
-            camera.radius = 38;
+            camera.radius = 45;
             camera.setTarget(new BABYLON.Vector3(0, -5, 0));
             if (_crossThreadH) _crossThreadH.setEnabled(false);
             if (_crossThreadV) _crossThreadV.setEnabled(false);
 
         } else if (currentStep === 2) {
-            const cycle = elapsed % 8.0;
-            camera.alpha = -Math.PI / 5;
-            camera.beta = Math.PI / 2.5;
-            camera.radius = 38;
-            camera.setTarget(new BABYLON.Vector3(0, -5, 0));
-            
+            const cycle = elapsed % 11.0;
+            const startAlpha = -Math.PI / 5;
+            const startBeta = Math.PI / 2.5;
+            const startRadius = 45;
+            const startTarget = new BABYLON.Vector3(0, -5, 0);
+
+            // Perspective matching the user screenshot: 3/4 view from draughtsman side
+            const endAlpha = Math.PI / 3.5; 
+            const endBeta = Math.PI / 3.2;
+            const endRadius = 45;
+            const endTarget = new BABYLON.Vector3(0, -5, 0);
+
             pageHinge.rotation.y = 2 * Math.PI / 3;
             lute.isVisible = true;
             stickMesh.position.copyFrom(pEnd);
@@ -171,12 +177,34 @@
                 _fromVec, nEnd.normalize(), stickMesh.rotationQuaternion || new BABYLON.Quaternion());
 
             if (cycle < 6.0) {
-                // Move threads immediately from static view
-                const t = cycle / 6.0; // 6 seconds for slow, smooth movement
+                // Phase 1: Move threads (static camera)
+                camera.alpha = startAlpha;
+                camera.beta = startBeta;
+                camera.radius = startRadius;
+                camera.setTarget(startTarget);
+                
+                const t = cycle / 6.0;
                 const easedT = t * t * (3 - 2 * t);
                 updateCrossThreads(hitPoint, easedT);
-            } else {
+            } else if (cycle < 10.0) {
+                // Phase 2: Transition camera to the new perspective
                 updateCrossThreads(hitPoint, 1.0);
+                const t = (cycle - 6.0) / 4.0;
+                const easedT = t * t * (3 - 2 * t);
+
+                camera.alpha = BABYLON.Scalar.Lerp(startAlpha, endAlpha, easedT);
+                camera.beta = BABYLON.Scalar.Lerp(startBeta, endBeta, easedT);
+                camera.radius = BABYLON.Scalar.Lerp(startRadius, endRadius, easedT);
+                
+                // Keep target stable to avoid 'snapping'
+                camera.setTarget(BABYLON.Vector3.Lerp(startTarget, endTarget, easedT));
+            } else {
+                // Phase 3: Hold new view
+                updateCrossThreads(hitPoint, 1.0);
+                camera.alpha = endAlpha;
+                camera.beta = endBeta;
+                camera.radius = endRadius;
+                camera.setTarget(endTarget);
             }
         }
 
