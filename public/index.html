@@ -25,80 +25,82 @@
     </section>
 
     <section class="demo-section">
-        <div class="ui-container left">
-            <div class="ui-overlay">
-                <h1>Dürer's Drawing Apparatus</h1>
-                <p>An interactive demo of Albrecht Dürer's perspective drawing apparatus based on <i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525).</p>
-            </div>
-            
-            <div class="button-container">
-                <div class="object-toggles">
-                    <button class="btn-toggle active" data-target="lute">Lute</button>
-                    <button class="btn-toggle" data-target="teapot">Teapot</button>
-                    <button class="btn-toggle" data-target="sphere">Sphere</button>
-                </div>
-                <div class="action-buttons">
-                    <button id="animateBtn" class="btn-animate" title="Play">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                        Play
-                    </button>
-                    <button id="fastForwardBtn" class="btn-animate" title="Fast Forward to End">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>
-                        Finish
-                    </button>
-                    <button id="stopBtn" class="btn-reset" title="Stop & Reset">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-                        Stop
-                    </button>
-                    <!-- <button id="normalsBtn" class="btn-reset" title="Toggle Surface Normals">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></svg>
-                        Normals
-                    </button> -->
-                </div>
-                <!-- <div id="debugControls" class="object-toggles" style="display: none; margin-top: 0.5rem;">
-                    <select id="lutePartSelect" class="btn-toggle" style="width: 100%; text-align: left; padding-left: 1rem;">
-                        <option value="all">All Parts</option>
-                        <option value="bowl">Bowl</option>
-                        <option value="top">Soundboard</option>
-                        <option value="hole">Soundhole</option>
-                        <option value="rings">Rosette Rings</option>
-                        <option value="bridge">Bridge</option>
-                        <option value="neck">Neck</option>
-                        <option value="fb">Fingerboard</option>
-                        <option value="pegbox">Pegbox</option>
-                        <option value="pegs">Tuning Pegs</option>
-                        <option value="frets">Frets</option>
-                        <option value="strings">Strings</option>
-                    </select>
-                </div> -->
-            </div>
-        </div>
+        <div class="demo-layout">
+            <div class="demo-left-column">
+                <div class="text-content">
+                    <h1>An Interactive Demo of Dürer's Drawing Apparatus</h1>
+                    <p>Based on <i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525).</p>
 
-        <div class="ui-container right">
-            <div class="ui-overlay">
-                <h1>Instructions for the Draughtsman</h1>
-                <div class="instruction-steps">
-                    <div class="step">
-                        <span class="step-num">I</span>
-                        <p>Guide the stylus to a point of interest on the object's surface.</p>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">II</span>
-                        <p>Click to mark where the taut thread passes through the frame.</p>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">III</span>
-                        <p>Repeat the above two steps to draw multiple points from the object.</p>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">IV</span>
-                        <p>Observe how a perspective drawing of the object emerges like a pointillist depiction of it.</p>
+                    <h2 style="margin-top: 2rem;">Instructions for the Draughtsman</h2>
+                    <div class="instruction-steps">
+                        <div class="step">
+                            <span class="step-num">I</span>
+                            <p>Guide the stylus to a point of interest on the object's surface.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">II</span>
+                            <p>Click to mark where the taut thread passes through the frame.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">III</span>
+                            <p>Repeat the above two steps to draw multiple points from the object.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">IV</span>
+                            <p>Observe how a perspective drawing of the object emerges like a pointillist depiction of it.</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="demo-right-column">
+                <div class="button-container">
+                    <div class="object-toggles">
+                        <button class="btn-toggle active" data-target="lute">Lute</button>
+                        <button class="btn-toggle" data-target="teapot">Teapot</button>
+                        <button class="btn-toggle" data-target="sphere">Sphere</button>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="animateBtn" class="btn-animate" title="Play">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            Play
+                        </button>
+                        <button id="fastForwardBtn" class="btn-animate" title="Fast Forward to End" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>
+                            Finish
+                        </button>
+                        <button id="stopBtn" class="btn-reset" title="Stop & Reset">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                            Stop
+                        </button>
+                        <!-- <button id="normalsBtn" class="btn-reset" title="Toggle Surface Normals">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></svg>
+                            Normals
+                        </button> -->
+                    </div>
+                    <!-- <div id="debugControls" class="object-toggles" style="display: none; margin-top: 0.5rem;">
+                        <select id="lutePartSelect" class="btn-toggle" style="width: 100%; text-align: left; padding-left: 1rem;">
+                            <option value="all">All Parts</option>
+                            <option value="bowl">Bowl</option>
+                            <option value="top">Soundboard</option>
+                            <option value="hole">Soundhole</option>
+                            <option value="rings">Rosette Rings</option>
+                            <option value="bridge">Bridge</option>
+                            <option value="neck">Neck</option>
+                            <option value="fb">Fingerboard</option>
+                            <option value="pegbox">Pegbox</option>
+                            <option value="pegs">Tuning Pegs</option>
+                            <option value="frets">Frets</option>
+                            <option value="strings">Strings</option>
+                        </select>
+                    </div> -->
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="renderCanvas"></canvas>
+                </div>
+            </div>
         </div>
-        
-        <canvas id="renderCanvas"></canvas>
     </section>
 
     <section class="references-section">

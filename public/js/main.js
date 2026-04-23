@@ -509,10 +509,12 @@ const createScene = function () {
 
     const toggleAnimation = () => {
         const animateBtn = document.getElementById("animateBtn");
+        const finishBtn = document.getElementById("fastForwardBtn");
 
         if (isAnimating) {
             isAnimating = false;
             animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Play';
+            finishBtn.disabled = true;
         } else {
             if (!targetMesh || !_samplePositions) return;
 
@@ -522,6 +524,7 @@ const createScene = function () {
             }
 
             isAnimating = true;
+            finishBtn.disabled = false;
             if (_scanProgress >= _scanIndices.length) {
                 _scanProgress = 0;
             }
@@ -530,7 +533,8 @@ const createScene = function () {
     };
 
     const finishAnimation = () => {
-        if (isAnimating) toggleAnimation(); // Pause animation if running
+        if (isAnimating) toggleAnimation();
+        document.getElementById("fastForwardBtn").disabled = true; // Pause animation if running
 
         // Instantly finish the remaining points in the pass
         if (targetMesh && _samplePositions) {
@@ -566,6 +570,7 @@ const createScene = function () {
         clearCanvas();
         dotsDrawn = 0;
         if (isAnimating) toggleAnimation();
+        document.getElementById("fastForwardBtn").disabled = true;
 
         // Reset Camera
         const targetPos = new BABYLON.Vector3(0, -5, 0);
@@ -793,4 +798,29 @@ const createScene = function () {
 
 const scene = createScene();
 engine.runRenderLoop(() => { scene.render(); });
-window.addEventListener("resize", () => { engine.resize(); });
+
+    const adjustCameraView = () => {
+        // Adjust zoom based on canvas width vs height ratio so it fits the layout container
+        const canvasRect = engine.getRenderingCanvasClientRect();
+        if (!canvasRect || canvasRect.width === 0) return;
+
+        // Base logic: narrower aspect ratio means we need to pull the camera further back to see the width.
+        const aspect = canvasRect.width / canvasRect.height;
+        let newRadius = 45; // Default for widescreen desktop
+
+        if (aspect < 1.0) {
+            newRadius = 65 + (1.0 - aspect) * 20; // Mobile / Portrait
+        } else if (aspect < 1.5) {
+            newRadius = 55; // Tablet / Square-ish
+        }
+
+        camera.radius = newRadius;
+    };
+
+    window.addEventListener("resize", () => {
+        engine.resize();
+        adjustCameraView();
+    });
+
+    // Initial check
+    adjustCameraView();
