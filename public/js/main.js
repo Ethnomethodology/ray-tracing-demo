@@ -5,6 +5,7 @@
 
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+let camera = null; // Shared scope for resize handler
 
 const createScene = function () {
     const scene = new BABYLON.Scene(engine);
@@ -23,7 +24,7 @@ const createScene = function () {
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const isMobile = window.innerWidth <= 900;
     const defaultRadius = isMobile ? 65 : 45;
-    const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 2.2, defaultRadius, new BABYLON.Vector3(0, -5, 0), scene);
+    camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 2.2, defaultRadius, new BABYLON.Vector3(0, -5, 0), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
@@ -569,20 +570,26 @@ const createScene = function () {
 
     document.getElementById("rotateLeftBtn").addEventListener("click", () => {
         if (targetMesh) {
-            targetMesh.rotation.y -= Math.PI / 12; // 15 degrees
+            targetMesh.unfreezeWorldMatrix();
+            targetMesh.rotate(BABYLON.Axis.Y, -Math.PI / 12, BABYLON.Space.WORLD);
+            regroundTargetMesh();
+            finalizeTargetMesh();
         }
     });
 
     document.getElementById("rotateRightBtn").addEventListener("click", () => {
         if (targetMesh) {
-            targetMesh.rotation.y += Math.PI / 12; // 15 degrees
+            targetMesh.unfreezeWorldMatrix();
+            targetMesh.rotate(BABYLON.Axis.Y, Math.PI / 12, BABYLON.Space.WORLD);
+            regroundTargetMesh();
+            finalizeTargetMesh();
         }
     });
 
     document.getElementById("zoomInBtn").addEventListener("click", () => {
         if (camera) {
             const newRadius = camera.radius - 5;
-            camera.radius = Math.max(newRadius, camera.lowerRadiusLimit || 10);
+            camera.radius = Math.max(newRadius, camera.lowerRadiusLimit || 5);
         }
     });
 
@@ -646,6 +653,15 @@ const createScene = function () {
         });
     }
 
+    const regroundTargetMesh = () => {
+        if (!targetMesh) return;
+        targetMesh.computeWorldMatrix(true);
+        const boundingInfo = targetMesh.getBoundingInfo();
+        // Ground on table (table is at Y = -5.25, thickness is 0.5, so top is exactly -5.0)
+        const groundOffset = -5.0 - boundingInfo.boundingBox.minimumWorld.y;
+        targetMesh.position.y += groundOffset;
+    };
+
     // 12. Dynamic Object Loading
     const setupTargetMesh = (mesh, targetScale = 15) => {
         if (targetMesh) {
@@ -655,6 +671,11 @@ const createScene = function () {
         targetMesh.name = "targetMesh";
         targetMesh.material = targetMaterial;
 
+        // Center the geometry so rotation happens around the physical middle
+        targetMesh.computeWorldMatrix(true);
+        const center = targetMesh.getBoundingInfo().boundingBox.center;
+        targetMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(-center.x, -center.y, -center.z));
+
         const boundingInfo = targetMesh.getBoundingInfo();
         const size = boundingInfo.maximum.subtract(boundingInfo.minimum);
         const maxDim = Math.max(size.x, size.y, size.z);
@@ -662,14 +683,8 @@ const createScene = function () {
         const scaleFactor = (maxDim > 0.001) ? targetScale / maxDim : 2.5;
         targetMesh.scaling.setAll(scaleFactor);
 
-        targetMesh.computeWorldMatrix(true);
-        const localInfo = targetMesh.getBoundingInfo();
-        localInfo.update(targetMesh.getWorldMatrix());
-
-        // Ground on table (table is at Y = -5.25, thickness is 0.5, so top is exactly -5.0)
-        const groundOffset = -5.0 - localInfo.boundingBox.minimumWorld.y;
-        targetMesh.position.y += groundOffset;
-        targetMesh.position.z = -10;
+        regroundTargetMesh();
+        targetMesh.position.z = -11;
         targetMesh.position.x = 0;
 
         updateNormalLines();
@@ -781,7 +796,7 @@ const createScene = function () {
             const merged = buildProceduralLute();
             if (merged) {
                 setupTargetMesh(merged, 15);
-                targetMesh.position.z = -18; // Move back to accommodate the lying lute's length
+                targetMesh.position.z = -11; // Final adjusted position
                 finalizeTargetMesh();
             }
         } else if (type === "teapot") {
