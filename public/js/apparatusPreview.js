@@ -172,6 +172,38 @@
         if (segmentB) BABYLON.MeshBuilder.CreateLines("segmentB", { points: [pulleyNode, weightMesh.position], instance: segmentB });
     });
 
+    // ── Dynamic annotation pill positioning ──────────────────────────────────
+    scene.onAfterRenderObservable.add(() => {
+        const w    = engine.getRenderWidth();
+        const h    = engine.getRenderHeight();
+        const vp   = camera.viewport.toGlobal(w, h);
+        const tf   = scene.getTransformMatrix();
+        const rect = canvas.getBoundingClientRect();
+
+        const stringMidB = new BABYLON.Vector3(
+            pulleyNode.x + 1.5,
+            (pulleyNode.y + weightMesh.position.y) / 2,
+            pulleyNode.z
+        );
+
+        const annotations = [
+            { id: "pill-1", world: stringMidB },
+            { id: "pill-2", world: new BABYLON.Vector3(pulleyNode.x + 1.5, pulleyNode.y, pulleyNode.z) },
+            { id: "pill-3", world: new BABYLON.Vector3(stickMesh.position.x - 2.5, stickMesh.position.y + 0.5, stickMesh.position.z) },
+            { id: "pill-4", world: new BABYLON.Vector3(0, 6.0, 0) },
+            { id: "pill-5", world: pageMesh.getAbsolutePosition() },
+        ];
+
+        annotations.forEach(({ id, world }) => {
+            const s    = BABYLON.Vector3.Project(world, BABYLON.Matrix.Identity(), tf, vp);
+            const pill = document.getElementById(id);
+            if (!pill) return;
+            pill.style.left       = (s.x / w) * rect.width  + "px";
+            pill.style.top        = (s.y / h) * rect.height + "px";
+            pill.style.visibility = (s.z > 0 && s.z < 1) ? "visible" : "hidden";
+        });
+    });
+
     engine.runRenderLoop(() => scene.render());
     window.addEventListener("resize", () => engine.resize());
 })();
