@@ -12,7 +12,7 @@
 
     const { 
         pageHinge, stickMesh, pulleyNode, weightMesh, segmentA, segmentB, maxStringLength,
-        gridSize, gridPlane
+        gridSize, gridPlane, pageMesh
     } = buildApparatus(scene);
 
     const targetMaterial = new BABYLON.StandardMaterial("targetMaterial", scene);
@@ -71,10 +71,13 @@
     pencil.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0, -2.25, 0));
 
     // Create persistent mark dot
-    const markedDot = BABYLON.MeshBuilder.CreateDisc("markedDot", { radius: 0.08 }, scene);
+    const markedDot = BABYLON.MeshBuilder.CreateDisc("markedDot", { radius: 0.15 }, scene);
     markedDot.isVisible = false;
+    markedDot.parent = pageMesh; // Attach to the paper tablet so it moves when the door opens
+    markedDot.rotation.y = Math.PI; // Flip to face the draughtsman (ink is only on one side)
     const dotMat = new BABYLON.StandardMaterial("dotMat", scene);
     dotMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    dotMat.emissiveColor = new BABYLON.Color3(0, 0, 0);
     markedDot.material = dotMat;
 
     const getIntersections = (px, py, angle, z) => {
@@ -141,6 +144,8 @@
     const ray = new BABYLON.Ray(pulleyNode, dir);
     const hit = ray.intersectsMesh(gridPlane);
     const hitPoint = hit.hit ? pulleyNode.add(dir.scale(hit.distance)) : new BABYLON.Vector3(0,0,0);
+    // paperHitPoint: The actual surface of the paper tablet (Z=-0.05 when door is closed)
+    const paperHitPoint = hitPoint.add(new BABYLON.Vector3(0, 0, -0.05));
 
     let currentStep = 1;
     let startTime = performance.now();
@@ -304,7 +309,7 @@
                 pencil.isVisible = true;
                 const t = (cycle - 5.0) / 2.5;
                 const easedT = t * t * (3 - 2 * t);
-                BABYLON.Vector3.LerpToRef(pencilStart, hitPoint, easedT, pencil.position);
+                BABYLON.Vector3.LerpToRef(pencilStart, paperHitPoint, easedT, pencil.position);
                 pencil.rotationQuaternion = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2); 
                 updateCrossThreads(1.0, 1.0);
                 markedDot.isVisible = false;
@@ -314,7 +319,7 @@
                 currentPos.copyFrom(pStart);
                 currentNormal.copyFrom(nStart);
                 pencil.isVisible = true;
-                pencil.position.copyFrom(hitPoint);
+                pencil.position.copyFrom(paperHitPoint);
                 const t = (cycle - 7.5) / 1.5;
                 const easedT = t * t * (3 - 2 * t);
                 const startRot = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2);
@@ -330,15 +335,15 @@
                 pencil.isVisible = true;
                 const t = (cycle - 9.0) / 2.5;
                 const easedT = t * t * (3 - 2 * t);
-                BABYLON.Vector3.LerpToRef(hitPoint, pencilStart, easedT, pencil.position);
+                BABYLON.Vector3.LerpToRef(paperHitPoint, pencilStart, easedT, pencil.position);
                 const markRot = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 4);
                 const backRot = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2);
                 BABYLON.Quaternion.SlerpToRef(markRot, backRot, easedT, pencil.rotationQuaternion);
                 updateCrossThreads(1.0, 1.0);
                 
-                // Show dot on tablet surface
+                // Show dot on tablet surface (local coordinates)
                 markedDot.isVisible = true;
-                markedDot.position.set(hitPoint.x, hitPoint.y, 0.05);
+                markedDot.position.set(hitPoint.x, hitPoint.y, 0.015);
             } else {
                 // Phase 6: Threads disappear, Hold
                 pageHinge.rotation.y = 0;
@@ -349,7 +354,7 @@
                 pencil.rotationQuaternion = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2);
                 updateCrossThreads(0, 0); // Hide threads
                 markedDot.isVisible = true;
-                markedDot.position.set(hitPoint.x, hitPoint.y, 0.05);
+                markedDot.position.set(hitPoint.x, hitPoint.y, 0.015);
             }
 
             stickMesh.position.copyFrom(currentPos);
@@ -377,7 +382,7 @@
             pencil.isVisible = false;
             updateCrossThreads(0, 0);
             markedDot.isVisible = true;
-            markedDot.position.set(hitPoint.x, hitPoint.y, 0.05);
+            markedDot.position.set(hitPoint.x, hitPoint.y, 0.015);
 
             if (cycle < duration) {
                 const t = cycle / duration;
