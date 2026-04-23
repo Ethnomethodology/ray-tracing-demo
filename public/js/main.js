@@ -803,18 +803,46 @@ const createScene = function () {
             // Clear lute-specific debug state
             currentLuteParts = {};
             BABYLON.SceneLoader.ImportMeshAsync("", "models/", "teapot.glb", scene).then((result) => {
-                const root = result.meshes[0];
+                // Step 1: Force-compute world matrices for the ENTIRE hierarchy
+                // (GLB root often carries a -90° X rotation for glTF Y-up → Babylon Z-up)
+                result.meshes.forEach(m => m.computeWorldMatrix(true));
+
                 const actualMeshes = result.meshes.filter(m => m instanceof BABYLON.Mesh && m.getTotalVertices() > 0);
                 if (actualMeshes.length > 0) {
-                    actualMeshes.forEach(m => m.computeWorldMatrix(true));
-                    const merged = BABYLON.Mesh.MergeMeshes(actualMeshes, true, true, undefined, false, true);
+                    // Step 2: Snapshot the FULL world matrix of each sub-mesh, then
+                    // detach it from the GLB hierarchy and bake that world matrix directly
+                    // into its vertex buffer.  This is the critical difference from
+                    // bakeCurrentTransformIntoVertices(), which only bakes LOCAL transforms
+                    // and misses any parent-chain offsets/rotations in the GLB hierarchy.
+                    actualMeshes.forEach(m => {
+                        const worldMatrix = m.getWorldMatrix().clone(); // full parent-chain transform
+                        m.parent = null;                                 // detach from hierarchy
+                        m.position = BABYLON.Vector3.Zero();            // reset local transform to identity
+                        m.rotation = BABYLON.Vector3.Zero();
+                        m.rotationQuaternion = null;
+                        m.scaling = BABYLON.Vector3.One();
+                        m.computeWorldMatrix(true);                     // recompute as standalone
+                        m.bakeTransformIntoVertices(worldMatrix);       // embed world transform in vertices
+                    });
+
+                    // Step 3: Merge the now-standalone, world-space meshes.
+                    // multiMultiMaterials=false gives a clean single-buffer mesh with no
+                    // sub-mesh confusion; all parts share one pivot and rotate as one body.
+                    const merged = BABYLON.Mesh.MergeMeshes(actualMeshes, true, true, undefined, false, false);
                     if (merged) {
+                        // Step 4: Apply desired initial orientation and bake it in so
+                        // the mesh starts with a zero-rotation state.  All subsequent
+                        // mesh.rotate() calls then compose clean quaternions with no
+                        // Euler/quaternion mixing.
                         merged.rotation.y = -Math.PI / 2;
-                        setupTargetMesh(merged, 9); // 25% reduction from 12
+                        merged.computeWorldMatrix(true);
+                        merged.bakeCurrentTransformIntoVertices();
+                        setupTargetMesh(merged, 9);
                         finalizeTargetMesh();
                     }
                 }
-                if (root && root !== targetMesh) root.dispose();
+                // Dispose the GLB root node (its children were already disposed by MergeMeshes)
+                result.meshes.forEach(m => { if (!m.isDisposed()) m.dispose(); });
             });
         } else if (type === "sphere") {
             // Clear lute-specific debug state
