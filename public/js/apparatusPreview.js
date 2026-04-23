@@ -12,15 +12,11 @@
     const scene  = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
 
-    // Interactive camera — same default angle as the main scene
+    // Static zoomed-out camera
     const camera = new BABYLON.ArcRotateCamera(
-        "prevCam", -Math.PI / 5, Math.PI / 2.5, 38,
+        "prevCam", -Math.PI / 5, Math.PI / 2.5, 45,
         new BABYLON.Vector3(0, -5, 0), scene
     );
-    camera.attachControl(canvas, true);
-    camera.wheelPrecision  = 50;
-    camera.lowerRadiusLimit = 5;
-    camera.upperRadiusLimit = 100;
 
     // Build the full apparatus (no drawing texture → plain white page)
     const { 
@@ -38,31 +34,34 @@
     wallMesh.visibility = 0;
     wallMesh.isPickable = true;
 
-    // Place stylus at a default starting position
-    const staticPos = new BABYLON.Vector3(-2, -5.25, -10);
-    stickMesh.position.copyFrom(staticPos);
-    let _surfaceNormal = new BABYLON.Vector3(0, 1, 0);
+    let targetMesh = null;
+    if (typeof buildProceduralLute === "function") {
+        targetMesh = buildProceduralLute();
+        if (targetMesh) {
+            const targetMaterial = new BABYLON.StandardMaterial("targetMaterial", scene);
+            targetMaterial.diffuseColor  = new BABYLON.Color3(0.6, 0.4, 0.2);
+            targetMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
+            targetMesh.material = targetMaterial;
 
-    // Page open/close state & toggle
-    let isPageOpen = true;
-    const togglePage = () => {
-        if (isPageOpen) {
-            const anim = new BABYLON.Animation("closePage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
-            anim.setKeys([{ frame: 0, value: 2 * Math.PI / 3 }, { frame: 30, value: 0 }]);
-            pageHinge.animations = [anim];
-            scene.beginAnimation(pageHinge, 0, 30, false);
-            isPageOpen = false;
-            stickMesh.position.copyFrom(new BABYLON.Vector3(8, -5, 4));
-            _surfaceNormal.copyFrom(new BABYLON.Vector3(0, 1, 0));
-        } else {
-            const anim = new BABYLON.Animation("openPage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
-            anim.setKeys([{ frame: 0, value: 0 }, { frame: 30, value: 2 * Math.PI / 3 }]);
-            pageHinge.animations = [anim];
-            scene.beginAnimation(pageHinge, 0, 30, false);
-            isPageOpen = true;
+            targetMesh.computeWorldMatrix(true);
+            const center = targetMesh.getBoundingInfo().boundingBox.center;
+            targetMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(-center.x, -center.y, -center.z));
+
+            const boundingInfo = targetMesh.getBoundingInfo();
+            const size = boundingInfo.maximum.subtract(boundingInfo.minimum);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scaleFactor = (maxDim > 0.001) ? 15 / maxDim : 2.5;
+            targetMesh.scaling.setAll(scaleFactor);
+
+            targetMesh.computeWorldMatrix(true);
+            const groundOffset = -5.0 - targetMesh.getBoundingInfo().boundingBox.minimumWorld.y;
+            targetMesh.position.y += groundOffset;
+            targetMesh.position.z = -11;
+            targetMesh.position.x = 0;
         }
-    };
+    }
 
+    let _surfaceNormal = new BABYLON.Vector3(0, 1, 0);
     // Shared ray for drawing calculations
     const _sharedRay = new BABYLON.Ray(BABYLON.Vector3.Zero(), BABYLON.Vector3.Up(), 100);
     const _tempDirection = new BABYLON.Vector3();
@@ -139,57 +138,20 @@
         _crossThreadV.isPickable = false;
     };
 
-    // Interaction loop
-    scene.onPointerObservable.add((pointerInfo) => {
-        if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
-            if (!isPageOpen) return;
-
-            const pickInfo = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === tableMesh || mesh === wallMesh);
-            if (pickInfo.hit && pickInfo.pickedPoint) {
-                let targetPos = pickInfo.pickedPoint.clone();
-                const distToPulley = BABYLON.Vector3.Distance(targetPos, pulleyNode);
-                const maxDragDistance = maxStringLength - 1.5;
-                if (distToPulley > maxDragDistance) {
-                    const direction = targetPos.subtract(pulleyNode).normalize();
-                    targetPos = pulleyNode.add(direction.scale(maxDragDistance));
-                }
-                stickMesh.position.copyFrom(targetPos);
-                const pickedNormal = pickInfo.getNormal(true, true);
-                if (pickedNormal) _surfaceNormal.copyFrom(pickedNormal);
-                canvas.style.cursor = "grabbing";
-            } else {
-                canvas.style.cursor = "default";
-            }
-        } else if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
-            if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit) {
-                const pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                if (pickedMesh === gridPlane || pickedMesh === borderBottom || pickedMesh === borderTop || pickedMesh === borderLeft || pickedMesh === borderRight || pickedMesh === pageMesh || pickedMesh === pageBorder) {
-                    togglePage();
-                    return;
-                }
-            }
-
-            const freshPick = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === tableMesh || mesh === wallMesh);
-            if (freshPick && freshPick.hit) {
-                hideCrossThreads();
-                let targetPos = freshPick.pickedPoint.clone();
-                const distToPulley = BABYLON.Vector3.Distance(targetPos, pulleyNode);
-                const maxDragDistance = maxStringLength - 1.5;
-                if (distToPulley > maxDragDistance) {
-                    const direction = targetPos.subtract(pulleyNode).normalize();
-                    targetPos = pulleyNode.add(direction.scale(maxDragDistance));
-                }
-                stickMesh.position.copyFrom(targetPos);
-                const clickedNormal = freshPick.getNormal(true, true);
-                if (clickedNormal) _surfaceNormal.copyFrom(clickedNormal);
-                
-                if (!isPageOpen) {
-                    togglePage();
-                }
-                const manualHit = drawPointAtStick();
-                if (manualHit) showCrossThreads(manualHit);
-            }
+    // Setup static initial state
+    scene.onReadyObservable.addOnce(() => {
+        const ray = new BABYLON.Ray(new BABYLON.Vector3(0, 5, -11), new BABYLON.Vector3(0, -1, 0));
+        const pick = scene.pickWithRay(ray, (mesh) => mesh === targetMesh);
+        if (pick && pick.hit) {
+            stickMesh.position.copyFrom(pick.pickedPoint);
+            const normal = pick.getNormal(true, true);
+            if (normal) _surfaceNormal.copyFrom(normal);
+        } else {
+            stickMesh.position.copyFrom(new BABYLON.Vector3(0, -3.5, -11));
         }
+        
+        const hitPoint = drawPointAtStick();
+        if (hitPoint) showCrossThreads(hitPoint);
     });
 
     scene.onBeforeRenderObservable.add(() => {
