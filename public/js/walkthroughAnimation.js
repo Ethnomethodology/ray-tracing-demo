@@ -132,35 +132,46 @@
         const elapsed = (now - startTime) / 1000;
         
         if (currentStep === 1) {
-            const cycle = elapsed % 7.5;
+            const cycle = elapsed % 6.5;
             let currentPos = new BABYLON.Vector3();
             let currentNormal = new BABYLON.Vector3();
 
             if (cycle < 1.5) {
+                // Phase 1: Door Opens
                 pageHinge.rotation.y = BABYLON.Scalar.Lerp(0, 2 * Math.PI / 3, cycle / 1.5);
                 lute.isVisible = false;
+                lute.visibility = 0;
                 currentPos.copyFrom(pStart);
                 currentNormal.copyFrom(nStart);
-            } else if (cycle < 2.5) {
+            } else if (cycle < 2.0) {
+                // Phase 2: Short Wait (0.5s)
                 pageHinge.rotation.y = 2 * Math.PI / 3;
                 lute.isVisible = false;
+                lute.visibility = 0;
                 currentPos.copyFrom(pStart);
                 currentNormal.copyFrom(nStart);
             } else if (cycle < 3.5) {
+                // Phase 3: Lute Fades In (1.5s)
                 pageHinge.rotation.y = 2 * Math.PI / 3;
                 lute.isVisible = true;
+                const t = (cycle - 2.0) / 1.5;
+                lute.visibility = t; 
                 currentPos.copyFrom(pStart);
                 currentNormal.copyFrom(nStart);
             } else if (cycle < 5.0) {
+                // Phase 4: Pointer Moves
                 pageHinge.rotation.y = 2 * Math.PI / 3;
                 lute.isVisible = true;
+                lute.visibility = 1.0;
                 const t = (cycle - 3.5) / 1.5;
                 const easedT = t * t * (3 - 2 * t);
                 BABYLON.Vector3.LerpToRef(pStart, pEnd, easedT, currentPos);
                 BABYLON.Vector3.LerpToRef(nStart, nEnd, easedT, currentNormal);
             } else {
+                // Phase 5: Hold
                 pageHinge.rotation.y = 2 * Math.PI / 3;
                 lute.isVisible = true;
+                lute.visibility = 1.0;
                 currentPos.copyFrom(pEnd);
                 currentNormal.copyFrom(nEnd);
             }
@@ -192,6 +203,7 @@
 
             pageHinge.rotation.y = 2 * Math.PI / 3;
             lute.isVisible = true;
+            lute.visibility = 1.0;
             stickMesh.position.copyFrom(pEnd);
             const _fromVec = new BABYLON.Vector3(0, 1, 0);
             stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(
