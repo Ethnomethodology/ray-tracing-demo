@@ -513,7 +513,8 @@ const createScene = function () {
 
         if (isAnimating) {
             isAnimating = false;
-            animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Play';
+            animateBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+            animateBtn.classList.remove('playing');
             finishBtn.disabled = true;
         } else {
             if (!targetMesh || !_samplePositions) return;
@@ -528,7 +529,8 @@ const createScene = function () {
             if (_scanProgress >= _scanIndices.length) {
                 _scanProgress = 0;
             }
-            animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> Pause';
+            animateBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+            animateBtn.classList.add('playing');
         }
     };
 
@@ -806,12 +808,13 @@ engine.runRenderLoop(() => { scene.render(); });
 
         // Base logic: narrower aspect ratio means we need to pull the camera further back to see the width.
         const aspect = canvasRect.width / canvasRect.height;
-        let newRadius = 45; // Default for widescreen desktop
+        // Increase zoom by ~1.5x (smaller radius = zoomed in closer)
+        let newRadius = 30; // Default for widescreen desktop (was 45)
 
         if (aspect < 1.0) {
-            newRadius = 65 + (1.0 - aspect) * 20; // Mobile / Portrait
+            newRadius = 43 + (1.0 - aspect) * 15; // Mobile / Portrait (was 65)
         } else if (aspect < 1.5) {
-            newRadius = 55; // Tablet / Square-ish
+            newRadius = 36; // Tablet / Square-ish (was 55)
         }
 
         camera.radius = newRadius;
