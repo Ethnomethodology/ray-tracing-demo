@@ -513,12 +513,16 @@ const createScene = function () {
     const toggleAnimation = () => {
         const animateBtn = document.getElementById("animateBtn");
         const finishBtn = document.getElementById("fastForwardBtn");
+        const rotL = document.getElementById("rotateLeftBtn");
+        const rotR = document.getElementById("rotateRightBtn");
 
         if (isAnimating) {
             isAnimating = false;
-            animateBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+            animateBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
             animateBtn.classList.remove('playing');
             finishBtn.disabled = true;
+            rotL.disabled = false;
+            rotR.disabled = false;
         } else {
             if (!targetMesh || !_samplePositions) return;
 
@@ -529,10 +533,12 @@ const createScene = function () {
 
             isAnimating = true;
             finishBtn.disabled = false;
+            rotL.disabled = true;
+            rotR.disabled = true;
             if (_scanProgress >= _scanIndices.length) {
                 _scanProgress = 0;
             }
-            animateBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+            animateBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
             animateBtn.classList.add('playing');
         }
     };
