@@ -109,8 +109,22 @@ body {
     display: flex;
 }
 
-.demo-section .step {
+.walkthrough-section .step {
+    display: none;
+}
+
+.walkthrough-section .step.active {
     display: flex;
+}
+
+#walkthroughCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    outline: none;
 }
 
 .step-navigation {
@@ -519,7 +533,8 @@ body {
     overflow: hidden;
 }
 
-#stepOneCanvas {
+#stepOneCanvas,
+#stepTwoCanvas {
     position: absolute;
     top: 0;
     left: 0;

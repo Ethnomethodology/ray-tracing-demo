@@ -5,6 +5,7 @@
 
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 let camera = null; // Shared scope for resize handler
 
 const createScene = function () {

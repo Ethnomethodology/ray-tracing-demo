@@ -9,6 +9,7 @@
     if (!canvas) return;
 
     const engine = new BABYLON.Engine(canvas, true);
+    engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
     const scene  = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
 

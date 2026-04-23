@@ -5,7 +5,7 @@ window.buildProceduralLute = function(scene) {
         const R = 2.5;    // bulbous bottom radius
         const L = 6.0;    // body length
         const neckR = 0.45;   // half-width at neck join
-        const STEPS = 60;
+        const STEPS = 120;
 
         const profile = [];
         for (let i = 0; i <= STEPS; i++) {
@@ -24,7 +24,7 @@ window.buildProceduralLute = function(scene) {
 
         // 1. Ribbed bowl — half-lathe gives the classic staved back
         const bowl = BABYLON.MeshBuilder.CreateLathe("lbowl", {
-            shape: profile, arc: 0.5, tessellation: 22,
+            shape: profile, arc: 0.5, tessellation: 64,
             sideOrientation: BABYLON.Mesh.DOUBLESIDE
         }, scene);
         bowl.convertToFlatShadedMesh();
@@ -32,7 +32,7 @@ window.buildProceduralLute = function(scene) {
         parts.push(bowl);
 
         const topPlate = BABYLON.MeshBuilder.CreateLathe("ltop", {
-            shape: profile, arc: 1.0, tessellation: 40,
+            shape: profile, arc: 1.0, tessellation: 64,
             sideOrientation: BABYLON.Mesh.DOUBLESIDE
         }, scene);
         topPlate.scaling.z = 0.001;

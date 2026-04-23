@@ -86,22 +86,29 @@
                 </div>
             </div>
         </div>
-    <section class="demo-section" style="padding: 4rem 2rem; border-top: 1px solid var(--glass-border);">
+    <section class="demo-section walkthrough-section" style="padding: 4rem 2rem; border-top: 1px solid var(--glass-border);">
         <div class="demo-layout">
             <div class="demo-left-column">
                 <div class="text-content">
                     <h2>Instructions for the Draughtsman</h2>
-                    <div class="instruction-steps">
-                        <div class="step active">
+                    <div class="instruction-steps" id="draughtsman-steps">
+                        <div class="step active" data-step="1">
                             <p><strong>Step 1:</strong> Move the Iron Pointer to a point on the Subject and stretch the Long Thread.</p>
                         </div>
+                        <div class="step" data-step="2">
+                            <p><strong>Step 2:</strong> Move the Cross Threads crosswise to confine the Long Thread against the Vertical Frame.</p>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <button id="prevDraughtsmanBtn" class="nav-btn" disabled>Previous</button>
+                        <button id="nextDraughtsmanBtn" class="nav-btn">Next</button>
                     </div>
                 </div>
             </div>
 
             <div class="demo-right-column">
                 <div class="canvas-container">
-                    <canvas id="stepOneCanvas"></canvas>
+                    <canvas id="walkthroughCanvas"></canvas>
                 </div>
             </div>
         </div>
@@ -219,6 +226,6 @@
     <script src="js/sceneSetup.js"></script>
     <script src="js/main.js"></script>
     <script src="js/apparatusPreview.js"></script>
-    <script src="js/stepOneAnimation.js"></script>
+    <script src="js/walkthroughAnimation.js"></script>
 </body>
 </html>
