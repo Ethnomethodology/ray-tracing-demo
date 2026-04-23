@@ -519,6 +519,16 @@ body {
     overflow: hidden;
 }
 
+#stepOneCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
+    outline: none;
+}
+
 #previewCanvas {
     position: absolute;
     top: 0;
