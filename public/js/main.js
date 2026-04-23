@@ -30,189 +30,52 @@ const createScene = function () {
     camera.lowerRadiusLimit = 5;
     camera.upperRadiusLimit = 100;
 
-    // 2. Lighting setup - Positioned to highlight the Lute from above
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-    light.intensity = 0.7;
-    const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0, -1, 0), scene);
-    dirLight.intensity = 0.6;
-    dirLight.position = new BABYLON.Vector3(0, 20, -10); // Center over the Lute
-
-    // 3. Environment: The Table (Extended to bridge Lute and Frame)
-    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 12, height: 0.5, depth: 25 }, scene);
-    tableMesh.position.y = -5.25;
-    tableMesh.position.z = -7.5; // Offset to sit under both Lute (-10) and Frame (0)
-    const tableMaterial = new BABYLON.StandardMaterial("tableMaterial", scene);
-    tableMaterial.diffuseColor = new BABYLON.Color3(0.35, 0.22, 0.12); // Richer wooden/walnut brown
-    tableMesh.material = tableMaterial;
-
-    // 3a. Table Legs
-    const legHeight = 9.75; // 15 - 5.25 = 9.75 so absolute bottom is at Y = -15 (matches wall bottom)
-    const legDiameter = 0.6;
-    const legPositions = [
-        new BABYLON.Vector3(5.5, -legHeight / 2, 11.5),
-        new BABYLON.Vector3(-5.5, -legHeight / 2, 11.5),
-        new BABYLON.Vector3(5.5, -legHeight / 2, -11.5),
-        new BABYLON.Vector3(-5.5, -legHeight / 2, -11.5)
-    ];
-    legPositions.forEach((pos, i) => {
-        const leg = BABYLON.MeshBuilder.CreateCylinder(`tableLeg${i}`, { diameter: legDiameter, height: legHeight }, scene);
-        leg.parent = tableMesh;
-        leg.position = pos;
-        leg.material = tableMaterial;
-    });
-
-    // 3b. Environment: The Wall (For the Pulley)
-    const wallMesh = BABYLON.MeshBuilder.CreatePlane("wallMesh", { width: 40, height: 30 }, scene);
-    wallMesh.position.z = 16;
-    wallMesh.rotation.y = Math.PI;
-    wallMesh.isVisible = false; // Fully hidden
-
-    // 4. Create targetMesh (Historical Lute)
-    let targetMesh = null;
-    const targetMaterial = new BABYLON.StandardMaterial("targetMaterial", scene);
-    targetMaterial.diffuseColor = new BABYLON.Color3(0.6, 0.4, 0.2); // Lighter wood tone
-    targetMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-
-    // Object loading is now handled by loadObject() at the bottom of createScene
-
-
-    // 5. Create gridPlane (Dürer's Frame)
-    const gridSize = 10;
-    const gridPlane = BABYLON.MeshBuilder.CreatePlane("gridPlane", {
-        size: gridSize,
-        sideOrientation: BABYLON.Mesh.DOUBLESIDE
-    }, scene);
-    gridPlane.position = new BABYLON.Vector3(0, 0, 0); // Frame at Origin (Center of world)
-
-    // Setup DynamicTexture for the drawing engine
+    // 2. Drawing texture (created before buildApparatus so it can be passed in for the page)
     const textureSize = 1024;
     const drawingTexture = new BABYLON.DynamicTexture("drawingTexture", { width: textureSize, height: textureSize }, scene);
     const textureCtx = drawingTexture.getContext();
     drawingTexture.hasAlpha = true;
 
-    // Initial clear/fill function
     const clearCanvas = () => {
-        textureCtx.fillStyle = "#ffffff"; // Solid white paper
+        textureCtx.fillStyle = "#ffffff";
         textureCtx.fillRect(0, 0, textureSize, textureSize);
         drawingTexture.update();
     };
     clearCanvas();
 
-    const planeMaterial = new BABYLON.StandardMaterial("planeMaterial", scene);
-    planeMaterial.alpha = 0.15; // Very faint glass effect
-    planeMaterial.backFaceCulling = false;
-    gridPlane.material = planeMaterial;
+    // 3. Build the shared physical apparatus (table, frame, page, pulley, stylus …)
+    //    All construction lives in sceneSetup.js → buildApparatus().
+    const {
+        gridSize, gridPlane, planeMaterial, frameBorderMaterial,
+        borderBottom, borderTop, borderLeft, borderRight,
+        pageHinge, pageMesh,
+        pulleyNode, maxStringLength, pulleyMesh, weightMesh,
+        segmentA: _segA, segmentB: _segB,
+        stickMesh,
+    } = buildApparatus(scene, { drawingTexture });
 
-    // Frame Border (Physical black frame, constructed from 4 boxes)
-    const frameHalf = gridSize / 2;
-    const borderThickness = 0.2;
-    const borderDepth = 0.2;
+    // Keep segmentA/B as lets so the render loop can reassign the line instances
+    let segmentA = _segA;
+    let segmentB = _segB;
 
-    const frameBorderMaterial = new BABYLON.StandardMaterial("frameBorderMat", scene);
-    frameBorderMaterial.diffuseColor = new BABYLON.Color3(0.02, 0.02, 0.02); // Black
-    frameBorderMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+    // 4. Target object (lute / teapot / sphere)
+    let targetMesh = null;
+    const targetMaterial = new BABYLON.StandardMaterial("targetMaterial", scene);
+    targetMaterial.diffuseColor  = new BABYLON.Color3(0.6, 0.4, 0.2);
+    targetMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 
-    // Bottom border (shifted up by borderThickness/2 so bottom edge sits exactly at -frameHalf, i.e., -5.0)
-    const borderBottom = BABYLON.MeshBuilder.CreateBox("borderBottom", { width: gridSize + borderThickness * 2, height: borderThickness, depth: borderDepth }, scene);
-    borderBottom.parent = gridPlane;
-    borderBottom.position = new BABYLON.Vector3(0, -frameHalf + borderThickness / 2, 0);
-    borderBottom.material = frameBorderMaterial;
-
-    // Top border
-    const borderTop = BABYLON.MeshBuilder.CreateBox("borderTop", { width: gridSize + borderThickness * 2, height: borderThickness, depth: borderDepth }, scene);
-    borderTop.parent = gridPlane;
-    borderTop.position = new BABYLON.Vector3(0, frameHalf + borderThickness / 2, 0);
-    borderTop.material = frameBorderMaterial;
-
-    // Left border
-    const borderLeft = BABYLON.MeshBuilder.CreateBox("borderLeft", { width: borderThickness, height: gridSize, depth: borderDepth }, scene);
-    borderLeft.parent = gridPlane;
-    borderLeft.position = new BABYLON.Vector3(-frameHalf - borderThickness / 2, 0, 0);
-    borderLeft.material = frameBorderMaterial;
-
-    // Right border
-    const borderRight = BABYLON.MeshBuilder.CreateBox("borderRight", { width: borderThickness, height: gridSize, depth: borderDepth }, scene);
-    borderRight.parent = gridPlane;
-    borderRight.position = new BABYLON.Vector3(frameHalf + borderThickness / 2, 0, 0);
-    borderRight.material = frameBorderMaterial;
-
-
-    // 5.5 Create Hinged Page (Dürer's drawing surface)
-    const pageHinge = new BABYLON.TransformNode("pageHinge", scene);
-    pageHinge.parent = gridPlane;
-    pageHinge.position = new BABYLON.Vector3(-frameHalf, 0, 0); // Hinge on the left border
-
-    // Use a thin Box for the paper to properly handle front/back materials and orientation
-    const pageMesh = BABYLON.MeshBuilder.CreateBox("pageMesh", {
-        width: gridSize,
-        height: gridSize,
-        depth: 0.02
-    }, scene);
-    pageMesh.parent = pageHinge;
-    // Position it so the front face sits at z = -0.05
-    pageMesh.position = new BABYLON.Vector3(frameHalf, 0, -0.06);
-    pageMesh.isPickable = false;
-
-    // Materials for the page
-    const pageInnerMaterial = new BABYLON.StandardMaterial("pageInnerMaterial", scene);
-    pageInnerMaterial.diffuseTexture = drawingTexture;
-    pageInnerMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-    pageInnerMaterial.disableLighting = true;
-
-    const pageOuterMaterial = new BABYLON.StandardMaterial("pageOuterMaterial", scene);
-    pageOuterMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
-    pageOuterMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-    pageOuterMaterial.disableLighting = true;
-
-    const multiMat = new BABYLON.MultiMaterial("pageMultiMat", scene);
-    multiMat.subMaterials.push(pageInnerMaterial); // Drawing
-    multiMat.subMaterials.push(pageOuterMaterial); // White
-    multiMat.subMaterials.push(pageOuterMaterial); // Sides
-    pageMesh.material = multiMat;
-
-    // Define submeshes for the box faces
-    pageMesh.subMeshes = [];
-    const verticesCount = pageMesh.getTotalVertices();
-    // Mat 0 is Drawing, Mat 1 is White. 
-    // Front (+Z) faces the frame when closed, so it gets the drawing.
-    new BABYLON.SubMesh(0, 0, verticesCount, 0, 6, pageMesh); // Front (+Z) gets Mat 0 (Drawing)
-    new BABYLON.SubMesh(1, 0, verticesCount, 6, 6, pageMesh); // Back (-Z) gets Mat 1 (White)
-    new BABYLON.SubMesh(2, 0, verticesCount, 12, 24, pageMesh);
-
-    // Add a black border around the page
-    const pageBorderPoints = [
-        new BABYLON.Vector3(-frameHalf, -frameHalf, 0),
-        new BABYLON.Vector3(frameHalf, -frameHalf, 0),
-        new BABYLON.Vector3(frameHalf, frameHalf, 0),
-        new BABYLON.Vector3(-frameHalf, frameHalf, 0),
-        new BABYLON.Vector3(-frameHalf, -frameHalf, 0)
-    ];
-    const pageBorder = BABYLON.MeshBuilder.CreateTube("pageBorder", { path: pageBorderPoints, radius: 0.1, cap: BABYLON.Mesh.CAP_ALL }, scene);
-    pageBorder.parent = pageMesh;
-    pageBorder.position.z = 0.011; // Slightly in front of the front face
-    pageBorder.material = frameBorderMaterial;
-    pageBorder.isPickable = false;
-
-    pageHinge.setEnabled(true); // Always visible
-
+    // 5. Page open/close state & toggle
     let isPageOpen = true;
-    pageHinge.rotation.y = 2 * Math.PI / 3; // Open immediately on load, no animation
     const togglePage = () => {
         if (isPageOpen) {
-            // Close animation
             const anim = new BABYLON.Animation("closePage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
             anim.setKeys([{ frame: 0, value: 2 * Math.PI / 3 }, { frame: 30, value: 0 }]);
             pageHinge.animations = [anim];
             scene.beginAnimation(pageHinge, 0, 30, false);
             isPageOpen = false;
-
-            // Park the stylus on the right side of the table when the page is closed.
-            // By putting it at z=4 (between the frame at z=0 and pulley at z=15.5),
-            // the thread NEVER crosses the z=0 plane, guaranteeing no intersections.
             stickMesh.position.copyFrom(new BABYLON.Vector3(8, -5, 4));
-            _surfaceNormal.copyFrom(new BABYLON.Vector3(0, 1, 0)); // Point handle straight up
+            _surfaceNormal.copyFrom(new BABYLON.Vector3(0, 1, 0));
         } else {
-            // Open animation
             const anim = new BABYLON.Animation("openPage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
             anim.setKeys([{ frame: 0, value: 0 }, { frame: 30, value: 2 * Math.PI / 3 }]);
             pageHinge.animations = [anim];
@@ -221,37 +84,7 @@ const createScene = function () {
         }
     };
 
-    // 6. Create stylus (stickMesh) to match Dürer's original design
-    const stickMesh = BABYLON.MeshBuilder.CreateCylinder("stickMesh", { diameterTop: 0.02, diameterBottom: 0.15, height: 3.5 }, scene);
-
-    // The stylus geometry: the cylinder's +Y top is narrow (0.02) and -Y bottom is wide (0.15).
-    // We want: narrow/pointy tip at Y=0 (origin = thread joint, rests on mesh surface)
-    //          wide/thick handle at Y=+3.5 (points away along the outward surface normal).
-    //
-    // Step 1: flip 180° around X → narrow end moves from +1.75 to -1.75, wide from -1.75 to +1.75.
-    // Step 2: translate +1.75 in Y → narrow end lands at Y=0 (origin/joint), wide at Y=+3.5.
-    stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(Math.PI));
-    stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0, 1.75, 0));
-    // Now: narrow tip at Y=0 (joint), wide handle at Y=3.5 (points out along surface normal).
-
-    const stickMaterial = new BABYLON.StandardMaterial("stickMaterial", scene);
-    // Red material for visibility while keeping the historical shape
-    stickMaterial.diffuseColor = new BABYLON.Color3(1, 0.1, 0.1);
-    stickMaterial.emissiveColor = new BABYLON.Color3(0.5, 0, 0);
-    stickMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-    stickMesh.material = stickMaterial;
-    stickMesh.isPickable = false;
-    stickMesh.position = new BABYLON.Vector3(0, 0, 0);
-
-    // Ball knob at the wide/top end of the stylus (Y=3.5 in local space),
-    // matching the round pommel visible in Dürer's original woodcut.
-    const stylusKnob = BABYLON.MeshBuilder.CreateSphere("stylusKnob", { diameter: 0.28, segments: 10 }, scene);
-    stylusKnob.parent = stickMesh;          // moves & rotates with the stylus automatically
-    stylusKnob.position = new BABYLON.Vector3(0, 3.5, 0); // top of the handle
-    stylusKnob.material = stickMaterial;
-    stylusKnob.isPickable = false;
-
-    // 7. Raycasting Interaction
+    // 6. Raycasting interaction (pointer move → move stylus)
     scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
             if (!targetMesh) return;
@@ -279,28 +112,6 @@ const createScene = function () {
         }
     });
 
-    // 8. Pulley and String System
-    // PulleyNode at the "Eye" point (on the wall)
-    const pulleyNode = new BABYLON.Vector3(0, 10, 15.5);
-    const maxStringLength = 35.7; // Reduced by 15% from 42
-
-    const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
-    pulleyMesh.position.copyFrom(pulleyNode);
-    pulleyMesh.rotation.x = Math.PI / 2;
-    const pulleyMaterial = new BABYLON.StandardMaterial("pulleyMaterial", scene);
-    pulleyMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.2, 0.1);
-    pulleyMesh.material = pulleyMaterial;
-
-    const weightMesh = BABYLON.MeshBuilder.CreateCylinder("weightMesh", { diameter: 0.4, height: 0.8 }, scene);
-    const weightMaterial = new BABYLON.StandardMaterial("weightMaterial", scene);
-    weightMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-    weightMesh.material = weightMaterial;
-
-    let segmentA = BABYLON.MeshBuilder.CreateLines("segmentA", { points: [stickMesh.position, pulleyNode], updatable: true }, scene);
-    segmentA.color = new BABYLON.Color3(0.3, 0.3, 0.3);
-
-    let segmentB = BABYLON.MeshBuilder.CreateLines("segmentB", { points: [pulleyNode, weightMesh.position], updatable: true }, scene);
-    segmentB.color = new BABYLON.Color3(0.3, 0.3, 0.3);
 
     scene.onBeforeRenderObservable.add(() => {
         // 1. Update Pulleys, Weights, and Stylus Alignment

@@ -19,12 +19,57 @@
         <div class="intro-content">
             <img src="images/durer_lute_woodcut.jpg" alt="Dürer's Woodcut" class="header-image">
             <div class="intro-text">
-                <!-- Text will be added here later -->
+                <p class="woodcut-caption">This image is a famous woodcut by the Renaissance artist Albrecht Dürer, titled <em>Draftsman Drawing a Lute</em> (1525). It illustrates a mechanical device designed to help artists create perfect, mathematically accurate perspective drawings of complex three-dimensional objects.</p>
+                <p class="woodcut-caption">The device works by physically mapping the "lines of sight" between an object and an observer's eye. Here is a breakdown of how the mechanism depicted in the image functions:</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="explanation-section">
+        <div class="demo-layout">
+            <div class="demo-left-column">
+                <div class="text-content">
+                    <h2>The Key Components</h2>
+                    <div class="instruction-steps">
+                        <div class="step">
+                            <span class="step-num">1</span>
+                            <p><strong>The String</strong><br>Represents a ray of light (or line of sight) traveling from the object to the observer's eye.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">2</span>
+                            <p><strong>The Wall Ring / Hook</strong><br>The fixed point on the wall the string is pulled taut against. This represents the stationary "eye" of the observer.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">3</span>
+                            <p><strong>The Pointer</strong><br>A metal pin attached to the end of the string, touched to the surface of the object being drawn.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">4</span>
+                            <p><strong>The Wooden Frame</strong><br>A vertical frame on the table representing the picture plane — the invisible window through which the artist views the subject.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">5</span>
+                            <p><strong>The Hinged Door</strong><br>A wooden panel that swings open; it holds the piece of paper where the final drawing is made.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-right-column">
+                <div class="apparatus-preview-container">
+                    <canvas id="previewCanvas"></canvas>
+                    <div id="pill-1" class="apparatus-pill">1</div>
+                    <div id="pill-2" class="apparatus-pill">2</div>
+                    <div id="pill-3" class="apparatus-pill">3</div>
+                    <div id="pill-4" class="apparatus-pill">4</div>
+                    <div id="pill-5" class="apparatus-pill">5</div>
+                </div>
             </div>
         </div>
     </section>
 
     <section class="demo-section">
+
         <div class="demo-layout">
             <div class="demo-left-column">
                 <div class="text-content">
@@ -136,5 +181,6 @@
     <script src="js/shapes/teapot.js"></script>
     <script src="js/sceneSetup.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/apparatusPreview.js"></script>
 </body>
 </html>
