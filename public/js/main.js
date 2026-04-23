@@ -225,13 +225,13 @@ const createScene = function () {
 
     // The stylus geometry: rotate so the cylinder runs along the Y axis (default).
     // The JOINT (thread attachment) is at the ORIGIN of stickMesh.
-    // The tip (narrow end) is at Y = -1.75 (pointing down toward the object)
-    // and the handle (wide end) is at Y = +1.75 (pointing up, held by operator).
+    // The tip (narrow end) is at Y = 1.75 (pointing up, attached to the thread)
+    // and the handle (wide end) is at Y = -1.75 (pointing down, held by operator).
     // We shift geometry so the joint is exactly at Y = 0 (origin stays at joint).
-    // Default cylinder: center at origin, so no extra baking needed — origin = joint mid-point.
-    // We translate so the joint is at the narrow-tip end (Y = -1.75 → origin):
+    // Default cylinder: center at origin. We want the thick handle at the origin (touching the mesh).
+    // Since handle is at -Y (-1.75), we translate up by 1.75 so handle is at origin (0).
     stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0, 1.75, 0));
-    // Now tip is at Y = 0 (origin/joint), handle at Y = 3.5 (upward).
+    // Now thick handle is at Y = 0 (origin/joint), narrow tip at Y = 3.5.
 
     const stickMaterial = new BABYLON.StandardMaterial("stickMaterial", scene);
     // Red material for visibility while keeping the historical shape
@@ -304,11 +304,13 @@ const createScene = function () {
         // Orient the stylus along the outward surface normal at the current pick point.
         // _surfaceNormal is updated on every POINTERMOVE/POINTERDOWN from pickInfo.getNormal()
         // which is free — it only interpolates already-computed vertex normals.
-        // The stylus tip stays at origin (joint); +Y (handle) points out along the normal.
+        // The thick handle stays at origin (touching the mesh); +Y (narrow tip) points OUT along the normal.
+        // So we align +Y with the OUTWARD normal, meaning the narrow tip points out (attaching to thread).
         const _fromVec = new BABYLON.Vector3(0, 1, 0);
+        const _toVec = _surfaceNormal.clone();
         stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(
             _fromVec,
-            _surfaceNormal,
+            _toVec,
             stickMesh.rotationQuaternion || new BABYLON.Quaternion()
         );
 
@@ -564,6 +566,32 @@ const createScene = function () {
 
     document.getElementById("animateBtn").addEventListener("click", toggleAnimation);
     document.getElementById("fastForwardBtn").addEventListener("click", finishAnimation);
+
+    document.getElementById("rotateLeftBtn").addEventListener("click", () => {
+        if (targetMesh) {
+            targetMesh.rotation.y -= Math.PI / 12; // 15 degrees
+        }
+    });
+
+    document.getElementById("rotateRightBtn").addEventListener("click", () => {
+        if (targetMesh) {
+            targetMesh.rotation.y += Math.PI / 12; // 15 degrees
+        }
+    });
+
+    document.getElementById("zoomInBtn").addEventListener("click", () => {
+        if (camera) {
+            const newRadius = camera.radius - 5;
+            camera.radius = Math.max(newRadius, camera.lowerRadiusLimit || 10);
+        }
+    });
+
+    document.getElementById("zoomOutBtn").addEventListener("click", () => {
+        if (camera) {
+            const newRadius = camera.radius + 5;
+            camera.radius = Math.min(newRadius, camera.upperRadiusLimit || 100);
+        }
+    });
 
     // 11. UI Controller
     const resetScene = () => {
