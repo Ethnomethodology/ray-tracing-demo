@@ -92,7 +92,14 @@ const createScene = function () {
 
             const pickInfo = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === targetMesh);
             if (pickInfo.hit && pickInfo.pickedPoint) {
-                stickMesh.position.copyFrom(pickInfo.pickedPoint);
+                let targetPos = pickInfo.pickedPoint.clone();
+                const distToPulley = BABYLON.Vector3.Distance(targetPos, pulleyNode);
+                const maxDragDistance = maxStringLength - 1.5;
+                if (distToPulley > maxDragDistance) {
+                    const direction = targetPos.subtract(pulleyNode).normalize();
+                    targetPos = pulleyNode.add(direction.scale(maxDragDistance));
+                }
+                stickMesh.position.copyFrom(targetPos);
 
                 // Capture the outward surface normal for stylus orientation (essentially free)
                 const pickedNormal = pickInfo.getNormal(true, true);
@@ -137,7 +144,7 @@ const createScene = function () {
         // Thread goes from joint (stickMesh.position) to pulleyNode
         const jointPos = stickMesh.position;
         const distanceA = BABYLON.Vector3.Distance(jointPos, pulleyNode);
-        const lengthB = maxStringLength - distanceA;
+        const lengthB = Math.max(0, maxStringLength - distanceA);
         weightMesh.position.set(pulleyNode.x, pulleyNode.y - lengthB, pulleyNode.z);
 
         if (segmentA) BABYLON.MeshBuilder.CreateLines("segmentA", { points: [jointPos, pulleyNode], instance: segmentA });
@@ -298,7 +305,14 @@ const createScene = function () {
                     hideCrossThreads(); // Only clear overlay if we clicked the object itself
                     // Update stickMesh to the freshly-picked point so the stylus and
                     // the back-face guard are always in sync.
-                    stickMesh.position.copyFrom(freshPick.pickedPoint);
+                    let targetPos = freshPick.pickedPoint.clone();
+                    const distToPulley = BABYLON.Vector3.Distance(targetPos, pulleyNode);
+                    const maxDragDistance = maxStringLength - 1.5;
+                    if (distToPulley > maxDragDistance) {
+                        const direction = targetPos.subtract(pulleyNode).normalize();
+                        targetPos = pulleyNode.add(direction.scale(maxDragDistance));
+                    }
+                    stickMesh.position.copyFrom(targetPos);
 
                     // Capture the outward surface normal for stylus orientation
                     const clickedNormal = freshPick.getNormal(true, true);

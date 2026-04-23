@@ -136,7 +136,7 @@ window.buildApparatus = function (scene, opts = {}) {
 
     // ── Pulley / Hook on wall ─────────────────────────────────────────────────
     const pulleyNode      = new BABYLON.Vector3(0, 10, 15.5);
-    const maxStringLength = 35.7;
+    const maxStringLength = 38.0;
 
     const pulleyMaterial = new BABYLON.StandardMaterial("pulleyMaterial", scene);
     pulleyMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.2, 0.1);
