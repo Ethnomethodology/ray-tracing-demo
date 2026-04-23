@@ -141,7 +141,7 @@ window.buildApparatus = function (scene, opts = {}) {
     const pulleyMaterial = new BABYLON.StandardMaterial("pulleyMaterial", scene);
     pulleyMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.2, 0.1);
 
-    const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
+    const pulleyMesh = BABYLON.MeshBuilder.CreateTorus("pulleyMesh", { diameter: 0.8, thickness: 0.15, tessellation: 32 }, scene);
     pulleyMesh.position.copyFrom(pulleyNode);
     pulleyMesh.rotation.x = Math.PI / 2;
     pulleyMesh.material   = pulleyMaterial;

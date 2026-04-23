@@ -109,6 +109,10 @@ body {
     display: flex;
 }
 
+.demo-section .step {
+    display: flex;
+}
+
 .step-navigation {
     display: flex;
     justify-content: space-between;
@@ -154,6 +158,15 @@ body {
     margin: 0;
     color: #475569;
     font-size: 0.85rem;
+}
+
+.inline-icon {
+    width: 1.1em;
+    height: 1.1em;
+    vertical-align: middle;
+    display: inline-block;
+    margin: 0 0.1rem;
+    stroke: var(--text-color);
 }
 
 .button-container {

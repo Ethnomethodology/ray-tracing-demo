@@ -213,7 +213,7 @@
 
     // ── Pill Interaction Logic ───────────────────────────────────────────────
     const pills = [1, 2, 3, 4, 5, 6, 7, 8].map(i => document.getElementById(`pill-${i}`));
-    const steps = document.querySelectorAll('.instruction-steps .step');
+    const steps = document.querySelectorAll('.explanation-section .instruction-steps .step');
     const prevBtn = document.getElementById('prevStepBtn');
     const nextBtn = document.getElementById('nextStepBtn');
     let currentPillIndex = 0;
