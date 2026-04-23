@@ -48,7 +48,7 @@ const createScene = function () {
     const {
         gridSize, gridPlane, planeMaterial, frameBorderMaterial,
         borderBottom, borderTop, borderLeft, borderRight,
-        pageHinge, pageMesh,
+        pageHinge, pageMesh, pageBorder,
         pulleyNode, maxStringLength, pulleyMesh, weightMesh,
         segmentA: _segA, segmentB: _segB,
         stickMesh,
@@ -287,7 +287,7 @@ const createScene = function () {
             // Check for frame click to toggle the page
             if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit) {
                 const pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                if (pickedMesh === gridPlane || pickedMesh === borderBottom || pickedMesh === borderTop || pickedMesh === borderLeft || pickedMesh === borderRight) {
+                if (pickedMesh === gridPlane || pickedMesh === borderBottom || pickedMesh === borderTop || pickedMesh === borderLeft || pickedMesh === borderRight || pickedMesh === pageMesh || pickedMesh === pageBorder) {
                     if (isAnimating) {
                         toggleAnimation();
                     }

@@ -89,7 +89,7 @@ window.buildApparatus = function (scene, opts = {}) {
     const pageMesh = BABYLON.MeshBuilder.CreateBox("pageMesh", { width: gridSize, height: gridSize, depth: 0.02 }, scene);
     pageMesh.parent      = pageHinge;
     pageMesh.position    = new BABYLON.Vector3(frameHalf, 0, -0.06);
-    pageMesh.isPickable  = false;
+    pageMesh.isPickable  = true;
 
     if (drawingTexture) {
         // Interactive scene – multi-material: front = drawing, back = plain white
@@ -132,7 +132,7 @@ window.buildApparatus = function (scene, opts = {}) {
     pageBorder.parent      = pageMesh;
     pageBorder.position.z  = 0.011;
     pageBorder.material    = frameBorderMaterial;
-    pageBorder.isPickable  = false;
+    pageBorder.isPickable  = true;
 
     // ── Pulley / Hook on wall ─────────────────────────────────────────────────
     const pulleyNode      = new BABYLON.Vector3(0, 10, 15.5);

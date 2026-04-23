@@ -27,7 +27,7 @@
         stickMesh, pulleyNode, weightMesh, maxStringLength,
         segmentA: _segA, segmentB: _segB,
         gridPlane, borderBottom, borderTop, borderLeft, borderRight,
-        pageHinge, gridSize, tableMesh, wallMesh
+        pageHinge, gridSize, tableMesh, wallMesh, pageMesh, pageBorder
     } = buildApparatus(scene);
 
     let segmentA = _segA;
@@ -163,7 +163,7 @@
         } else if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERDOWN) {
             if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit) {
                 const pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                if (pickedMesh === gridPlane || pickedMesh === borderBottom || pickedMesh === borderTop || pickedMesh === borderLeft || pickedMesh === borderRight) {
+                if (pickedMesh === gridPlane || pickedMesh === borderBottom || pickedMesh === borderTop || pickedMesh === borderLeft || pickedMesh === borderRight || pickedMesh === pageMesh || pickedMesh === pageBorder) {
                     togglePage();
                     return;
                 }
