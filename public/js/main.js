@@ -568,22 +568,33 @@ const createScene = function () {
     document.getElementById("animateBtn").addEventListener("click", toggleAnimation);
     document.getElementById("fastForwardBtn").addEventListener("click", finishAnimation);
 
-    document.getElementById("rotateLeftBtn").addEventListener("click", () => {
-        if (targetMesh) {
-            targetMesh.unfreezeWorldMatrix();
-            targetMesh.rotate(BABYLON.Axis.Y, -Math.PI / 12, BABYLON.Space.WORLD);
-            regroundTargetMesh();
-            finalizeTargetMesh();
-        }
-    });
+    const rotateLeft  = document.getElementById("rotateLeftBtn");
+    const rotateRight = document.getElementById("rotateRightBtn");
 
-    document.getElementById("rotateRightBtn").addEventListener("click", () => {
-        if (targetMesh) {
-            targetMesh.unfreezeWorldMatrix();
-            targetMesh.rotate(BABYLON.Axis.Y, Math.PI / 12, BABYLON.Space.WORLD);
-            regroundTargetMesh();
-            finalizeTargetMesh();
-        }
+    const doRotate = (angle) => {
+        if (!targetMesh) return;
+        // Stop any running animation first
+        if (isAnimating) toggleAnimation();
+        // Clear the drawn canvas image
+        textureCtx.clearRect(0, 0, textureSize, textureSize);
+        clearCanvas();
+        dotsDrawn = 0;
+        document.getElementById("fastForwardBtn").disabled = true;
+        // Rotate the mesh
+        targetMesh.unfreezeWorldMatrix();
+        targetMesh.rotate(BABYLON.Axis.Y, angle, BABYLON.Space.WORLD);
+        regroundTargetMesh();
+        finalizeTargetMesh();
+    };
+
+    rotateLeft .addEventListener("click", () => doRotate(-Math.PI / 12));
+    rotateRight.addEventListener("click", () => doRotate( Math.PI / 12));
+
+    // Disable camera drag while hovering rotate buttons so the scene
+    // doesn't accidentally orbit when the user reaches for the buttons.
+    [rotateLeft, rotateRight].forEach(btn => {
+        btn.addEventListener("mouseenter", () => camera.detachControl());
+        btn.addEventListener("mouseleave", () => camera.attachControl(canvas, true));
     });
 
     document.getElementById("zoomInBtn").addEventListener("click", () => {
