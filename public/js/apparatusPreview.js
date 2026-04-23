@@ -191,13 +191,13 @@
         );
 
         const annotations = [
-            { id: "pill-1", world: stringMidB },
-            { id: "pill-2", world: new BABYLON.Vector3(pulleyNode.x + 2.0, pulleyNode.y, pulleyNode.z) },
-            { id: "pill-3", world: new BABYLON.Vector3(stickMesh.position.x - 3.0, stickMesh.position.y + 1.5, stickMesh.position.z) },
+            { id: "pill-1", world: new BABYLON.Vector3(pulleyNode.x + 2.0, pulleyNode.y, pulleyNode.z) },
+            { id: "pill-2", world: stringMidB },
+            { id: "pill-3", world: new BABYLON.Vector3(weightMesh.position.x, weightMesh.position.y - 2.0, weightMesh.position.z) },
             { id: "pill-4", world: new BABYLON.Vector3(0, 7.0, 0) },
             { id: "pill-5", world: pageMesh.getAbsolutePosition() },
-            { id: "pill-6", world: new BABYLON.Vector3(weightMesh.position.x, weightMesh.position.y - 2.0, weightMesh.position.z) },
-            { id: "pill-7", world: currentHitPoint ? new BABYLON.Vector3(currentHitPoint.x + 2.0, currentHitPoint.y - 1.5, currentHitPoint.z) : new BABYLON.Vector3(0, 0, 0) },
+            { id: "pill-6", world: currentHitPoint ? new BABYLON.Vector3(currentHitPoint.x + 2.0, currentHitPoint.y - 1.5, currentHitPoint.z) : new BABYLON.Vector3(0, 0, 0) },
+            { id: "pill-7", world: new BABYLON.Vector3(stickMesh.position.x - 3.0, stickMesh.position.y + 1.5, stickMesh.position.z) },
             { id: "pill-8", world: targetMesh ? new BABYLON.Vector3(0, targetMesh.position.y - 1.0, targetMesh.position.z - 4.0) : new BABYLON.Vector3(0, 0, 0) }
         ];
 
