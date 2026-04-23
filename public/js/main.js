@@ -635,7 +635,7 @@ const createScene = function () {
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
         const currentIsMobile = window.innerWidth <= 900;
-        const targetRadius = currentIsMobile ? 60 : 40;
+        const targetRadius = currentIsMobile ? 63 : 43;
 
         const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: -Math.PI / 6 }];
         const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 3 }];
@@ -897,12 +897,12 @@ engine.runRenderLoop(() => { scene.render(); });
         // Base logic: narrower aspect ratio means we need to pull the camera further back to see the width.
         const aspect = canvasRect.width / canvasRect.height;
         // Increase zoom by ~1.5x (smaller radius = zoomed in closer)
-        let newRadius = 25; // Default for widescreen desktop
+        let newRadius = 28; // Default for widescreen desktop
 
         if (aspect < 1.0) {
-            newRadius = 38 + (1.0 - aspect) * 15; // Mobile / Portrait
+            newRadius = 41 + (1.0 - aspect) * 15; // Mobile / Portrait
         } else if (aspect < 1.5) {
-            newRadius = 31; // Tablet / Square-ish
+            newRadius = 34; // Tablet / Square-ish
         }
 
         camera.radius = newRadius;
