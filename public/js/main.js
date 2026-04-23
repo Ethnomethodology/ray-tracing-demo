@@ -224,15 +224,15 @@ const createScene = function () {
     // 6. Create stylus (stickMesh) to match Dürer's original design
     const stickMesh = BABYLON.MeshBuilder.CreateCylinder("stickMesh", { diameterTop: 0.02, diameterBottom: 0.15, height: 3.5 }, scene);
 
-    // The stylus geometry: rotate so the cylinder runs along the Y axis (default).
-    // The JOINT (thread attachment) is at the ORIGIN of stickMesh.
-    // The tip (narrow end) is at Y = 1.75 (pointing up, attached to the thread)
-    // and the handle (wide end) is at Y = -1.75 (pointing down, held by operator).
-    // We shift geometry so the joint is exactly at Y = 0 (origin stays at joint).
-    // Default cylinder: center at origin. We want the thick handle at the origin (touching the mesh).
-    // Since handle is at -Y (-1.75), we translate up by 1.75 so handle is at origin (0).
+    // The stylus geometry: the cylinder's +Y top is narrow (0.02) and -Y bottom is wide (0.15).
+    // We want: narrow/pointy tip at Y=0 (origin = thread joint, rests on mesh surface)
+    //          wide/thick handle at Y=+3.5 (points away along the outward surface normal).
+    //
+    // Step 1: flip 180° around X → narrow end moves from +1.75 to -1.75, wide from -1.75 to +1.75.
+    // Step 2: translate +1.75 in Y → narrow end lands at Y=0 (origin/joint), wide at Y=+3.5.
+    stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.RotationX(Math.PI));
     stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0, 1.75, 0));
-    // Now thick handle is at Y = 0 (origin/joint), narrow tip at Y = 3.5.
+    // Now: narrow tip at Y=0 (joint), wide handle at Y=3.5 (points out along surface normal).
 
     const stickMaterial = new BABYLON.StandardMaterial("stickMaterial", scene);
     // Red material for visibility while keeping the historical shape
@@ -242,6 +242,14 @@ const createScene = function () {
     stickMesh.material = stickMaterial;
     stickMesh.isPickable = false;
     stickMesh.position = new BABYLON.Vector3(0, 0, 0);
+
+    // Ball knob at the wide/top end of the stylus (Y=3.5 in local space),
+    // matching the round pommel visible in Dürer's original woodcut.
+    const stylusKnob = BABYLON.MeshBuilder.CreateSphere("stylusKnob", { diameter: 0.28, segments: 10 }, scene);
+    stylusKnob.parent = stickMesh;          // moves & rotates with the stylus automatically
+    stylusKnob.position = new BABYLON.Vector3(0, 3.5, 0); // top of the handle
+    stylusKnob.material = stickMaterial;
+    stylusKnob.isPickable = false;
 
     // 7. Raycasting Interaction
     scene.onPointerObservable.add((pointerInfo) => {
