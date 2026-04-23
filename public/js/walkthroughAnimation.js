@@ -356,6 +356,47 @@
             const _fromVec = new BABYLON.Vector3(0, 1, 0);
             stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(
                 _fromVec, currentNormal.normalize(), stickMesh.rotationQuaternion || new BABYLON.Quaternion());
+        } else if (currentStep === 4) {
+            const duration = 4.0;
+            const cycle = elapsed % (duration + 2.0);
+
+            const startAlpha = Math.PI / 3.5; 
+            const startBeta = Math.PI / 3.2;
+            const startRadius = 45;
+            const startTarget = new BABYLON.Vector3(0, -5, 0);
+
+            const endAlpha = -Math.PI / 5;
+            const endBeta = Math.PI / 2.5;
+            const endRadius = 45;
+            const endTarget = new BABYLON.Vector3(0, -5, 0);
+
+            // Maintain state from end of Step 3
+            lute.isVisible = true;
+            lute.visibility = 1.0;
+            stickMesh.position.copyFrom(pStart);
+            pencil.isVisible = false;
+            updateCrossThreads(0, 0);
+            markedDot.isVisible = true;
+            markedDot.position.set(hitPoint.x, hitPoint.y, 0.05);
+
+            if (cycle < duration) {
+                const t = cycle / duration;
+                const easedT = t * t * (3 - 2 * t);
+                
+                // Open door simultaneously
+                pageHinge.rotation.y = BABYLON.Scalar.Lerp(0, 2 * Math.PI / 3, easedT);
+                
+                camera.alpha = BABYLON.Scalar.Lerp(startAlpha, endAlpha, easedT);
+                camera.beta = BABYLON.Scalar.Lerp(startBeta, endBeta, easedT);
+                camera.radius = BABYLON.Scalar.Lerp(startRadius, endRadius, easedT);
+                camera.setTarget(BABYLON.Vector3.Lerp(startTarget, endTarget, easedT));
+            } else {
+                pageHinge.rotation.y = 2 * Math.PI / 3;
+                camera.alpha = endAlpha;
+                camera.beta = endBeta;
+                camera.radius = endRadius;
+                camera.setTarget(endTarget);
+            }
         }
 
         const jointPos = stickMesh.position;
@@ -381,7 +422,7 @@
             else s.classList.remove("active");
         });
         if (prevBtn) prevBtn.disabled = (stepNum === 1);
-        if (nextBtn) nextBtn.disabled = (stepNum === 3);
+        if (nextBtn) nextBtn.disabled = (stepNum === 4);
     };
 
     if (prevBtn) prevBtn.addEventListener("click", () => showStep(currentStep - 1));
