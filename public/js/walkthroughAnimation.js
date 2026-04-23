@@ -59,6 +59,24 @@
     threadMat.diffuseColor = new BABYLON.Color3(0.1, 0.3, 0.7);
     threadMat.emissiveColor = new BABYLON.Color3(0.05, 0.1, 0.3);
 
+    // Create Pencil Mesh for Step 3
+    const pencilBody = BABYLON.MeshBuilder.CreateCylinder("pencilBody", { height: 4, diameter: 0.15 }, scene);
+    const pencilTip = BABYLON.MeshBuilder.CreateCylinder("pencilTip", { height: 0.5, diameterTop: 0, diameterBottom: 0.15 }, scene);
+    pencilTip.position.y = 2.25;
+    const pencil = BABYLON.Mesh.MergeMeshes([pencilBody, pencilTip], true, true);
+    pencil.isVisible = false;
+    const pencilMat = new BABYLON.StandardMaterial("pencilMat", scene);
+    pencilMat.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+    pencil.material = pencilMat;
+    pencil.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0, -2.25, 0));
+
+    // Create persistent mark dot
+    const markedDot = BABYLON.MeshBuilder.CreateDisc("markedDot", { radius: 0.08 }, scene);
+    markedDot.isVisible = false;
+    const dotMat = new BABYLON.StandardMaterial("dotMat", scene);
+    dotMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+    markedDot.material = dotMat;
+
     const getIntersections = (px, py, angle, z) => {
         const dx = Math.cos(angle);
         const dy = Math.sin(angle);
@@ -136,6 +154,7 @@
             let currentPos = new BABYLON.Vector3();
             let currentNormal = new BABYLON.Vector3();
 
+            if (pencil) pencil.isVisible = false;
             if (cycle < 1.5) {
                 // Phase 1: Door Opens
                 pageHinge.rotation.y = BABYLON.Scalar.Lerp(0, 2 * Math.PI / 3, cycle / 1.5);
@@ -201,6 +220,7 @@
             const endRadius = 45;
             const endTarget = new BABYLON.Vector3(0, -5, 0);
 
+            if (pencil) pencil.isVisible = false;
             pageHinge.rotation.y = 2 * Math.PI / 3;
             lute.isVisible = true;
             lute.visibility = 1.0;
@@ -235,12 +255,107 @@
                 camera.radius = BABYLON.Scalar.Lerp(startRadius, endRadius, easedT);
                 camera.setTarget(BABYLON.Vector3.Lerp(startTarget, endTarget, easedT));
             } else {
-                updateCrossThreads(hitPoint, 1.0, 1.0);
+                updateCrossThreads(1.0, 1.0);
                 camera.alpha = endAlpha;
                 camera.beta = endBeta;
                 camera.radius = endRadius;
                 camera.setTarget(endTarget);
             }
+        } else if (currentStep === 3) {
+            const cycle = elapsed % 14.0;
+            // Camera position from end of step 2
+            camera.alpha = Math.PI / 3.5;
+            camera.beta = Math.PI / 3.2;
+            camera.radius = 45;
+            camera.setTarget(new BABYLON.Vector3(0, -5, 0));
+
+            lute.isVisible = true;
+            lute.visibility = 1.0;
+            
+            let currentPos = new BABYLON.Vector3();
+            let currentNormal = new BABYLON.Vector3();
+            const pencilStart = hitPoint.add(new BABYLON.Vector3(-7.5, 0, 6)); 
+
+            if (cycle < 2.5) {
+                // Phase 1: Relax thread (Pointer pEnd -> pStart)
+                pageHinge.rotation.y = 2 * Math.PI / 3;
+                const t = cycle / 2.5;
+                const easedT = t * t * (3 - 2 * t);
+                BABYLON.Vector3.LerpToRef(pEnd, pStart, easedT, currentPos);
+                BABYLON.Vector3.LerpToRef(nEnd, nStart, easedT, currentNormal);
+                pencil.isVisible = false;
+                updateCrossThreads(1.0, 1.0);
+                markedDot.isVisible = false;
+            } else if (cycle < 5.0) {
+                // Phase 2: Close door (2*PI/3 -> 0)
+                const t = (cycle - 2.5) / 2.5;
+                const easedT = t * t * (3 - 2 * t);
+                pageHinge.rotation.y = BABYLON.Scalar.Lerp(2 * Math.PI / 3, 0, easedT);
+                currentPos.copyFrom(pStart);
+                currentNormal.copyFrom(nStart);
+                pencil.isVisible = false;
+                updateCrossThreads(1.0, 1.0);
+                markedDot.isVisible = false;
+            } else if (cycle < 7.5) {
+                // Phase 3: Pencil slides in (parallel)
+                pageHinge.rotation.y = 0;
+                currentPos.copyFrom(pStart);
+                currentNormal.copyFrom(nStart);
+                pencil.isVisible = true;
+                const t = (cycle - 5.0) / 2.5;
+                const easedT = t * t * (3 - 2 * t);
+                BABYLON.Vector3.LerpToRef(pencilStart, hitPoint, easedT, pencil.position);
+                pencil.rotationQuaternion = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2); 
+                updateCrossThreads(1.0, 1.0);
+                markedDot.isVisible = false;
+            } else if (cycle < 9.0) {
+                // Phase 4: Pencil tilts to 45 deg (Marking)
+                pageHinge.rotation.y = 0;
+                currentPos.copyFrom(pStart);
+                currentNormal.copyFrom(nStart);
+                pencil.isVisible = true;
+                pencil.position.copyFrom(hitPoint);
+                const t = (cycle - 7.5) / 1.5;
+                const easedT = t * t * (3 - 2 * t);
+                const startRot = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2);
+                const endRot = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 4);
+                BABYLON.Quaternion.SlerpToRef(startRot, endRot, easedT, pencil.rotationQuaternion);
+                updateCrossThreads(1.0, 1.0);
+                markedDot.isVisible = false;
+            } else if (cycle < 11.5) {
+                // Phase 5: Pencil tilts back and slides out
+                pageHinge.rotation.y = 0;
+                currentPos.copyFrom(pStart);
+                currentNormal.copyFrom(nStart);
+                pencil.isVisible = true;
+                const t = (cycle - 9.0) / 2.5;
+                const easedT = t * t * (3 - 2 * t);
+                BABYLON.Vector3.LerpToRef(hitPoint, pencilStart, easedT, pencil.position);
+                const markRot = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 4);
+                const backRot = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2);
+                BABYLON.Quaternion.SlerpToRef(markRot, backRot, easedT, pencil.rotationQuaternion);
+                updateCrossThreads(1.0, 1.0);
+                
+                // Show dot on tablet surface
+                markedDot.isVisible = true;
+                markedDot.position.set(hitPoint.x, hitPoint.y, 0.05);
+            } else {
+                // Phase 6: Threads disappear, Hold
+                pageHinge.rotation.y = 0;
+                currentPos.copyFrom(pStart);
+                currentNormal.copyFrom(nStart);
+                pencil.isVisible = true;
+                pencil.position.copyFrom(pencilStart);
+                pencil.rotationQuaternion = BABYLON.Quaternion.RotationAxis(new BABYLON.Vector3(0, 0, 1), -Math.PI / 2);
+                updateCrossThreads(0, 0); // Hide threads
+                markedDot.isVisible = true;
+                markedDot.position.set(hitPoint.x, hitPoint.y, 0.05);
+            }
+
+            stickMesh.position.copyFrom(currentPos);
+            const _fromVec = new BABYLON.Vector3(0, 1, 0);
+            stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(
+                _fromVec, currentNormal.normalize(), stickMesh.rotationQuaternion || new BABYLON.Quaternion());
         }
 
         const jointPos = stickMesh.position;
@@ -266,11 +381,11 @@
             else s.classList.remove("active");
         });
         if (prevBtn) prevBtn.disabled = (stepNum === 1);
-        if (nextBtn) nextBtn.disabled = (stepNum === 2);
+        if (nextBtn) nextBtn.disabled = (stepNum === 3);
     };
 
-    if (prevBtn) prevBtn.addEventListener("click", () => showStep(1));
-    if (nextBtn) nextBtn.addEventListener("click", () => showStep(2));
+    if (prevBtn) prevBtn.addEventListener("click", () => showStep(currentStep - 1));
+    if (nextBtn) nextBtn.addEventListener("click", () => showStep(currentStep + 1));
 
     // Initialize UI on first load
     showStep(1);
