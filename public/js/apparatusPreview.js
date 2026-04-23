@@ -204,6 +204,54 @@
         });
     });
 
+    // ── Pill Interaction Logic ───────────────────────────────────────────────
+    const pills = [1, 2, 3, 4, 5].map(i => document.getElementById(`pill-${i}`));
+    const steps = document.querySelectorAll('.instruction-steps .step');
+    const prevBtn = document.getElementById('prevStepBtn');
+    const nextBtn = document.getElementById('nextStepBtn');
+    let currentPillIndex = 0;
+
+    const setActivePill = (index) => {
+        currentPillIndex = index;
+        pills.forEach((pill, i) => {
+            if (pill) {
+                if (i === index) pill.classList.add('active');
+                else pill.classList.remove('active');
+            }
+        });
+        steps.forEach((step, i) => {
+            if (step) {
+                if (i === index) step.classList.add('active');
+                else step.classList.remove('active');
+            }
+        });
+
+        if (prevBtn) prevBtn.disabled = (index === 0);
+        if (nextBtn) nextBtn.disabled = (index === pills.length - 1);
+    };
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentPillIndex > 0) setActivePill(currentPillIndex - 1);
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (currentPillIndex < pills.length - 1) setActivePill(currentPillIndex + 1);
+        });
+    }
+
+    // Initialize with first pill active
+    setActivePill(0);
+
+    pills.forEach((pill, index) => {
+        if (pill) {
+            pill.addEventListener('click', () => {
+                setActivePill(index);
+            });
+        }
+    });
+
     engine.runRenderLoop(() => scene.render());
     window.addEventListener("resize", () => engine.resize());
 })();
