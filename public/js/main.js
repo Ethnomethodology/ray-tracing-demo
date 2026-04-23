@@ -24,7 +24,7 @@ const createScene = function () {
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const isMobile = window.innerWidth <= 900;
     const defaultRadius = isMobile ? 65 : 45;
-    camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 2.2, defaultRadius, new BABYLON.Vector3(0, -5, 0), scene);
+    camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 3, defaultRadius, new BABYLON.Vector3(0, -5, 0), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
@@ -635,10 +635,10 @@ const createScene = function () {
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
         const currentIsMobile = window.innerWidth <= 900;
-        const targetRadius = currentIsMobile ? 65 : 45;
+        const targetRadius = currentIsMobile ? 60 : 40;
 
         const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: -Math.PI / 6 }];
-        const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.2 }];
+        const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 3 }];
         const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: targetRadius }];
 
         animationAlpha.setKeys(keysAlpha);
@@ -897,12 +897,12 @@ engine.runRenderLoop(() => { scene.render(); });
         // Base logic: narrower aspect ratio means we need to pull the camera further back to see the width.
         const aspect = canvasRect.width / canvasRect.height;
         // Increase zoom by ~1.5x (smaller radius = zoomed in closer)
-        let newRadius = 30; // Default for widescreen desktop (was 45)
+        let newRadius = 25; // Default for widescreen desktop
 
         if (aspect < 1.0) {
-            newRadius = 43 + (1.0 - aspect) * 15; // Mobile / Portrait (was 65)
+            newRadius = 38 + (1.0 - aspect) * 15; // Mobile / Portrait
         } else if (aspect < 1.5) {
-            newRadius = 36; // Tablet / Square-ish (was 55)
+            newRadius = 31; // Tablet / Square-ish
         }
 
         camera.radius = newRadius;
