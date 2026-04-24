@@ -150,8 +150,7 @@ window.buildProceduralLute = function(scene) {
         // 8. Pegbox (angled box)
         const pegboxOverlap = 0.12;
         const pegboxHeight = 2.4;
-        const pegboxWidth = neckR * 2 - 0.05; // Matches fingerboard top width
-
+        const pegboxWidth = neckR * 2; // Identical to neck width at connection
 
         // Use CreateTiledBox to get subdivided faces on all sides so the animator has vertices to draw.
         const pegbox = BABYLON.MeshBuilder.CreateTiledBox("lpegbox", {
@@ -160,6 +159,21 @@ window.buildProceduralLute = function(scene) {
             depth: 0.25,
             tileSize: 0.1 // Small tiles for dense vertices
         }, scene);
+
+        // Taper the pegbox: width at the neck connection (top of local Y due to pivot) is full width,
+        // while the tip (bottom of local Y) is half width.
+        const pegboxPositions = pegbox.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        if (pegboxPositions) {
+            for (let i = 0; i < pegboxPositions.length; i += 3) {
+                const y = pegboxPositions[i + 1]; // Local Y
+                const normalizedY = (y / (pegboxHeight / 2) + 1) / 2; // 0 at bottom (-H/2), 1 at top (+H/2)
+                // Due to the pivot shift at line 164, the top (+H/2) is the connection to the neck.
+                const taperScale = 0.5 + 0.5 * normalizedY; // 1.0 at top (neck), 0.5 at bottom (tip)
+                pegboxPositions[i] *= taperScale; 
+            }
+            pegbox.setVerticesData(BABYLON.VertexBuffer.PositionKind, pegboxPositions);
+            BABYLON.VertexData.ComputeNormals(pegboxPositions, pegbox.getIndices(), pegbox.getVerticesData(BABYLON.VertexBuffer.NormalKind));
+        }
 
         pegbox.setPivotMatrix(BABYLON.Matrix.Translation(0, -pegboxHeight / 2, 0), false);
         pegbox.position.set(0, fbEndY - pegboxOverlap, 0.1); // Shifted to match neck move
@@ -171,13 +185,19 @@ window.buildProceduralLute = function(scene) {
         // 9. Tuning pegs (8 total: 4 pairs)
         const pegs = [];
         for (let i = 0; i < 4; i++) {
-            const h = -pegboxHeight / 2 + 0.4 + i * 0.5;
+            // h starts near the top (neck) and moves towards the tip
+            const h = pegboxHeight / 2 - 0.4 - i * 0.5;
             [-1, 1].forEach((side, si) => {
+                const actualY = h - (si === 1 ? 0.25 : 0);
+                const normalizedY = (actualY / (pegboxHeight / 2) + 1) / 2;
+                const taperScale = 0.5 + 0.5 * normalizedY;
+                const currentWidth = pegboxWidth * taperScale;
+
                 const peg = BABYLON.MeshBuilder.CreateCylinder("lpeg" + i + "_" + si, {
                     height: 1.2, diameter: 0.08, tessellation: 8
                 }, scene);
                 peg.rotation.z = Math.PI / 2;
-                peg.position.set(side * pegboxWidth / 2, h + (si === 1 ? 0.25 : 0), 0);
+                peg.position.set(side * currentWidth / 2, actualY, 0);
                 peg.parent = pegbox;          // stay parented — world matrix is correct
                 peg.computeWorldMatrix(true); // force propagation through parent chain
                 parts.push(peg);
@@ -192,9 +212,13 @@ window.buildProceduralLute = function(scene) {
         const pfrets = [];
         const numPegboxFrets = 8;
         for (let i = 0; i < numPegboxFrets; i++) {
-            const pfY = -pegboxHeight / 2 + 0.3 + i * 0.28;
+            const pfY = pegboxHeight / 2 - 0.3 - i * 0.28;
+            const normalizedY = (pfY / (pegboxHeight / 2) + 1) / 2;
+            const taperScale = 0.5 + 0.5 * normalizedY;
+            const currentWidth = pegboxWidth * taperScale;
+
             const pfret = BABYLON.MeshBuilder.CreateCylinder("lpfret" + i, {
-                height: pegboxWidth * 1.05, diameter: 0.02, tessellation: 8
+                height: currentWidth * 1.05, diameter: 0.02, tessellation: 8
             }, scene);
             pfret.rotation.z = Math.PI / 2;
             pfret.position.set(0, pfY, 0.13); // Slightly in front of the top pegbox face
@@ -234,11 +258,16 @@ window.buildProceduralLute = function(scene) {
             // Map string i to peg row and side
             const pegRow = Math.floor(i / 2);
             const pegSide = (i % 2 === 0) ? -1 : 1;
-            const pegH = -pegboxHeight / 2 + 0.4 + pegRow * 0.5;
+            const pegH = pegboxHeight / 2 - 0.4 - pegRow * 0.5;
             const pegOffset = (pegSide === 1 ? 0.25 : 0);
             
             // Local peg position for string attachment (on top surface of pegbox)
-            const localPegPos = new BABYLON.Vector3(pegSide * pegboxWidth * 0.2, pegH + pegOffset, 0.14);
+            const actualY = pegH - pegOffset;
+            const normalizedY = (actualY / (pegboxHeight / 2) + 1) / 2;
+            const taperScale = 0.5 + 0.5 * normalizedY;
+            const currentWidth = pegboxWidth * taperScale;
+
+            const localPegPos = new BABYLON.Vector3(pegSide * currentWidth * 0.2, actualY, 0.14);
             const worldPegPos = BABYLON.Vector3.TransformCoordinates(localPegPos, pegbox.getWorldMatrix());
 
             const stringPath = [
