@@ -4,3 +4,21 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 .env
+
+# Log files
+*.log
+
+# Temporary test scripts
+test_*.js
+test_*.py
+test_*.html
+verify_*.py
+
+# Artifacts
+*.png
+*.webm
+screenshot.png
+screenshot.py
+
+# Verification folders
+/verification/
