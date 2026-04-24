@@ -587,3 +587,40 @@ body {
     border-color: white;
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.45);
 }
+
+/* ── Debug Overlays ──────────────────────────────────────────────────────── */
+.debug-overlay {
+    position: absolute;
+    top: -4rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.75rem;
+    padding: 0.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    pointer-events: auto;
+    z-index: 100;
+}
+
+.debug-select {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    color: var(--text-color);
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.5rem;
+    font-size: 0.8rem;
+    font-family: var(--font-main);
+    cursor: pointer;
+    outline: none;
+}
+
+.debug-select:hover {
+    border-color: var(--accent-color);
+}
+
+#normalsBtn.active {
+    color: var(--accent-color);
+    background: rgba(99, 102, 241, 0.1);
+}

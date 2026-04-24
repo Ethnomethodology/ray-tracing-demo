@@ -188,6 +188,23 @@ window.buildProceduralLute = function(scene) {
         const mergedPegs = BABYLON.Mesh.MergeMeshes(pegs, true, true, undefined, false, false);
         partMap.pegs = mergedPegs;
 
+        // 9b. Pegbox Frets (8 decorative bands)
+        const pfrets = [];
+        const numPegboxFrets = 8;
+        for (let i = 0; i < numPegboxFrets; i++) {
+            const pfY = -pegboxHeight / 2 + 0.3 + i * 0.28;
+            const pfret = BABYLON.MeshBuilder.CreateCylinder("lpfret" + i, {
+                height: pegboxWidth * 1.05, diameter: 0.02, tessellation: 8
+            }, scene);
+            pfret.rotation.z = Math.PI / 2;
+            pfret.position.set(0, pfY, 0.13); // Slightly in front of the top pegbox face
+            pfret.parent = pegbox;
+            parts.push(pfret);
+            pfrets.push(pfret);
+        }
+        const mergedPegboxFrets = BABYLON.Mesh.MergeMeshes(pfrets, true, true, undefined, false, false);
+        partMap.pfrets = mergedPegboxFrets;
+
         // 10. Frets (gut strings tied around neck — logarithmic spacing)
         const numFrets = 9;
         const frets = [];
@@ -207,15 +224,27 @@ window.buildProceduralLute = function(scene) {
         const mergedFrets = BABYLON.Mesh.MergeMeshes(frets, true, true, undefined, false, false);
         partMap.frets = mergedFrets;
 
-        // 11. Strings (8 tubes from bridge to pegbox)
+        // 11. Strings (8 tubes from bridge to pegbox pegs)
         const numStrings = 8;
         const strings = [];
         for (let i = 0; i < numStrings; i++) {
             const xBot = -1.0 + (i * 2.0 / (numStrings - 1));
             const xTop = -(pegboxWidth - 0.2) / 2 + (i * (pegboxWidth - 0.2) / (numStrings - 1));
+            
+            // Map string i to peg row and side
+            const pegRow = Math.floor(i / 2);
+            const pegSide = (i % 2 === 0) ? -1 : 1;
+            const pegH = -pegboxHeight / 2 + 0.4 + pegRow * 0.5;
+            const pegOffset = (pegSide === 1 ? 0.25 : 0);
+            
+            // Local peg position for string attachment (on top surface of pegbox)
+            const localPegPos = new BABYLON.Vector3(pegSide * pegboxWidth * 0.2, pegH + pegOffset, 0.14);
+            const worldPegPos = BABYLON.Vector3.TransformCoordinates(localPegPos, pegbox.getWorldMatrix());
+
             const stringPath = [
                 new BABYLON.Vector3(xBot, bridgeY, -0.1),
-                new BABYLON.Vector3(xTop, fbEndY,  0.05) // Shifted to match neck move
+                new BABYLON.Vector3(xTop, fbEndY,  0.05),
+                worldPegPos
             ];
             const str = BABYLON.MeshBuilder.CreateTube("lstr" + i, {
                 path: stringPath, radius: 0.008, tessellation: 4
