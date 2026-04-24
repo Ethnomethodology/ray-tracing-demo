@@ -614,8 +614,8 @@ const createScene = function () {
         const selectedPart = partSelect ? partSelect.value : "all";
         
         let meshToVisualize = targetMesh;
-        if (selectedPart !== "all" && currentLuteParts[selectedPart]) {
-            meshToVisualize = currentLuteParts[selectedPart];
+        if (selectedPart !== "all" && window.currentLuteParts[selectedPart]) {
+            meshToVisualize = window.currentLuteParts[selectedPart];
         }
 
         const positions = meshToVisualize.getVerticesData(BABYLON.VertexBuffer.PositionKind);
@@ -650,12 +650,13 @@ const createScene = function () {
         normalLines.isPickable = false;
     };
 
-    let currentLuteParts = {};
+    // 11. UI Controller
+    window.currentLuteParts = {};
 
     const loadObject = (type) => {
         resetScene();
         if (type === "lute") {
-            const merged = buildProceduralLute();
+            const merged = buildProceduralLute(scene);
             if (merged) {
                 setupTargetMesh(merged, 15);
                 targetMesh.position.z = -11; // Final adjusted position
@@ -663,7 +664,7 @@ const createScene = function () {
             }
         } else if (type === "teapot") {
             // Clear lute-specific debug state
-            currentLuteParts = {};
+            window.currentLuteParts = {};
             BABYLON.SceneLoader.ImportMeshAsync("", "models/", "teapot.glb", scene).then((result) => {
                 // Step 1: Force-compute world matrices for the ENTIRE hierarchy
                 // (GLB root often carries a -90° X rotation for glTF Y-up → Babylon Z-up)
@@ -708,7 +709,7 @@ const createScene = function () {
             });
         } else if (type === "sphere") {
             // Clear lute-specific debug state
-            currentLuteParts = {};
+            window.currentLuteParts = {};
             const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 5, segments: 32 }, scene);
             setupTargetMesh(sphere, 5);
             finalizeTargetMesh();

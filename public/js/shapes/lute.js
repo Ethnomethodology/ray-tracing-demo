@@ -351,7 +351,7 @@ window.buildProceduralLute = function(scene) {
             p.setEnabled(false);
             p.parent = merged;
         });
-        currentLuteParts = partMap;
+        window.currentLuteParts = partMap;
 
         // Lie the lute down on the table, neck pointing straight towards the frame
         merged.rotation.x = Math.PI / 2;
