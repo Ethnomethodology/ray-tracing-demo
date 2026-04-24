@@ -414,7 +414,11 @@ const createScene = function () {
         targetMesh.unfreezeWorldMatrix();
         targetMesh.rotate(BABYLON.Axis.Y, angle, BABYLON.Space.WORLD);
         regroundTargetMesh();
-        finalizeTargetMesh();
+
+        // Use the active object's spacing
+        const activeType = document.querySelector(".btn-toggle.active")?.dataset?.target;
+        const spacing = (activeType === "lute") ? 1.5 : 0.4;
+        finalizeTargetMesh(spacing);
     };
 
     rotateLeft .addEventListener("click", () => doRotate(-Math.PI / 12));
@@ -533,7 +537,7 @@ const createScene = function () {
         return targetMesh;
     };
 
-    const finalizeTargetMesh = () => {
+    const finalizeTargetMesh = (pointSpacing = 0.4) => {
         targetMesh.computeWorldMatrix(true);
         targetMesh.freezeWorldMatrix();
 
@@ -580,8 +584,8 @@ const createScene = function () {
 
                     if (isVisible) {
                         const dist = BABYLON.Vector3.Distance(w1, w2);
-                        // Refined balanced spacing (0.4 units)
-                        const steps = Math.max(1, Math.floor(dist / 0.4));
+                        // Configurable point spacing
+                        const steps = Math.max(1, Math.floor(dist / pointSpacing));
                         for (let s = 0; s <= steps; s++) {
                             const t = s / steps;
                             const sampleP = BABYLON.Vector3.Lerp(w1, w2, t);
@@ -660,7 +664,9 @@ const createScene = function () {
             if (merged) {
                 setupTargetMesh(merged, 15);
                 targetMesh.position.z = -11; // Final adjusted position
-                finalizeTargetMesh();
+                // Use a much higher spacing parameter specifically for the lute
+                // to reduce density and achieve a dotted wireframe look.
+                finalizeTargetMesh(1.5);
             }
         } else if (type === "teapot") {
             // Clear lute-specific debug state
