@@ -252,28 +252,38 @@ window.buildProceduralLute = function(scene) {
         partMap.pegbox = pegbox;
         parts.push(pegbox);
 
-        // 9. Tuning pegs (8 total: 4 pairs)
+        // 9. Tuning pegs (8 total: staggered left/right)
         const pegs = [];
-        for (let i = 0; i < 4; i++) {
+        const numPegs = 8;
+        for (let i = 0; i < numPegs; i++) {
+            const side = (i % 2 === 0) ? -1 : 1;
             // h starts near the top (neck) and moves towards the tip
-            const h = pegboxHeight / 2 - 0.4 - i * 0.5;
-            [-1, 1].forEach((side, si) => {
-                const actualY = h - (si === 1 ? 0.25 : 0);
-                const normalizedY = (actualY / (pegboxHeight / 2) + 1) / 2;
-                const taperScale = 0.5 + 0.5 * normalizedY;
-                const currentWidth = pegboxWidth * taperScale;
+            const h = pegboxHeight / 2 - 0.25 - i * 0.25;
+            
+            const normalizedY = (h / (pegboxHeight / 2) + 1) / 2;
+            const taperScale = 0.5 + 0.5 * normalizedY;
+            const currentWidth = pegboxWidth * taperScale;
 
-                const peg = BABYLON.MeshBuilder.CreateCylinder("lpeg" + i + "_" + si, {
-                    height: currentWidth * 1.2, diameter: 0.08, tessellation: 8
-                }, scene);
-                peg.rotation.z = Math.PI / 2;
-                // Position pegs so they pass through the side walls of the hollow box
-                peg.position.set(0, actualY, 0); 
-                peg.parent = pegbox;          // stay parented — world matrix is correct
-                peg.computeWorldMatrix(true); // force propagation through parent chain
-                parts.push(peg);
-                pegs.push(peg);
-            });
+            // The peg shaft
+            const peg = BABYLON.MeshBuilder.CreateCylinder("lpeg" + i, {
+                height: currentWidth * 1.3, diameter: 0.07, tessellation: 12
+            }, scene);
+            peg.rotation.z = Math.PI / 2;
+            // Position pegs so they pass through the side walls
+            peg.position.set(0, h, 0); 
+            peg.parent = pegbox;
+
+            // The "Oval" head (Tuning key)
+            const head = BABYLON.MeshBuilder.CreateSphere("lpegHead" + i, {
+                diameterX: 0.22, diameterY: 0.15, diameterZ: 0.05, segments: 12
+            }, scene);
+            // Position head at the outer end of the shaft.
+            // Since the peg is rotated 90 deg around Z, its local Y axis points along the pegbox X axis.
+            head.position.y = side * (currentWidth * 0.7);
+            head.parent = peg;
+            
+            pegs.push(peg);
+            pegs.push(head);
         }
         // Merge pegs for simplicity
         const mergedPegs = BABYLON.Mesh.MergeMeshes(pegs, true, true, undefined, false, false);
@@ -307,24 +317,15 @@ window.buildProceduralLute = function(scene) {
             const xBot = -1.0 + (i * 2.0 / (numStrings - 1));
             const xTop = -(pegboxWidth - 0.2) / 2 + (i * (pegboxWidth - 0.2) / (numStrings - 1));
             
-            // Map string i to peg row and side
-            const pegRow = Math.floor(i / 2);
-            const pegSide = (i % 2 === 0) ? -1 : 1;
-            const pegH = pegboxHeight / 2 - 0.4 - pegRow * 0.5;
-            const pegOffset = (pegSide === 1 ? 0.25 : 0);
+            // Map string i to its staggered peg
+            const pegH = pegboxHeight / 2 - 0.25 - i * 0.25;
             
-            // Local peg position for string attachment (on top surface of pegbox)
-            const actualY = pegH - pegOffset;
-            const normalizedY = (actualY / (pegboxHeight / 2) + 1) / 2;
-            const taperScale = 0.5 + 0.5 * normalizedY;
-            const currentWidth = pegboxWidth * taperScale;
-
-            const localPegPos = new BABYLON.Vector3(0, actualY, 0.05);
+            const localPegPos = new BABYLON.Vector3(0, pegH, 0);
             const worldPegPos = BABYLON.Vector3.TransformCoordinates(localPegPos, pegbox.getWorldMatrix());
 
             const stringPath = [
                 new BABYLON.Vector3(xBot, bridgeY, -0.1),
-                new BABYLON.Vector3(xTop, fbEndY,  -0.06), // Moved up from 0.05
+                new BABYLON.Vector3(xTop, fbEndY,  -0.06), 
                 worldPegPos
             ];
             const str = BABYLON.MeshBuilder.CreateTube("lstr" + i, {
