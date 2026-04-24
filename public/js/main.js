@@ -418,7 +418,8 @@ const createScene = function () {
         // Use the active object's spacing
         const activeType = document.querySelector(".btn-toggle.active")?.dataset?.target;
         const spacing = (activeType === "lute") ? 1.5 : 0.4;
-        finalizeTargetMesh(spacing);
+        const minDistance = (activeType === "lute") ? 0.8 : 0;
+        finalizeTargetMesh(spacing, minDistance);
     };
 
     rotateLeft .addEventListener("click", () => doRotate(-Math.PI / 12));
@@ -537,7 +538,7 @@ const createScene = function () {
         return targetMesh;
     };
 
-    const finalizeTargetMesh = (pointSpacing = 0.4) => {
+    const finalizeTargetMesh = (pointSpacing = 0.4, minDistance = 0) => {
         targetMesh.computeWorldMatrix(true);
         targetMesh.freezeWorldMatrix();
 
@@ -599,7 +600,54 @@ const createScene = function () {
         }
 
         sortEntries.sort((a, b) => a.sortVal - b.sortVal);
-        _scanPoints = sortEntries.map(e => e.pos);
+
+        let finalPoints = sortEntries.map(e => e.pos);
+
+        // Spatial filter to ensure points aren't too dense
+        if (minDistance > 0) {
+            const filtered = [];
+            // Simple spatial grid for fast distance lookup
+            const grid = {};
+            const cellSize = minDistance;
+
+            const getCell = (p) => {
+                return `${Math.floor(p.x/cellSize)}_${Math.floor(p.y/cellSize)}_${Math.floor(p.z/cellSize)}`;
+            };
+
+            for (const p of finalPoints) {
+                const cx = Math.floor(p.x/cellSize);
+                const cy = Math.floor(p.y/cellSize);
+                const cz = Math.floor(p.z/cellSize);
+
+                let tooClose = false;
+                // Check neighboring cells
+                for (let dx = -1; dx <= 1 && !tooClose; dx++) {
+                    for (let dy = -1; dy <= 1 && !tooClose; dy++) {
+                        for (let dz = -1; dz <= 1 && !tooClose; dz++) {
+                            const cellKey = `${cx+dx}_${cy+dy}_${cz+dz}`;
+                            if (grid[cellKey]) {
+                                for (const existingP of grid[cellKey]) {
+                                    if (BABYLON.Vector3.DistanceSquared(p, existingP) < minDistance * minDistance) {
+                                        tooClose = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!tooClose) {
+                    filtered.push(p);
+                    const key = getCell(p);
+                    if (!grid[key]) grid[key] = [];
+                    grid[key].push(p);
+                }
+            }
+            finalPoints = filtered;
+        }
+
+        _scanPoints = finalPoints;
         _scanProgress = 0;
     };
 
@@ -664,9 +712,9 @@ const createScene = function () {
             if (merged) {
                 setupTargetMesh(merged, 15);
                 targetMesh.position.z = -11; // Final adjusted position
-                // Use a much higher spacing parameter specifically for the lute
-                // to reduce density and achieve a dotted wireframe look.
-                finalizeTargetMesh(1.5);
+                // Use a much higher spacing parameter and spatial filter specifically
+                // for the lute to reduce density and achieve a dotted wireframe look.
+                finalizeTargetMesh(1.5, 0.8);
             }
         } else if (type === "teapot") {
             // Clear lute-specific debug state
