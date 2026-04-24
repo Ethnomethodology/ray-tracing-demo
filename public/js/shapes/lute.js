@@ -161,36 +161,74 @@ window.buildProceduralLute = function(scene) {
         parts.push(fb);
         fb.computeWorldMatrix(true);
 
-        // 8. Pegbox (angled box)
+        // 8. Hollow Tapered Pegbox (Extruded U-channel)
         const pegboxOverlap = 0.12;
         const pegboxHeight = 2.4;
-        const pegboxWidth = neckR * 2; // Identical to neck width at connection
+        const pegboxWidth = neckR * 2; 
+        const pegboxDepth = 0.25;
+        const wallThickness = 0.05;
 
-        // Use CreateTiledBox to get subdivided faces on all sides so the animator has vertices to draw.
-        const pegbox = BABYLON.MeshBuilder.CreateTiledBox("lpegbox", {
-            width: pegboxWidth,
-            height: pegboxHeight,
-            depth: 0.25,
-            tileSize: 0.1 // Small tiles for dense vertices
-        }, scene);
+        const w = pegboxWidth / 2;
+        const d = pegboxDepth / 2;
+        const t = wallThickness;
 
-        // Taper the pegbox: width at the neck connection (top of local Y due to pivot) is full width,
-        // while the tip (bottom of local Y) is half width.
-        const pegboxPositions = pegbox.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-        if (pegboxPositions) {
-            for (let i = 0; i < pegboxPositions.length; i += 3) {
-                const y = pegboxPositions[i + 1]; // Local Y
-                const normalizedY = (y / (pegboxHeight / 2) + 1) / 2; // 0 at bottom (-H/2), 1 at top (+H/2)
-                // Due to the pivot shift at line 164, the top (+H/2) is the connection to the neck.
-                const taperScale = 0.5 + 0.5 * normalizedY; // 1.0 at top (neck), 0.5 at bottom (tip)
-                pegboxPositions[i] *= taperScale; 
+        const pbGroup = new BABYLON.TransformNode("lpegboxGroup", scene);
+
+        // Helper to create a tapered plate (for floor and walls)
+        const createTaperedPlate = (name, width, height, depth, taper) => {
+            const plate = BABYLON.MeshBuilder.CreateBox(name, { width: width, height: height, depth: depth }, scene);
+            const pos = plate.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+            for (let i = 0; i < pos.length; i += 3) {
+                const y = pos[i + 1];
+                const normY = (y / (height / 2) + 1) / 2; // 0 at bottom, 1 at top
+                const scale = taper + (1 - taper) * normY;
+                pos[i] *= scale; // Taper width
             }
-            pegbox.setVerticesData(BABYLON.VertexBuffer.PositionKind, pegboxPositions);
-            BABYLON.VertexData.ComputeNormals(pegboxPositions, pegbox.getIndices(), pegbox.getVerticesData(BABYLON.VertexBuffer.NormalKind));
-        }
+            plate.setVerticesData(BABYLON.VertexBuffer.PositionKind, pos);
+            BABYLON.VertexData.ComputeNormals(pos, plate.getIndices(), plate.getVerticesData(BABYLON.VertexBuffer.NormalKind));
+            return plate;
+        };
 
+        // Floor (The back of the trough - positioned at local -Z to appear on top after tilt)
+        const pbFloor = createTaperedPlate("lpbFloor", pegboxWidth, pegboxHeight, wallThickness, 0.5);
+        pbFloor.position.z = -(d - t/2);
+        pbFloor.parent = pbGroup;
+
+        // Side Walls (tapered distance from center)
+        const pbLeft = BABYLON.MeshBuilder.CreateBox("lpbLeft", { width: t, height: pegboxHeight, depth: pegboxDepth }, scene);
+        const lpPos = pbLeft.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        for (let i = 0; i < lpPos.length; i += 3) {
+            const y = lpPos[i + 1];
+            const normY = (y / (pegboxHeight / 2) + 1) / 2;
+            const scale = 0.5 + 0.5 * normY;
+            lpPos[i] += (-w * scale + t / 2); 
+        }
+        pbLeft.setVerticesData(BABYLON.VertexBuffer.PositionKind, lpPos);
+        BABYLON.VertexData.ComputeNormals(lpPos, pbLeft.getIndices(), pbLeft.getVerticesData(BABYLON.VertexBuffer.NormalKind));
+        pbLeft.parent = pbGroup;
+
+        const pbRight = BABYLON.MeshBuilder.CreateBox("lpbRight", { width: t, height: pegboxHeight, depth: pegboxDepth }, scene);
+        const rpPos = pbRight.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        for (let i = 0; i < rpPos.length; i += 3) {
+            const y = rpPos[i + 1];
+            const normY = (y / (pegboxHeight / 2) + 1) / 2;
+            const scale = 0.5 + 0.5 * normY;
+            rpPos[i] += (w * scale - t / 2);
+        }
+        pbRight.setVerticesData(BABYLON.VertexBuffer.PositionKind, rpPos);
+        BABYLON.VertexData.ComputeNormals(rpPos, pbRight.getIndices(), pbRight.getVerticesData(BABYLON.VertexBuffer.NormalKind));
+        pbRight.parent = pbGroup;
+
+        // Tip Cap
+        const pbTip = BABYLON.MeshBuilder.CreateBox("lpbTip", { width: pegboxWidth * 0.5, height: t, depth: pegboxDepth }, scene);
+        pbTip.position.y = -pegboxHeight / 2;
+        pbTip.parent = pbGroup;
+
+        // Final Pegbox Assembly (Merge for ray-tracing)
+        const pegbox = BABYLON.Mesh.MergeMeshes([pbFloor, pbLeft, pbRight, pbTip], true, true, undefined, false, false);
+        pegbox.name = "lpegbox";
         pegbox.setPivotMatrix(BABYLON.Matrix.Translation(0, -pegboxHeight / 2, 0), false);
-        pegbox.position.set(0, fbEndY - pegboxOverlap, -0.02); // Moved up from 0.1
+        pegbox.position.set(0, fbEndY - pegboxOverlap, -0.02); 
         pegbox.rotation.x = -115 * (Math.PI / 180);
         pegbox.computeWorldMatrix(true);
         partMap.pegbox = pegbox;
@@ -208,10 +246,11 @@ window.buildProceduralLute = function(scene) {
                 const currentWidth = pegboxWidth * taperScale;
 
                 const peg = BABYLON.MeshBuilder.CreateCylinder("lpeg" + i + "_" + si, {
-                    height: 1.2, diameter: 0.08, tessellation: 8
+                    height: currentWidth * 1.2, diameter: 0.08, tessellation: 8
                 }, scene);
                 peg.rotation.z = Math.PI / 2;
-                peg.position.set(side * currentWidth / 2, actualY, 0);
+                // Position pegs so they pass through the side walls of the hollow box
+                peg.position.set(0, actualY, 0); 
                 peg.parent = pegbox;          // stay parented — world matrix is correct
                 peg.computeWorldMatrix(true); // force propagation through parent chain
                 parts.push(peg);
@@ -262,7 +301,7 @@ window.buildProceduralLute = function(scene) {
             const taperScale = 0.5 + 0.5 * normalizedY;
             const currentWidth = pegboxWidth * taperScale;
 
-            const localPegPos = new BABYLON.Vector3(pegSide * currentWidth * 0.2, actualY, 0.14);
+            const localPegPos = new BABYLON.Vector3(0, actualY, 0.05);
             const worldPegPos = BABYLON.Vector3.TransformCoordinates(localPegPos, pegbox.getWorldMatrix());
 
             const stringPath = [
