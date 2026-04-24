@@ -20,6 +20,7 @@ const createScene = function () {
     let _samplePositions = null;
     let _scanIndices = [];
     let _scanProgress = 0;
+    let _scanPoints = []; // Stores world-space points for the wireframe/outline pass
     let _surfaceNormal = new BABYLON.Vector3(0, 1, 0); // Outward surface normal at current pick point
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
@@ -158,8 +159,8 @@ const createScene = function () {
         }
 
         // 3. Frame-synced Animator Logic
-        if (isAnimating && _samplePositions) {
-            if (_scanProgress >= _scanIndices.length) {
+        if (isAnimating && _scanPoints.length > 0) {
+            if (_scanProgress >= _scanPoints.length) {
                 toggleAnimation();
                 return;
             }
@@ -167,22 +168,18 @@ const createScene = function () {
             // 1 dot every 3 frames ≈ 20 dots/s at 60fps — slow enough to follow comfortably
             if (scene.getFrameId() % 3 !== 0) return;
 
-            if (_scanProgress >= _scanIndices.length) return;
+            if (_scanProgress >= _scanPoints.length) return;
 
-            const vertexIndex = _scanIndices[_scanProgress];
-            // Increase density slightly (0.05 instead of 0.033) for better coverage
-            const targetPoints = Math.max(500, Math.min(2500, _scanIndices.length * 0.05)); 
-            const stride = _scanIndices.length / targetPoints;
-            const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
-            _scanProgress += Math.max(1, advance);
+            const point = _scanPoints[_scanProgress];
+            // Wireframe balance: draw ALL sampled points to ensure the structure
+            // is fully visible and consistent across all parts (no random skipping).
+            const targetPoints = _scanPoints.length; 
+            const stride = 1;
+            const advance = 1;
+            _scanProgress += advance;
 
-            _tempVec.set(
-                _samplePositions[vertexIndex],
-                _samplePositions[vertexIndex + 1],
-                _samplePositions[vertexIndex + 2]
-            );
+            stickMesh.position.copyFrom(point);
 
-            BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
             const animHit = drawPointAtStick();
             if (animHit) showCrossThreads(animHit);
             dotsDrawn++;
@@ -212,9 +209,10 @@ const createScene = function () {
                 const x = uv.x * textureSize;
                 const y = uv.y * textureSize;
 
+                // Smaller dots for the outline/wireframe style (2 px radius)
                 textureCtx.fillStyle = "#000000";
                 textureCtx.beginPath();
-                textureCtx.arc(x, y, 4, 0, Math.PI * 2);
+                textureCtx.arc(x, y, 2, 0, Math.PI * 2);
                 textureCtx.fill();
                 _textureDirty = true;
             }
@@ -358,7 +356,7 @@ const createScene = function () {
             rotL.disabled = false;
             rotR.disabled = false;
         } else {
-            if (!targetMesh || !_samplePositions) return;
+            if (!targetMesh || _scanPoints.length === 0) return;
 
             // Ensure the page is open during drawing animation
             if (!isPageOpen) {
@@ -369,7 +367,7 @@ const createScene = function () {
             finishBtn.disabled = false;
             rotL.disabled = true;
             rotR.disabled = true;
-            if (_scanProgress >= _scanIndices.length) {
+            if (_scanProgress >= _scanPoints.length) {
                 _scanProgress = 0;
             }
             animateBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
@@ -382,23 +380,15 @@ const createScene = function () {
         document.getElementById("fastForwardBtn").disabled = true; // Pause animation if running
 
         // Instantly finish the remaining points in the pass
-        if (targetMesh && _samplePositions) {
+        if (targetMesh && _scanPoints.length > 0) {
             if (!isPageOpen) togglePage();
 
-            while (_scanProgress < _scanIndices.length) {
-                const vertexIndex = _scanIndices[_scanProgress];
-                const targetPoints = Math.max(333, Math.min(1667, _scanIndices.length * 0.033));
-                const stride = _scanIndices.length / targetPoints;
-                const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
-                _scanProgress += Math.max(1, advance);
+            while (_scanProgress < _scanPoints.length) {
+                const point = _scanPoints[_scanProgress];
+                // Draw all remaining points
+                _scanProgress += 1;
 
-                _tempVec.set(
-                    _samplePositions[vertexIndex],
-                    _samplePositions[vertexIndex + 1],
-                    _samplePositions[vertexIndex + 2]
-                );
-
-                BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
+                stickMesh.position.copyFrom(point);
                 drawPointAtStick();
                 dotsDrawn++;
             }
@@ -549,42 +539,63 @@ const createScene = function () {
 
         _samplePositions = targetMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
         const _normals = targetMesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+        const indices = targetMesh.getIndices();
 
-        _scanIndices = [];
+        _scanPoints = [];
+        if (!_samplePositions || !indices) return;
+
         const matrix = targetMesh.getWorldMatrix();
-        const tempV = new BABYLON.Vector3();
-        const tempN = new BABYLON.Vector3();
+        const edges = new Set();
+        const sortEntries = [];
 
-        const vertexCount = _samplePositions.length / 3;
-            const sortEntries = [];
-            for (let i = 0; i < vertexCount; i++) {
-                const localX = _samplePositions[i * 3];
-                const localY = _samplePositions[i * 3 + 1];
-                const localZ = _samplePositions[i * 3 + 2];
-    
-                BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(localX, localY, localZ, matrix, tempV);
-    
-                // Physically realistic culling: ignore vertices on the "back" of the object
-                if (_normals) {
-                    const nx = _normals[i * 3];
-                    const ny = _normals[i * 3 + 1];
-                    const nz = _normals[i * 3 + 2];
-                    BABYLON.Vector3.TransformNormalFromFloatsToRef(nx, ny, nz, matrix, tempN);
-    
-                    const toPulley = pulleyNode.subtract(tempV);
-                    // Slightly relax culling (-0.1 instead of 0) to capture silhouette edges on the neck/pegbox
-                    if (BABYLON.Vector3.Dot(tempN.normalize(), toPulley.normalize()) < -0.1) {
-                        continue;
+        // 1. Identify all unique geometric edges
+        for (let i = 0; i < indices.length; i += 3) {
+            const idx1 = indices[i];
+            const idx2 = indices[i+1];
+            const idx3 = indices[i+2];
+
+            [[idx1, idx2], [idx2, idx3], [idx3, idx1]].forEach(([a, b]) => {
+                const key = a < b ? `${a}_${b}` : `${b}_${a}`;
+                if (!edges.has(key)) {
+                    edges.add(key);
+                    
+                    // 2. Sample points along this edge
+                    const p1 = new BABYLON.Vector3(_samplePositions[a*3], _samplePositions[a*3+1], _samplePositions[a*3+2]);
+                    const p2 = new BABYLON.Vector3(_samplePositions[b*3], _samplePositions[b*3+1], _samplePositions[b*3+2]);
+                    
+                    const w1 = BABYLON.Vector3.TransformCoordinates(p1, matrix);
+                    const w2 = BABYLON.Vector3.TransformCoordinates(p2, matrix);
+                    
+                    // Wireframe Logic: Use an average normal check to keep it "solid" (front-facing only).
+                    // This prevents the bowl from becoming a solid black mass of overlapping lines.
+                    let isVisible = true;
+                    if (_normals) {
+                        const n1 = new BABYLON.Vector3(_normals[a*3], _normals[a*3+1], _normals[a*3+2]);
+                        const n2 = new BABYLON.Vector3(_normals[b*3], _normals[b*3+1], _normals[b*3+2]);
+                        const avgN = n1.add(n2).scale(0.5);
+                        const worldN = BABYLON.Vector3.TransformNormal(avgN, matrix).normalize();
+                        const toPulley = pulleyNode.subtract(w1.add(w2).scale(0.5)).normalize();
+                        if (BABYLON.Vector3.Dot(worldN, toPulley) < -0.2) isVisible = false;
+                    }
+
+                    if (isVisible) {
+                        const dist = BABYLON.Vector3.Distance(w1, w2);
+                        // Refined balanced spacing (0.4 units)
+                        const steps = Math.max(1, Math.floor(dist / 0.4));
+                        for (let s = 0; s <= steps; s++) {
+                            const t = s / steps;
+                            const sampleP = BABYLON.Vector3.Lerp(w1, w2, t);
+                            // Sort along Z (longitudinal) to maintain the "scanning" flow
+                            const zBucket = Math.round(sampleP.z / 0.2);
+                            sortEntries.push({ pos: sampleP, sortVal: -zBucket * 10000 + sampleP.x });
+                        }
                     }
                 }
-    
-                // Sort along Z (longitudinal axis) to ensure even coverage from pegbox to bowl
-                const zBucket = Math.round(tempV.z / 0.2);
-                sortEntries.push({ index: i * 3, sortVal: -zBucket * 10000 + tempV.x });
-            }
+            });
+        }
 
         sortEntries.sort((a, b) => a.sortVal - b.sortVal);
-        _scanIndices = sortEntries.map(e => e.index);
+        _scanPoints = sortEntries.map(e => e.pos);
         _scanProgress = 0;
     };
 

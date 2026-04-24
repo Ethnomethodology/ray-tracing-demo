@@ -5,7 +5,7 @@ window.buildProceduralLute = function(scene) {
         const R = 2.5;    // bulbous bottom radius
         const L = 6.0;    // body length
         const neckR = 0.45;   // half-width at neck join
-        const STEPS = 120;
+        const STEPS = 60; // Reduced to balance rings with neck subdivisions
 
         const profile = [];
         for (let i = 0; i <= STEPS; i++) {
@@ -24,10 +24,10 @@ window.buildProceduralLute = function(scene) {
 
         // 1. Ribbed bowl — half-lathe gives the classic staved back
         const bowl = BABYLON.MeshBuilder.CreateLathe("lbowl", {
-            shape: profile, arc: 0.5, tessellation: 64,
+            shape: profile, arc: 0.5, tessellation: 32, // Reduced to balance with neck
             sideOrientation: BABYLON.Mesh.DOUBLESIDE
         }, scene);
-        bowl.convertToFlatShadedMesh();
+        // Do not convert to flat shaded, as it doubles the edges for wireframe
         partMap.bowl = bowl;
         parts.push(bowl);
 
@@ -94,8 +94,8 @@ window.buildProceduralLute = function(scene) {
         const neck = BABYLON.MeshBuilder.CreateCylinder("lneck", {
             diameter: neckWidth,
             height: neckHeight,
-            tessellation: 16,
-            subdivisions: 20
+            tessellation: 32, // Matches bowl ribs
+            subdivisions: 40  // Increased to balance with bowl rings
         }, scene);
 
         // Cylinder height is along Y by default, which matches the box height orientation
