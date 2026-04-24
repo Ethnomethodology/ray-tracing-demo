@@ -99,11 +99,25 @@ window.buildProceduralLute = function(scene) {
         }, scene);
 
         // Cylinder height is along Y by default, which matches the box height orientation
-        neck.scaling.z = 0.5; // Flatten to semi-circle-ish profile
-        neck.position.set(0, L + neckHeight / 2, 0.2);
+        // Flatten the front face to make it D-shaped instead of circular
+        const neckPositions = neck.getVerticesData(BABYLON.VertexBuffer.PositionKind);
+        if (neckPositions) {
+            // The fingerboard is at Z=0.08 world. Neck is at Z=0.2 world.
+            // So the flat face should be at local Z = 0.08 - 0.2 = -0.12
+            const flatZLocal = -0.12; 
+            for (let i = 0; i < neckPositions.length; i += 3) {
+                if (neckPositions[i + 2] < flatZLocal) {
+                    neckPositions[i + 2] = flatZLocal;
+                }
+            }
+            neck.setVerticesData(BABYLON.VertexBuffer.PositionKind, neckPositions);
+            // Recompute normals for the new D-shape
+            BABYLON.VertexData.ComputeNormals(neckPositions, neck.getIndices(), neck.getVerticesData(BABYLON.VertexBuffer.NormalKind));
+        }
 
+        neck.position.set(0, L + neckHeight / 2, 0.08); // Moved up from 0.2
+        
         // We do NOT override the normals anymore. The native cylinder normals will point outwards!
-        // This fixes the culling logic.
         partMap.neck = neck;
         parts.push(neck);
 
@@ -141,7 +155,7 @@ window.buildProceduralLute = function(scene) {
             BABYLON.VertexData.ComputeNormals(fbPositions, fb.getIndices(), fb.getVerticesData(BABYLON.VertexBuffer.NormalKind));
         }
 
-        fb.position.set(0, fbStartY + fbHeight / 2, 0.08);
+        fb.position.set(0, fbStartY + fbHeight / 2, -0.04); // Moved up from 0.08
 
         partMap.fb = fb;
         parts.push(fb);
@@ -176,7 +190,7 @@ window.buildProceduralLute = function(scene) {
         }
 
         pegbox.setPivotMatrix(BABYLON.Matrix.Translation(0, -pegboxHeight / 2, 0), false);
-        pegbox.position.set(0, fbEndY - pegboxOverlap, 0.1); // Shifted to match neck move
+        pegbox.position.set(0, fbEndY - pegboxOverlap, -0.02); // Moved up from 0.1
         pegbox.rotation.x = -115 * (Math.PI / 180);
         pegbox.computeWorldMatrix(true);
         partMap.pegbox = pegbox;
@@ -272,7 +286,7 @@ window.buildProceduralLute = function(scene) {
 
             const stringPath = [
                 new BABYLON.Vector3(xBot, bridgeY, -0.1),
-                new BABYLON.Vector3(xTop, fbEndY,  0.05),
+                new BABYLON.Vector3(xTop, fbEndY,  -0.06), // Moved up from 0.05
                 worldPegPos
             ];
             const str = BABYLON.MeshBuilder.CreateTube("lstr" + i, {
