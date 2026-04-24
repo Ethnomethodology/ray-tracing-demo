@@ -5,6 +5,8 @@
 
 const canvas = document.getElementById("renderCanvas");
 const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+let camera = null; // Shared scope for resize handler
 
 const createScene = function () {
     const scene = new BABYLON.Scene(engine);
@@ -18,200 +20,64 @@ const createScene = function () {
     let _samplePositions = null;
     let _scanIndices = [];
     let _scanProgress = 0;
+    let _scanPoints = []; // Stores world-space points for the wireframe/outline pass
     let _surfaceNormal = new BABYLON.Vector3(0, 1, 0); // Outward surface normal at current pick point
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const isMobile = window.innerWidth <= 900;
     const defaultRadius = isMobile ? 65 : 45;
-    const camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 6, Math.PI / 2.2, defaultRadius, new BABYLON.Vector3(0, -5, 0), scene);
+    camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, 0), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
     camera.upperRadiusLimit = 100;
 
-    // 2. Lighting setup - Positioned to highlight the Lute from above
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-    light.intensity = 0.7;
-    const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(0, -1, 0), scene);
-    dirLight.intensity = 0.6;
-    dirLight.position = new BABYLON.Vector3(0, 20, -10); // Center over the Lute
-
-    // 3. Environment: The Table (Extended to bridge Lute and Frame)
-    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 12, height: 0.5, depth: 25 }, scene);
-    tableMesh.position.y = -5.25;
-    tableMesh.position.z = -7.5; // Offset to sit under both Lute (-10) and Frame (0)
-    const tableMaterial = new BABYLON.StandardMaterial("tableMaterial", scene);
-    tableMaterial.diffuseColor = new BABYLON.Color3(0.35, 0.22, 0.12); // Richer wooden/walnut brown
-    tableMesh.material = tableMaterial;
-
-    // 3a. Table Legs
-    const legHeight = 9.75; // 15 - 5.25 = 9.75 so absolute bottom is at Y = -15 (matches wall bottom)
-    const legDiameter = 0.6;
-    const legPositions = [
-        new BABYLON.Vector3(5.5, -legHeight / 2, 11.5),
-        new BABYLON.Vector3(-5.5, -legHeight / 2, 11.5),
-        new BABYLON.Vector3(5.5, -legHeight / 2, -11.5),
-        new BABYLON.Vector3(-5.5, -legHeight / 2, -11.5)
-    ];
-    legPositions.forEach((pos, i) => {
-        const leg = BABYLON.MeshBuilder.CreateCylinder(`tableLeg${i}`, { diameter: legDiameter, height: legHeight }, scene);
-        leg.parent = tableMesh;
-        leg.position = pos;
-        leg.material = tableMaterial;
-    });
-
-    // 3b. Environment: The Wall (For the Pulley)
-    const wallMesh = BABYLON.MeshBuilder.CreatePlane("wallMesh", { width: 40, height: 30 }, scene);
-    wallMesh.position.z = 16;
-    wallMesh.rotation.y = Math.PI;
-    wallMesh.isVisible = false; // Fully hidden
-
-    // 4. Create targetMesh (Historical Lute)
-    let targetMesh = null;
-    const targetMaterial = new BABYLON.StandardMaterial("targetMaterial", scene);
-    targetMaterial.diffuseColor = new BABYLON.Color3(0.6, 0.4, 0.2); // Lighter wood tone
-    targetMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
-
-    // Object loading is now handled by loadObject() at the bottom of createScene
-
-
-    // 5. Create gridPlane (Dürer's Frame)
-    const gridSize = 10;
-    const gridPlane = BABYLON.MeshBuilder.CreatePlane("gridPlane", {
-        size: gridSize,
-        sideOrientation: BABYLON.Mesh.DOUBLESIDE
-    }, scene);
-    gridPlane.position = new BABYLON.Vector3(0, 0, 0); // Frame at Origin (Center of world)
-
-    // Setup DynamicTexture for the drawing engine
+    // 2. Drawing texture (created before buildApparatus so it can be passed in for the page)
     const textureSize = 1024;
     const drawingTexture = new BABYLON.DynamicTexture("drawingTexture", { width: textureSize, height: textureSize }, scene);
     const textureCtx = drawingTexture.getContext();
     drawingTexture.hasAlpha = true;
 
-    // Initial clear/fill function
     const clearCanvas = () => {
-        textureCtx.fillStyle = "#ffffff"; // Solid white paper
+        textureCtx.fillStyle = "#ffffff";
         textureCtx.fillRect(0, 0, textureSize, textureSize);
         drawingTexture.update();
     };
     clearCanvas();
 
-    const planeMaterial = new BABYLON.StandardMaterial("planeMaterial", scene);
-    planeMaterial.alpha = 0.15; // Very faint glass effect
-    planeMaterial.backFaceCulling = false;
-    gridPlane.material = planeMaterial;
+    // 3. Build the shared physical apparatus (table, frame, page, pulley, stylus …)
+    //    All construction lives in sceneSetup.js → buildApparatus().
+    const {
+        gridSize, gridPlane, planeMaterial, frameBorderMaterial,
+        borderBottom, borderTop, borderLeft, borderRight,
+        pageHinge, pageMesh, pageBorder,
+        pulleyNode, maxStringLength, pulleyMesh, weightMesh,
+        segmentA: _segA, segmentB: _segB,
+        stickMesh,
+    } = buildApparatus(scene, { drawingTexture });
 
-    // Frame Border (Physical black frame, constructed from 4 boxes)
-    const frameHalf = gridSize / 2;
-    const borderThickness = 0.2;
-    const borderDepth = 0.2;
+    // Keep segmentA/B as lets so the render loop can reassign the line instances
+    let segmentA = _segA;
+    let segmentB = _segB;
 
-    const frameBorderMaterial = new BABYLON.StandardMaterial("frameBorderMat", scene);
-    frameBorderMaterial.diffuseColor = new BABYLON.Color3(0.02, 0.02, 0.02); // Black
-    frameBorderMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+    // 4. Target object (lute / teapot / sphere)
+    let targetMesh = null;
+    const targetMaterial = new BABYLON.StandardMaterial("targetMaterial", scene);
+    targetMaterial.diffuseColor  = new BABYLON.Color3(0.6, 0.4, 0.2);
+    targetMaterial.specularColor = new BABYLON.Color3(0.5, 0.5, 0.5);
 
-    // Bottom border (shifted up by borderThickness/2 so bottom edge sits exactly at -frameHalf, i.e., -5.0)
-    const borderBottom = BABYLON.MeshBuilder.CreateBox("borderBottom", { width: gridSize + borderThickness * 2, height: borderThickness, depth: borderDepth }, scene);
-    borderBottom.parent = gridPlane;
-    borderBottom.position = new BABYLON.Vector3(0, -frameHalf + borderThickness / 2, 0);
-    borderBottom.material = frameBorderMaterial;
-
-    // Top border
-    const borderTop = BABYLON.MeshBuilder.CreateBox("borderTop", { width: gridSize + borderThickness * 2, height: borderThickness, depth: borderDepth }, scene);
-    borderTop.parent = gridPlane;
-    borderTop.position = new BABYLON.Vector3(0, frameHalf + borderThickness / 2, 0);
-    borderTop.material = frameBorderMaterial;
-
-    // Left border
-    const borderLeft = BABYLON.MeshBuilder.CreateBox("borderLeft", { width: borderThickness, height: gridSize, depth: borderDepth }, scene);
-    borderLeft.parent = gridPlane;
-    borderLeft.position = new BABYLON.Vector3(-frameHalf - borderThickness / 2, 0, 0);
-    borderLeft.material = frameBorderMaterial;
-
-    // Right border
-    const borderRight = BABYLON.MeshBuilder.CreateBox("borderRight", { width: borderThickness, height: gridSize, depth: borderDepth }, scene);
-    borderRight.parent = gridPlane;
-    borderRight.position = new BABYLON.Vector3(frameHalf + borderThickness / 2, 0, 0);
-    borderRight.material = frameBorderMaterial;
-
-
-    // 5.5 Create Hinged Page (Dürer's drawing surface)
-    const pageHinge = new BABYLON.TransformNode("pageHinge", scene);
-    pageHinge.parent = gridPlane;
-    pageHinge.position = new BABYLON.Vector3(-frameHalf, 0, 0); // Hinge on the left border
-
-    // Use a thin Box for the paper to properly handle front/back materials and orientation
-    const pageMesh = BABYLON.MeshBuilder.CreateBox("pageMesh", {
-        width: gridSize,
-        height: gridSize,
-        depth: 0.02
-    }, scene);
-    pageMesh.parent = pageHinge;
-    // Position it so the front face sits at z = -0.05
-    pageMesh.position = new BABYLON.Vector3(frameHalf, 0, -0.06);
-    pageMesh.isPickable = false;
-
-    // Materials for the page
-    const pageInnerMaterial = new BABYLON.StandardMaterial("pageInnerMaterial", scene);
-    pageInnerMaterial.diffuseTexture = drawingTexture;
-    pageInnerMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-    pageInnerMaterial.disableLighting = true;
-
-    const pageOuterMaterial = new BABYLON.StandardMaterial("pageOuterMaterial", scene);
-    pageOuterMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
-    pageOuterMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1);
-    pageOuterMaterial.disableLighting = true;
-
-    const multiMat = new BABYLON.MultiMaterial("pageMultiMat", scene);
-    multiMat.subMaterials.push(pageInnerMaterial); // Drawing
-    multiMat.subMaterials.push(pageOuterMaterial); // White
-    multiMat.subMaterials.push(pageOuterMaterial); // Sides
-    pageMesh.material = multiMat;
-
-    // Define submeshes for the box faces
-    pageMesh.subMeshes = [];
-    const verticesCount = pageMesh.getTotalVertices();
-    // Mat 0 is Drawing, Mat 1 is White. 
-    // Front (+Z) faces the frame when closed, so it gets the drawing.
-    new BABYLON.SubMesh(0, 0, verticesCount, 0, 6, pageMesh); // Front (+Z) gets Mat 0 (Drawing)
-    new BABYLON.SubMesh(1, 0, verticesCount, 6, 6, pageMesh); // Back (-Z) gets Mat 1 (White)
-    new BABYLON.SubMesh(2, 0, verticesCount, 12, 24, pageMesh);
-
-    // Add a black border around the page
-    const pageBorderPoints = [
-        new BABYLON.Vector3(-frameHalf, -frameHalf, 0),
-        new BABYLON.Vector3(frameHalf, -frameHalf, 0),
-        new BABYLON.Vector3(frameHalf, frameHalf, 0),
-        new BABYLON.Vector3(-frameHalf, frameHalf, 0),
-        new BABYLON.Vector3(-frameHalf, -frameHalf, 0)
-    ];
-    const pageBorder = BABYLON.MeshBuilder.CreateTube("pageBorder", { path: pageBorderPoints, radius: 0.1, cap: BABYLON.Mesh.CAP_ALL }, scene);
-    pageBorder.parent = pageMesh;
-    pageBorder.position.z = 0.011; // Slightly in front of the front face
-    pageBorder.material = frameBorderMaterial;
-    pageBorder.isPickable = false;
-
-    pageHinge.setEnabled(true); // Always visible
-
+    // 5. Page open/close state & toggle
     let isPageOpen = true;
-    pageHinge.rotation.y = 2 * Math.PI / 3; // Open immediately on load, no animation
     const togglePage = () => {
         if (isPageOpen) {
-            // Close animation
             const anim = new BABYLON.Animation("closePage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
             anim.setKeys([{ frame: 0, value: 2 * Math.PI / 3 }, { frame: 30, value: 0 }]);
             pageHinge.animations = [anim];
             scene.beginAnimation(pageHinge, 0, 30, false);
             isPageOpen = false;
-
-            // Park the stylus on the right side of the table when the page is closed.
-            // By putting it at z=4 (between the frame at z=0 and pulley at z=15.5),
-            // the thread NEVER crosses the z=0 plane, guaranteeing no intersections.
             stickMesh.position.copyFrom(new BABYLON.Vector3(8, -5, 4));
-            _surfaceNormal.copyFrom(new BABYLON.Vector3(0, 1, 0)); // Point handle straight up
+            _surfaceNormal.copyFrom(new BABYLON.Vector3(0, 1, 0));
         } else {
-            // Open animation
             const anim = new BABYLON.Animation("openPage", "rotation.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
             anim.setKeys([{ frame: 0, value: 0 }, { frame: 30, value: 2 * Math.PI / 3 }]);
             pageHinge.animations = [anim];
@@ -220,29 +86,7 @@ const createScene = function () {
         }
     };
 
-    // 6. Create stylus (stickMesh) to match Dürer's original design
-    const stickMesh = BABYLON.MeshBuilder.CreateCylinder("stickMesh", { diameterTop: 0.02, diameterBottom: 0.15, height: 3.5 }, scene);
-
-    // The stylus geometry: rotate so the cylinder runs along the Y axis (default).
-    // The JOINT (thread attachment) is at the ORIGIN of stickMesh.
-    // The tip (narrow end) is at Y = -1.75 (pointing down toward the object)
-    // and the handle (wide end) is at Y = +1.75 (pointing up, held by operator).
-    // We shift geometry so the joint is exactly at Y = 0 (origin stays at joint).
-    // Default cylinder: center at origin, so no extra baking needed — origin = joint mid-point.
-    // We translate so the joint is at the narrow-tip end (Y = -1.75 → origin):
-    stickMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(0, 1.75, 0));
-    // Now tip is at Y = 0 (origin/joint), handle at Y = 3.5 (upward).
-
-    const stickMaterial = new BABYLON.StandardMaterial("stickMaterial", scene);
-    // Red material for visibility while keeping the historical shape
-    stickMaterial.diffuseColor = new BABYLON.Color3(1, 0.1, 0.1);
-    stickMaterial.emissiveColor = new BABYLON.Color3(0.5, 0, 0);
-    stickMaterial.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-    stickMesh.material = stickMaterial;
-    stickMesh.isPickable = false;
-    stickMesh.position = new BABYLON.Vector3(0, 0, 0);
-
-    // 7. Raycasting Interaction
+    // 6. Raycasting interaction (pointer move → move stylus)
     scene.onPointerObservable.add((pointerInfo) => {
         if (pointerInfo.type === BABYLON.PointerEventTypes.POINTERMOVE) {
             if (!targetMesh) return;
@@ -250,7 +94,14 @@ const createScene = function () {
 
             const pickInfo = scene.pick(scene.pointerX, scene.pointerY, (mesh) => mesh === targetMesh);
             if (pickInfo.hit && pickInfo.pickedPoint) {
-                stickMesh.position.copyFrom(pickInfo.pickedPoint);
+                let targetPos = pickInfo.pickedPoint.clone();
+                const distToPulley = BABYLON.Vector3.Distance(targetPos, pulleyNode);
+                const maxDragDistance = maxStringLength - 1.5;
+                if (distToPulley > maxDragDistance) {
+                    const direction = targetPos.subtract(pulleyNode).normalize();
+                    targetPos = pulleyNode.add(direction.scale(maxDragDistance));
+                }
+                stickMesh.position.copyFrom(targetPos);
 
                 // Capture the outward surface normal for stylus orientation (essentially free)
                 const pickedNormal = pickInfo.getNormal(true, true);
@@ -270,28 +121,6 @@ const createScene = function () {
         }
     });
 
-    // 8. Pulley and String System
-    // PulleyNode at the "Eye" point (on the wall)
-    const pulleyNode = new BABYLON.Vector3(0, 10, 15.5);
-    const maxStringLength = 35.7; // Reduced by 15% from 42
-
-    const pulleyMesh = BABYLON.MeshBuilder.CreateCylinder("pulleyMesh", { diameter: 0.8, height: 0.2 }, scene);
-    pulleyMesh.position.copyFrom(pulleyNode);
-    pulleyMesh.rotation.x = Math.PI / 2;
-    const pulleyMaterial = new BABYLON.StandardMaterial("pulleyMaterial", scene);
-    pulleyMaterial.diffuseColor = new BABYLON.Color3(0.4, 0.2, 0.1);
-    pulleyMesh.material = pulleyMaterial;
-
-    const weightMesh = BABYLON.MeshBuilder.CreateCylinder("weightMesh", { diameter: 0.4, height: 0.8 }, scene);
-    const weightMaterial = new BABYLON.StandardMaterial("weightMaterial", scene);
-    weightMaterial.diffuseColor = new BABYLON.Color3(0.3, 0.3, 0.3);
-    weightMesh.material = weightMaterial;
-
-    let segmentA = BABYLON.MeshBuilder.CreateLines("segmentA", { points: [stickMesh.position, pulleyNode], updatable: true }, scene);
-    segmentA.color = new BABYLON.Color3(0.3, 0.3, 0.3);
-
-    let segmentB = BABYLON.MeshBuilder.CreateLines("segmentB", { points: [pulleyNode, weightMesh.position], updatable: true }, scene);
-    segmentB.color = new BABYLON.Color3(0.3, 0.3, 0.3);
 
     scene.onBeforeRenderObservable.add(() => {
         // 1. Update Pulleys, Weights, and Stylus Alignment
@@ -304,18 +133,20 @@ const createScene = function () {
         // Orient the stylus along the outward surface normal at the current pick point.
         // _surfaceNormal is updated on every POINTERMOVE/POINTERDOWN from pickInfo.getNormal()
         // which is free — it only interpolates already-computed vertex normals.
-        // The stylus tip stays at origin (joint); +Y (handle) points out along the normal.
+        // The thick handle stays at origin (touching the mesh); +Y (narrow tip) points OUT along the normal.
+        // So we align +Y with the OUTWARD normal, meaning the narrow tip points out (attaching to thread).
         const _fromVec = new BABYLON.Vector3(0, 1, 0);
+        const _toVec = _surfaceNormal.clone();
         stickMesh.rotationQuaternion = BABYLON.Quaternion.FromUnitVectorsToRef(
             _fromVec,
-            _surfaceNormal,
+            _toVec,
             stickMesh.rotationQuaternion || new BABYLON.Quaternion()
         );
 
         // Thread goes from joint (stickMesh.position) to pulleyNode
         const jointPos = stickMesh.position;
         const distanceA = BABYLON.Vector3.Distance(jointPos, pulleyNode);
-        const lengthB = maxStringLength - distanceA;
+        const lengthB = Math.max(0, maxStringLength - distanceA);
         weightMesh.position.set(pulleyNode.x, pulleyNode.y - lengthB, pulleyNode.z);
 
         if (segmentA) BABYLON.MeshBuilder.CreateLines("segmentA", { points: [jointPos, pulleyNode], instance: segmentA });
@@ -328,8 +159,8 @@ const createScene = function () {
         }
 
         // 3. Frame-synced Animator Logic
-        if (isAnimating && _samplePositions) {
-            if (_scanProgress >= _scanIndices.length) {
+        if (isAnimating && _scanPoints.length > 0) {
+            if (_scanProgress >= _scanPoints.length) {
                 toggleAnimation();
                 return;
             }
@@ -337,22 +168,18 @@ const createScene = function () {
             // 1 dot every 3 frames ≈ 20 dots/s at 60fps — slow enough to follow comfortably
             if (scene.getFrameId() % 3 !== 0) return;
 
-            if (_scanProgress >= _scanIndices.length) return;
+            if (_scanProgress >= _scanPoints.length) return;
 
-            const vertexIndex = _scanIndices[_scanProgress];
-            // Increase density slightly (0.05 instead of 0.033) for better coverage
-            const targetPoints = Math.max(500, Math.min(2500, _scanIndices.length * 0.05)); 
-            const stride = _scanIndices.length / targetPoints;
-            const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
-            _scanProgress += Math.max(1, advance);
+            const point = _scanPoints[_scanProgress];
+            // Wireframe balance: draw ALL sampled points to ensure the structure
+            // is fully visible and consistent across all parts (no random skipping).
+            const targetPoints = _scanPoints.length; 
+            const stride = 1;
+            const advance = 1;
+            _scanProgress += advance;
 
-            _tempVec.set(
-                _samplePositions[vertexIndex],
-                _samplePositions[vertexIndex + 1],
-                _samplePositions[vertexIndex + 2]
-            );
+            stickMesh.position.copyFrom(point);
 
-            BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
             const animHit = drawPointAtStick();
             if (animHit) showCrossThreads(animHit);
             dotsDrawn++;
@@ -382,9 +209,10 @@ const createScene = function () {
                 const x = uv.x * textureSize;
                 const y = uv.y * textureSize;
 
+                // Smaller dots for the outline/wireframe style (2 px radius)
                 textureCtx.fillStyle = "#000000";
                 textureCtx.beginPath();
-                textureCtx.arc(x, y, 4, 0, Math.PI * 2);
+                textureCtx.arc(x, y, 2, 0, Math.PI * 2);
                 textureCtx.fill();
                 _textureDirty = true;
             }
@@ -458,7 +286,7 @@ const createScene = function () {
             // Check for frame click to toggle the page
             if (pointerInfo.pickInfo && pointerInfo.pickInfo.hit) {
                 const pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                if (pickedMesh === gridPlane || pickedMesh === borderBottom || pickedMesh === borderTop || pickedMesh === borderLeft || pickedMesh === borderRight) {
+                if (pickedMesh === gridPlane || pickedMesh === borderBottom || pickedMesh === borderTop || pickedMesh === borderLeft || pickedMesh === borderRight || pickedMesh === pageMesh || pickedMesh === pageBorder) {
                     if (isAnimating) {
                         toggleAnimation();
                     }
@@ -476,7 +304,14 @@ const createScene = function () {
                     hideCrossThreads(); // Only clear overlay if we clicked the object itself
                     // Update stickMesh to the freshly-picked point so the stylus and
                     // the back-face guard are always in sync.
-                    stickMesh.position.copyFrom(freshPick.pickedPoint);
+                    let targetPos = freshPick.pickedPoint.clone();
+                    const distToPulley = BABYLON.Vector3.Distance(targetPos, pulleyNode);
+                    const maxDragDistance = maxStringLength - 1.5;
+                    if (distToPulley > maxDragDistance) {
+                        const direction = targetPos.subtract(pulleyNode).normalize();
+                        targetPos = pulleyNode.add(direction.scale(maxDragDistance));
+                    }
+                    stickMesh.position.copyFrom(targetPos);
 
                     // Capture the outward surface normal for stylus orientation
                     const clickedNormal = freshPick.getNormal(true, true);
@@ -509,12 +344,19 @@ const createScene = function () {
 
     const toggleAnimation = () => {
         const animateBtn = document.getElementById("animateBtn");
+        const finishBtn = document.getElementById("fastForwardBtn");
+        const rotL = document.getElementById("rotateLeftBtn");
+        const rotR = document.getElementById("rotateRightBtn");
 
         if (isAnimating) {
             isAnimating = false;
-            animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> Play';
+            animateBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+            animateBtn.classList.remove('playing');
+            finishBtn.disabled = true;
+            rotL.disabled = false;
+            rotR.disabled = false;
         } else {
-            if (!targetMesh || !_samplePositions) return;
+            if (!targetMesh || _scanPoints.length === 0) return;
 
             // Ensure the page is open during drawing animation
             if (!isPageOpen) {
@@ -522,34 +364,31 @@ const createScene = function () {
             }
 
             isAnimating = true;
-            if (_scanProgress >= _scanIndices.length) {
+            finishBtn.disabled = false;
+            rotL.disabled = true;
+            rotR.disabled = true;
+            if (_scanProgress >= _scanPoints.length) {
                 _scanProgress = 0;
             }
-            animateBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg> Pause';
+            animateBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+            animateBtn.classList.add('playing');
         }
     };
 
     const finishAnimation = () => {
-        if (isAnimating) toggleAnimation(); // Pause animation if running
+        if (isAnimating) toggleAnimation();
+        document.getElementById("fastForwardBtn").disabled = true; // Pause animation if running
 
         // Instantly finish the remaining points in the pass
-        if (targetMesh && _samplePositions) {
+        if (targetMesh && _scanPoints.length > 0) {
             if (!isPageOpen) togglePage();
 
-            while (_scanProgress < _scanIndices.length) {
-                const vertexIndex = _scanIndices[_scanProgress];
-                const targetPoints = Math.max(333, Math.min(1667, _scanIndices.length * 0.033));
-                const stride = _scanIndices.length / targetPoints;
-                const advance = Math.floor(stride * 0.25) + Math.floor(Math.random() * stride * 1.5);
-                _scanProgress += Math.max(1, advance);
+            while (_scanProgress < _scanPoints.length) {
+                const point = _scanPoints[_scanProgress];
+                // Draw all remaining points
+                _scanProgress += 1;
 
-                _tempVec.set(
-                    _samplePositions[vertexIndex],
-                    _samplePositions[vertexIndex + 1],
-                    _samplePositions[vertexIndex + 2]
-                );
-
-                BABYLON.Vector3.TransformCoordinatesToRef(_tempVec, targetMesh.getWorldMatrix(), stickMesh.position);
+                stickMesh.position.copyFrom(point);
                 drawPointAtStick();
                 dotsDrawn++;
             }
@@ -559,6 +398,49 @@ const createScene = function () {
     document.getElementById("animateBtn").addEventListener("click", toggleAnimation);
     document.getElementById("fastForwardBtn").addEventListener("click", finishAnimation);
 
+    const rotateLeft  = document.getElementById("rotateLeftBtn");
+    const rotateRight = document.getElementById("rotateRightBtn");
+
+    const doRotate = (angle) => {
+        if (!targetMesh) return;
+        // Stop any running animation first
+        if (isAnimating) toggleAnimation();
+        // Clear the drawn canvas image
+        textureCtx.clearRect(0, 0, textureSize, textureSize);
+        clearCanvas();
+        dotsDrawn = 0;
+        document.getElementById("fastForwardBtn").disabled = true;
+        // Rotate the mesh
+        targetMesh.unfreezeWorldMatrix();
+        targetMesh.rotate(BABYLON.Axis.Y, angle, BABYLON.Space.WORLD);
+        regroundTargetMesh();
+        finalizeTargetMesh();
+    };
+
+    rotateLeft .addEventListener("click", () => doRotate(-Math.PI / 12));
+    rotateRight.addEventListener("click", () => doRotate( Math.PI / 12));
+
+    // Disable camera drag while hovering rotate buttons so the scene
+    // doesn't accidentally orbit when the user reaches for the buttons.
+    [rotateLeft, rotateRight].forEach(btn => {
+        btn.addEventListener("mouseenter", () => camera.detachControl());
+        btn.addEventListener("mouseleave", () => camera.attachControl(canvas, true));
+    });
+
+    document.getElementById("zoomInBtn").addEventListener("click", () => {
+        if (camera) {
+            const newRadius = camera.radius - 5;
+            camera.radius = Math.max(newRadius, camera.lowerRadiusLimit || 5);
+        }
+    });
+
+    document.getElementById("zoomOutBtn").addEventListener("click", () => {
+        if (camera) {
+            const newRadius = camera.radius + 5;
+            camera.radius = Math.min(newRadius, camera.upperRadiusLimit || 100);
+        }
+    });
+
     // 11. UI Controller
     const resetScene = () => {
         // Clear dots with proper alpha wipe
@@ -566,6 +448,7 @@ const createScene = function () {
         clearCanvas();
         dotsDrawn = 0;
         if (isAnimating) toggleAnimation();
+        document.getElementById("fastForwardBtn").disabled = true;
 
         // Reset Camera
         const targetPos = new BABYLON.Vector3(0, -5, 0);
@@ -576,10 +459,10 @@ const createScene = function () {
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
         const currentIsMobile = window.innerWidth <= 900;
-        const targetRadius = currentIsMobile ? 65 : 45;
+        const targetRadius = currentIsMobile ? 68 : 38;
 
-        const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: -Math.PI / 6 }];
-        const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.2 }];
+        const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: -Math.PI / 5 }];
+        const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.5 }];
         const keysRadius = [{ frame: 0, value: camera.radius }, { frame: 30, value: targetRadius }];
 
         animationAlpha.setKeys(keysAlpha);
@@ -594,16 +477,31 @@ const createScene = function () {
 
     document.getElementById("stopBtn").addEventListener("click", resetScene);
 
-    document.getElementById("normalsBtn").addEventListener("click", (e) => {
-        showNormals = !showNormals;
-        e.target.classList.toggle("active", showNormals);
-        document.getElementById("debugControls").style.display = showNormals ? "block" : "none";
-        updateNormalLines();
-    });
+    const normalsBtn = document.getElementById("normalsBtn");
+    if (normalsBtn) {
+        normalsBtn.addEventListener("click", (e) => {
+            showNormals = !showNormals;
+            e.target.classList.toggle("active", showNormals);
+            document.getElementById("debugControls").style.display = showNormals ? "block" : "none";
+            updateNormalLines();
+        });
+    }
 
-    document.getElementById("lutePartSelect").addEventListener("change", () => {
-        updateNormalLines();
-    });
+    const lutePartSelect = document.getElementById("lutePartSelect");
+    if (lutePartSelect) {
+        lutePartSelect.addEventListener("change", () => {
+            updateNormalLines();
+        });
+    }
+
+    const regroundTargetMesh = () => {
+        if (!targetMesh) return;
+        targetMesh.computeWorldMatrix(true);
+        const boundingInfo = targetMesh.getBoundingInfo();
+        // Ground on table (table is at Y = -5.25, thickness is 0.5, so top is exactly -5.0)
+        const groundOffset = -5.0 - boundingInfo.boundingBox.minimumWorld.y;
+        targetMesh.position.y += groundOffset;
+    };
 
     // 12. Dynamic Object Loading
     const setupTargetMesh = (mesh, targetScale = 15) => {
@@ -614,6 +512,11 @@ const createScene = function () {
         targetMesh.name = "targetMesh";
         targetMesh.material = targetMaterial;
 
+        // Center the geometry so rotation happens around the physical middle
+        targetMesh.computeWorldMatrix(true);
+        const center = targetMesh.getBoundingInfo().boundingBox.center;
+        targetMesh.bakeTransformIntoVertices(BABYLON.Matrix.Translation(-center.x, -center.y, -center.z));
+
         const boundingInfo = targetMesh.getBoundingInfo();
         const size = boundingInfo.maximum.subtract(boundingInfo.minimum);
         const maxDim = Math.max(size.x, size.y, size.z);
@@ -621,14 +524,8 @@ const createScene = function () {
         const scaleFactor = (maxDim > 0.001) ? targetScale / maxDim : 2.5;
         targetMesh.scaling.setAll(scaleFactor);
 
-        targetMesh.computeWorldMatrix(true);
-        const localInfo = targetMesh.getBoundingInfo();
-        localInfo.update(targetMesh.getWorldMatrix());
-
-        // Ground on table (table is at Y = -5.25, thickness is 0.5, so top is exactly -5.0)
-        const groundOffset = -5.0 - localInfo.boundingBox.minimumWorld.y;
-        targetMesh.position.y += groundOffset;
-        targetMesh.position.z = -10;
+        regroundTargetMesh();
+        targetMesh.position.z = -11;
         targetMesh.position.x = 0;
 
         updateNormalLines();
@@ -642,42 +539,63 @@ const createScene = function () {
 
         _samplePositions = targetMesh.getVerticesData(BABYLON.VertexBuffer.PositionKind);
         const _normals = targetMesh.getVerticesData(BABYLON.VertexBuffer.NormalKind);
+        const indices = targetMesh.getIndices();
 
-        _scanIndices = [];
+        _scanPoints = [];
+        if (!_samplePositions || !indices) return;
+
         const matrix = targetMesh.getWorldMatrix();
-        const tempV = new BABYLON.Vector3();
-        const tempN = new BABYLON.Vector3();
+        const edges = new Set();
+        const sortEntries = [];
 
-        const vertexCount = _samplePositions.length / 3;
-            const sortEntries = [];
-            for (let i = 0; i < vertexCount; i++) {
-                const localX = _samplePositions[i * 3];
-                const localY = _samplePositions[i * 3 + 1];
-                const localZ = _samplePositions[i * 3 + 2];
-    
-                BABYLON.Vector3.TransformCoordinatesFromFloatsToRef(localX, localY, localZ, matrix, tempV);
-    
-                // Physically realistic culling: ignore vertices on the "back" of the object
-                if (_normals) {
-                    const nx = _normals[i * 3];
-                    const ny = _normals[i * 3 + 1];
-                    const nz = _normals[i * 3 + 2];
-                    BABYLON.Vector3.TransformNormalFromFloatsToRef(nx, ny, nz, matrix, tempN);
-    
-                    const toPulley = pulleyNode.subtract(tempV);
-                    // Slightly relax culling (-0.1 instead of 0) to capture silhouette edges on the neck/pegbox
-                    if (BABYLON.Vector3.Dot(tempN.normalize(), toPulley.normalize()) < -0.1) {
-                        continue;
+        // 1. Identify all unique geometric edges
+        for (let i = 0; i < indices.length; i += 3) {
+            const idx1 = indices[i];
+            const idx2 = indices[i+1];
+            const idx3 = indices[i+2];
+
+            [[idx1, idx2], [idx2, idx3], [idx3, idx1]].forEach(([a, b]) => {
+                const key = a < b ? `${a}_${b}` : `${b}_${a}`;
+                if (!edges.has(key)) {
+                    edges.add(key);
+                    
+                    // 2. Sample points along this edge
+                    const p1 = new BABYLON.Vector3(_samplePositions[a*3], _samplePositions[a*3+1], _samplePositions[a*3+2]);
+                    const p2 = new BABYLON.Vector3(_samplePositions[b*3], _samplePositions[b*3+1], _samplePositions[b*3+2]);
+                    
+                    const w1 = BABYLON.Vector3.TransformCoordinates(p1, matrix);
+                    const w2 = BABYLON.Vector3.TransformCoordinates(p2, matrix);
+                    
+                    // Wireframe Logic: Use an average normal check to keep it "solid" (front-facing only).
+                    // This prevents the bowl from becoming a solid black mass of overlapping lines.
+                    let isVisible = true;
+                    if (_normals) {
+                        const n1 = new BABYLON.Vector3(_normals[a*3], _normals[a*3+1], _normals[a*3+2]);
+                        const n2 = new BABYLON.Vector3(_normals[b*3], _normals[b*3+1], _normals[b*3+2]);
+                        const avgN = n1.add(n2).scale(0.5);
+                        const worldN = BABYLON.Vector3.TransformNormal(avgN, matrix).normalize();
+                        const toPulley = pulleyNode.subtract(w1.add(w2).scale(0.5)).normalize();
+                        if (BABYLON.Vector3.Dot(worldN, toPulley) < -0.2) isVisible = false;
+                    }
+
+                    if (isVisible) {
+                        const dist = BABYLON.Vector3.Distance(w1, w2);
+                        // Refined balanced spacing (0.4 units)
+                        const steps = Math.max(1, Math.floor(dist / 0.4));
+                        for (let s = 0; s <= steps; s++) {
+                            const t = s / steps;
+                            const sampleP = BABYLON.Vector3.Lerp(w1, w2, t);
+                            // Sort along Z (longitudinal) to maintain the "scanning" flow
+                            const zBucket = Math.round(sampleP.z / 0.2);
+                            sortEntries.push({ pos: sampleP, sortVal: -zBucket * 10000 + sampleP.x });
+                        }
                     }
                 }
-    
-                // Sort along Z (longitudinal axis) to ensure even coverage from pegbox to bowl
-                const zBucket = Math.round(tempV.z / 0.2);
-                sortEntries.push({ index: i * 3, sortVal: -zBucket * 10000 + tempV.x });
-            }
+            });
+        }
 
         sortEntries.sort((a, b) => a.sortVal - b.sortVal);
-        _scanIndices = sortEntries.map(e => e.index);
+        _scanPoints = sortEntries.map(e => e.pos);
         _scanProgress = 0;
     };
 
@@ -696,8 +614,8 @@ const createScene = function () {
         const selectedPart = partSelect ? partSelect.value : "all";
         
         let meshToVisualize = targetMesh;
-        if (selectedPart !== "all" && currentLuteParts[selectedPart]) {
-            meshToVisualize = currentLuteParts[selectedPart];
+        if (selectedPart !== "all" && window.currentLuteParts[selectedPart]) {
+            meshToVisualize = window.currentLuteParts[selectedPart];
         }
 
         const positions = meshToVisualize.getVerticesData(BABYLON.VertexBuffer.PositionKind);
@@ -732,294 +650,66 @@ const createScene = function () {
         normalLines.isPickable = false;
     };
 
-    let currentLuteParts = {};
-
-    const buildProceduralLute = () => {
-        const partMap = {};
-        // ── Mathematical profile: teardrop outline (round bottom → tapered top) ──
-        const R = 2.5;    // bulbous bottom radius
-        const L = 6.0;    // body length
-        const neckR = 0.45;   // half-width at neck join
-        const STEPS = 60;
-
-        const profile = [];
-        for (let i = 0; i <= STEPS; i++) {
-            const y = (i / STEPS) * L;
-            let x;
-            if (y <= R) {
-                x = Math.sqrt(R * R - Math.pow(R - y, 2));
-            } else {
-                const t = (y - R) / (L - R);
-                x = R - (R - neckR) * t;
-            }
-            profile.push(new BABYLON.Vector3(x, y, 0));
-        }
-
-        const parts = [];
-
-        // 1. Ribbed bowl — half-lathe gives the classic staved back
-        const bowl = BABYLON.MeshBuilder.CreateLathe("lbowl", {
-            shape: profile, arc: 0.5, tessellation: 22,
-            sideOrientation: BABYLON.Mesh.DOUBLESIDE
-        }, scene);
-        bowl.convertToFlatShadedMesh();
-        partMap.bowl = bowl;
-        parts.push(bowl);
-
-        const topPlate = BABYLON.MeshBuilder.CreateLathe("ltop", {
-            shape: profile, arc: 1.0, tessellation: 40,
-            sideOrientation: BABYLON.Mesh.DOUBLESIDE
-        }, scene);
-        topPlate.scaling.z = 0.001;
-
-        // Set soundboard normals to point consistently outwards (towards the viewer/upwards)
-        // Since it's a flattened lathe, the original normals were radial (pointing sideways).
-        // We replace them with a constant vector (0, 0, -1).
-        const topNormals = topPlate.getVerticesData(BABYLON.VertexBuffer.NormalKind);
-        if (topNormals) {
-            for (let i = 0; i < topNormals.length; i += 3) {
-                topNormals[i] = 0;     // X
-                topNormals[i + 1] = 0; // Y
-                topNormals[i + 2] = -1; // Z (pointing towards viewer)
-            }
-            topPlate.setVerticesData(BABYLON.VertexBuffer.NormalKind, topNormals);
-        }
-        partMap.top = topPlate;
-        parts.push(topPlate);
-
-        // 3. Soundhole disc (dark plug)
-        const holeY = R + (L - R) * 0.4;
-        const holeR = 0.65;
-        const hole = BABYLON.MeshBuilder.CreateCylinder("lhole", {
-            height: 0.05, diameter: holeR * 2, tessellation: 32
-        }, scene);
-        hole.rotation.x = Math.PI / 2;
-        hole.position.set(0, holeY, -0.01);
-        partMap.hole = hole;
-        parts.push(hole);
-
-        // 4. Rosette rings
-        const rings = [];
-        [0.75, 0.85, 0.95].forEach((r, idx) => {
-            const ring = BABYLON.MeshBuilder.CreateTorus("lring" + idx, {
-                diameter: r * 2, thickness: 0.04, tessellation: 32
-            }, scene);
-            ring.rotation.x = Math.PI / 2;
-            ring.position.set(0, holeY, -0.015);
-            parts.push(ring);
-            rings.push(ring);
-        });
-        // We'll merge rings into one logical part for simplicity
-        const mergedRings = BABYLON.Mesh.MergeMeshes(rings, true, true, undefined, false, false);
-        partMap.rings = mergedRings;
-
-        // 5. Bridge
-        const bridgeY = R * 0.4;
-        const bridge = BABYLON.MeshBuilder.CreateBox("lbridge", {
-            width: 2.4, height: 0.15, depth: 0.1
-        }, scene);
-        bridge.position.set(0, bridgeY, -0.05);
-        partMap.bridge = bridge;
-        parts.push(bridge);
-
-        // 6. Neck
-        const neckHeight = 3.6;
-        const neckWidth = neckR * 2;
-        // Use a Box with subdivisions for the neck to get internal vertices
-        const neck = BABYLON.MeshBuilder.CreateBox("lneck", {
-            width: neckWidth,
-            height: neckHeight,
-            depth: neckWidth, // Semi-cylindrical look after scaling
-            subdivisions: 15
-        }, scene);
-        
-        neck.scaling.z = 0.5; // Flatten to semi-circle-ish profile
-        neck.position.set(0, L + neckHeight / 2, 0.2);
-        
-        // Set neck normals to point upwards
-        const neckNormals = neck.getVerticesData(BABYLON.VertexBuffer.NormalKind);
-        if (neckNormals) {
-            for (let i = 0; i < neckNormals.length; i += 3) {
-                neckNormals[i] = 0;
-                neckNormals[i + 1] = 0;
-                neckNormals[i + 2] = -1;
-            }
-            neck.setVerticesData(BABYLON.VertexBuffer.NormalKind, neckNormals);
-        }
-        partMap.neck = neck;
-        parts.push(neck);
-
-        // 7. Fingerboard (flat dark plate over neck)
-        const fbStartY = holeY + holeR + 0.15;
-        const fbEndY = L + neckHeight;
-        const fbHeight = fbEndY - fbStartY;
-        const fbWidthBottom = neckR * 2 + 0.25;
-        const fbWidthTop = neckR * 2 - 0.05;
-
-        // Use a Box with subdivisions instead of a Cylinder to get vertices across the surface
-        const fb = BABYLON.MeshBuilder.CreateBox("lfb", {
-            width: fbWidthBottom,
-            height: fbHeight,
-            depth: 0.15, // Physical thickness
-            subdivisions: 20 // High density for the playing surface
-        }, scene);
-
-        // Taper the box: narrow the top vertices
-        const fbPositions = fb.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-        if (fbPositions) {
-            for (let i = 0; i < fbPositions.length; i += 3) {
-                const y = fbPositions[i + 1]; // Local Y is the length of the box
-                const normalizedY = (y / (fbHeight / 2) + 1) / 2; // 0 at bottom, 1 at top
-                const scale = 1 - (1 - (fbWidthTop / fbWidthBottom)) * normalizedY;
-                fbPositions[i] *= scale; // Scale X (width) based on height
-            }
-            fb.setVerticesData(BABYLON.VertexBuffer.PositionKind, fbPositions);
-        }
-
-        fb.position.set(0, fbStartY + fbHeight / 2, 0.08);
-        
-        // Set fingerboard normals to point consistently outwards (towards the viewer/upwards)
-        const fbNormals = fb.getVerticesData(BABYLON.VertexBuffer.NormalKind);
-        if (fbNormals) {
-            for (let i = 0; i < fbNormals.length; i += 3) {
-                fbNormals[i] = 0;
-                fbNormals[i + 1] = 0;
-                fbNormals[i + 2] = -1;
-            }
-            fb.setVerticesData(BABYLON.VertexBuffer.NormalKind, fbNormals);
-        }
-        partMap.fb = fb;
-        parts.push(fb);
-        fb.computeWorldMatrix(true);
-
-        // 8. Pegbox (angled box)
-        const pegboxOverlap = 0.12;
-        const pegboxHeight = 2.4;
-        const pegboxWidth = neckR * 2 - 0.05; // Matches fingerboard top width
-        const pegbox = BABYLON.MeshBuilder.CreateBox("lpegbox", {
-            width: pegboxWidth, 
-            height: pegboxHeight, 
-            depth: 0.25,
-            subdivisions: 10 // Increased density for sampling
-        }, scene);
-        pegbox.setPivotMatrix(BABYLON.Matrix.Translation(0, -pegboxHeight / 2, 0), false);
-        pegbox.position.set(0, fbEndY - pegboxOverlap, 0.1); // Shifted to match neck move
-        pegbox.rotation.x = -115 * (Math.PI / 180);
-        pegbox.computeWorldMatrix(true);
-        partMap.pegbox = pegbox;
-        parts.push(pegbox);
-
-        // 9. Tuning pegs (8 total: 4 pairs)
-        const pegs = [];
-        for (let i = 0; i < 4; i++) {
-            const h = -pegboxHeight / 2 + 0.4 + i * 0.5;
-            [-1, 1].forEach((side, si) => {
-                const peg = BABYLON.MeshBuilder.CreateCylinder("lpeg" + i + "_" + si, {
-                    height: 1.2, diameter: 0.08, tessellation: 8
-                }, scene);
-                peg.rotation.z = Math.PI / 2;
-                peg.position.set(side * pegboxWidth / 2, h + (si === 1 ? 0.25 : 0), 0);
-                peg.parent = pegbox;          // stay parented — world matrix is correct
-                peg.computeWorldMatrix(true); // force propagation through parent chain
-                parts.push(peg);
-                pegs.push(peg);
-            });
-        }
-        // Merge pegs for simplicity
-        const mergedPegs = BABYLON.Mesh.MergeMeshes(pegs, true, true, undefined, false, false);
-        partMap.pegs = mergedPegs;
-
-        // 10. Frets (gut strings tied around neck — logarithmic spacing)
-        const numFrets = 9;
-        const frets = [];
-        for (let i = 0; i < numFrets; i++) {
-            const fretDist = Math.pow((i + 1) / (numFrets + 1), 0.8) * fbHeight * 0.85;
-            const fretY = fbEndY - fretDist;
-            const t = (fretY - fbStartY) / fbHeight;
-            const w = (neckR * 2 + 0.25) * (1 - t) + (neckR * 2 - 0.05) * t;
-            const fret = BABYLON.MeshBuilder.CreateCylinder("lfret" + i, {
-                height: w * 0.98, diameter: 0.018, tessellation: 8
-            }, scene);
-            fret.rotation.z = Math.PI / 2;
-            fret.position.set(0, fretY, -0.035);
-            parts.push(fret);
-            frets.push(fret);
-        }
-        const mergedFrets = BABYLON.Mesh.MergeMeshes(frets, true, true, undefined, false, false);
-        partMap.frets = mergedFrets;
-
-        // 11. Strings (8 tubes from bridge to pegbox)
-        const numStrings = 8;
-        const strings = [];
-        for (let i = 0; i < numStrings; i++) {
-            const xBot = -1.0 + (i * 2.0 / (numStrings - 1));
-            const xTop = -(pegboxWidth - 0.2) / 2 + (i * (pegboxWidth - 0.2) / (numStrings - 1));
-            const stringPath = [
-                new BABYLON.Vector3(xBot, bridgeY, -0.1),
-                new BABYLON.Vector3(xTop, fbEndY,  0.05) // Shifted to match neck move
-            ];
-            const str = BABYLON.MeshBuilder.CreateTube("lstr" + i, {
-                path: stringPath, radius: 0.008, tessellation: 4
-            }, scene);
-            parts.push(str);
-            strings.push(str);
-        }
-        const mergedStrings = BABYLON.Mesh.MergeMeshes(strings, true, true, undefined, false, false);
-        partMap.strings = mergedStrings;
-
-        // Force all world matrices before merge
-        const finalParts = Object.values(partMap);
-        finalParts.forEach(p => p.computeWorldMatrix(true));
-
-        // Merge everything into a single mesh for the raycasting pipeline
-        // We use disposeSource = false so we can still use the parts for visualization
-        const merged = BABYLON.Mesh.MergeMeshes(finalParts, false, true, undefined, false, false);
-        if (!merged) return null;
-
-        // Hide source parts and parent them to the merged mesh so they follow its transform
-        finalParts.forEach(p => {
-            p.setEnabled(false);
-            p.parent = merged;
-        });
-        currentLuteParts = partMap;
-
-        // Lie the lute down on the table, neck pointing straight towards the frame
-        merged.rotation.x = Math.PI / 2;
-        merged.rotation.y = 0;
-        merged.rotation.z = 0;
-
-        return merged;
-    };
+    // 11. UI Controller
+    window.currentLuteParts = {};
 
     const loadObject = (type) => {
         resetScene();
         if (type === "lute") {
-            const merged = buildProceduralLute();
+            const merged = buildProceduralLute(scene);
             if (merged) {
                 setupTargetMesh(merged, 15);
-                targetMesh.position.z = -18; // Move back to accommodate the lying lute's length
+                targetMesh.position.z = -11; // Final adjusted position
                 finalizeTargetMesh();
             }
         } else if (type === "teapot") {
             // Clear lute-specific debug state
-            currentLuteParts = {};
+            window.currentLuteParts = {};
             BABYLON.SceneLoader.ImportMeshAsync("", "models/", "teapot.glb", scene).then((result) => {
-                const root = result.meshes[0];
+                // Step 1: Force-compute world matrices for the ENTIRE hierarchy
+                // (GLB root often carries a -90° X rotation for glTF Y-up → Babylon Z-up)
+                result.meshes.forEach(m => m.computeWorldMatrix(true));
+
                 const actualMeshes = result.meshes.filter(m => m instanceof BABYLON.Mesh && m.getTotalVertices() > 0);
                 if (actualMeshes.length > 0) {
-                    actualMeshes.forEach(m => m.computeWorldMatrix(true));
-                    const merged = BABYLON.Mesh.MergeMeshes(actualMeshes, true, true, undefined, false, true);
+                    // Step 2: Snapshot the FULL world matrix of each sub-mesh, then
+                    // detach it from the GLB hierarchy and bake that world matrix directly
+                    // into its vertex buffer.  This is the critical difference from
+                    // bakeCurrentTransformIntoVertices(), which only bakes LOCAL transforms
+                    // and misses any parent-chain offsets/rotations in the GLB hierarchy.
+                    actualMeshes.forEach(m => {
+                        const worldMatrix = m.getWorldMatrix().clone(); // full parent-chain transform
+                        m.parent = null;                                 // detach from hierarchy
+                        m.position = BABYLON.Vector3.Zero();            // reset local transform to identity
+                        m.rotation = BABYLON.Vector3.Zero();
+                        m.rotationQuaternion = null;
+                        m.scaling = BABYLON.Vector3.One();
+                        m.computeWorldMatrix(true);                     // recompute as standalone
+                        m.bakeTransformIntoVertices(worldMatrix);       // embed world transform in vertices
+                    });
+
+                    // Step 3: Merge the now-standalone, world-space meshes.
+                    // multiMultiMaterials=false gives a clean single-buffer mesh with no
+                    // sub-mesh confusion; all parts share one pivot and rotate as one body.
+                    const merged = BABYLON.Mesh.MergeMeshes(actualMeshes, true, true, undefined, false, false);
                     if (merged) {
+                        // Step 4: Apply desired initial orientation and bake it in so
+                        // the mesh starts with a zero-rotation state.  All subsequent
+                        // mesh.rotate() calls then compose clean quaternions with no
+                        // Euler/quaternion mixing.
                         merged.rotation.y = -Math.PI / 2;
-                        setupTargetMesh(merged, 9); // 25% reduction from 12
+                        merged.computeWorldMatrix(true);
+                        merged.bakeCurrentTransformIntoVertices();
+                        setupTargetMesh(merged, 9);
                         finalizeTargetMesh();
                     }
                 }
-                if (root && root !== targetMesh) root.dispose();
+                // Dispose the GLB root node (its children were already disposed by MergeMeshes)
+                result.meshes.forEach(m => { if (!m.isDisposed()) m.dispose(); });
             });
         } else if (type === "sphere") {
             // Clear lute-specific debug state
-            currentLuteParts = {};
+            window.currentLuteParts = {};
             const sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 5, segments: 32 }, scene);
             setupTargetMesh(sphere, 5);
             finalizeTargetMesh();
@@ -1044,4 +734,30 @@ const createScene = function () {
 
 const scene = createScene();
 engine.runRenderLoop(() => { scene.render(); });
-window.addEventListener("resize", () => { engine.resize(); });
+
+    const adjustCameraView = () => {
+        // Adjust zoom based on canvas width vs height ratio so it fits the layout container
+        const canvasRect = engine.getRenderingCanvasClientRect();
+        if (!canvasRect || canvasRect.width === 0) return;
+
+        // Base logic: narrower aspect ratio means we need to pull the camera further back to see the width.
+        const aspect = canvasRect.width / canvasRect.height;
+        // Increase zoom by ~1.5x (smaller radius = zoomed in closer)
+        let newRadius = 38; // Default for widescreen desktop
+
+        if (aspect < 1.0) {
+            newRadius = 46 + (1.0 - aspect) * 15; // Mobile / Portrait
+        } else if (aspect < 1.5) {
+            newRadius = 43; // Tablet / Square-ish
+        }
+
+        camera.radius = newRadius;
+    };
+
+    window.addEventListener("resize", () => {
+        engine.resize();
+        adjustCameraView();
+    });
+
+    // Initial check
+    adjustCameraView();

@@ -19,86 +19,203 @@
         <div class="intro-content">
             <img src="images/durer_lute_woodcut.jpg" alt="Dürer's Woodcut" class="header-image">
             <div class="intro-text">
-                <!-- Text will be added here later -->
+                <p class="woodcut-caption" style="margin-bottom: 2rem; font-weight: 500;">Based on <i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525).</p>
+                <p class="woodcut-caption">This image is a famous woodcut by the Renaissance artist Albrecht Dürer, titled <em>Draftsman Drawing a Lute</em> (1525). It illustrates a mechanical device designed to help artists create perfect, mathematically accurate perspective drawings of complex three-dimensional objects.</p>
+                <p class="woodcut-caption">The device works by physically mapping the "lines of sight" between an object and an observer's eye. Here is a breakdown of how the mechanism depicted in the image functions:</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="explanation-section">
+        <div class="demo-layout">
+            <div class="demo-left-column">
+                <div class="text-content">
+                    <h2>The Key Components</h2>
+                    <div class="instruction-steps" id="explanation-steps">
+                        <div class="step active">
+                            <span class="step-num">1</span>
+                            <p><strong>The Wall Needle</strong><br>A large needle with a wide eye hammered into the wall. It denotes the near point of sight.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">2</span>
+                            <p><strong>The Long Thread</strong><br>A strong thread which leads through the wall needle and stretches to the iron pointer.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">3</span>
+                            <p><strong>The Lead Weight</strong><br>A piece of lead that weights the strong thread to keep it stretched.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">4</span>
+                            <p><strong>The Vertical Frame</strong><br>A vertical frame placed on a table parallel to the wall.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">5</span>
+                            <p><strong>The Door Tablet</strong><br>A door hinged to the frame which serves as your tablet for painting. It is closed to mark the spot where the threads cross.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">6</span>
+                            <p><strong>The Cross Threads</strong><br>Two threads nailed to the frame, moved crosswise and in straight lines to confine the long thread.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">7</span>
+                            <p><strong>The Iron Pointer</strong><br>A long iron pointer with a needle's eye, attached to the long thread and moved from point to point on the object.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">8</span>
+                            <p><strong>The Subject (Lute)</strong><br>A lute or another object to your liking, placed so that it will not move while you are using it.</p>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <button id="prevStepBtn" class="nav-btn">Previous</button>
+                        <button id="nextStepBtn" class="nav-btn">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-right-column">
+                <div class="apparatus-preview-container">
+                    <canvas id="previewCanvas"></canvas>
+                    <div id="pill-1" class="apparatus-pill">1</div>
+                    <div id="pill-2" class="apparatus-pill">2</div>
+                    <div id="pill-3" class="apparatus-pill">3</div>
+                    <div id="pill-4" class="apparatus-pill">4</div>
+                    <div id="pill-5" class="apparatus-pill">5</div>
+                    <div id="pill-6" class="apparatus-pill">6</div>
+                    <div id="pill-7" class="apparatus-pill">7</div>
+                    <div id="pill-8" class="apparatus-pill">8</div>
+                </div>
+            </div>
+        </div>
+    <section class="demo-section walkthrough-section" style="padding: 4rem 2rem; border-top: 1px solid var(--glass-border);">
+        <div class="demo-layout">
+            <div class="demo-left-column">
+                <div class="text-content">
+                    <h2>Instructions for the Draughtsman</h2>
+                    <div class="instruction-steps" id="draughtsman-steps">
+                        <div class="step active" data-step="1">
+                            <p><strong>Step 1:</strong> Move the Iron Pointer to a point on the Subject and stretch the Long Thread.</p>
+                        </div>
+                        <div class="step" data-step="2">
+                            <p><strong>Step 2:</strong> Move the Cross Threads crosswise to confine the Long Thread against the Vertical Frame.</p>
+                        </div>
+                        <div class="step" data-step="3">
+                            <p><strong>Step 3:</strong> Relax the thread, close the Door Tablet, and mark where the threads cross on the surface.</p>
+                        </div>
+                        <div class="step" data-step="4">
+                            <p><strong>Step 4:</strong> Repeat from point to point until the entire Subject is scanned and transferred.</p>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <button id="prevDraughtsmanBtn" class="nav-btn" disabled>Previous</button>
+                        <button id="nextDraughtsmanBtn" class="nav-btn">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-right-column">
+                <div class="canvas-container">
+                    <canvas id="walkthroughCanvas"></canvas>
+                </div>
             </div>
         </div>
     </section>
 
     <section class="demo-section">
-        <div class="ui-container left">
-            <div class="ui-overlay">
-                <h1>Dürer's Drawing Apparatus</h1>
-                <p>An interactive demo of Albrecht Dürer's perspective drawing apparatus based on <i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525).</p>
-            </div>
-            
-            <div class="button-container">
-                <div class="object-toggles">
-                    <button class="btn-toggle active" data-target="lute">Lute</button>
-                    <button class="btn-toggle" data-target="teapot">Teapot</button>
-                    <button class="btn-toggle" data-target="sphere">Sphere</button>
-                </div>
-                <div class="action-buttons">
-                    <button id="animateBtn" class="btn-animate" title="Play">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                        Play
-                    </button>
-                    <button id="fastForwardBtn" class="btn-animate" title="Fast Forward to End">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>
-                        Finish
-                    </button>
-                    <button id="stopBtn" class="btn-reset" title="Stop & Reset">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
-                        Stop
-                    </button>
-                    <button id="normalsBtn" class="btn-reset" title="Toggle Surface Normals">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></svg>
-                        Normals
-                    </button>
-                </div>
-                <div id="debugControls" class="object-toggles" style="display: none; margin-top: 0.5rem;">
-                    <select id="lutePartSelect" class="btn-toggle" style="width: 100%; text-align: left; padding-left: 1rem;">
-                        <option value="all">All Parts</option>
-                        <option value="bowl">Bowl</option>
-                        <option value="top">Soundboard</option>
-                        <option value="hole">Soundhole</option>
-                        <option value="rings">Rosette Rings</option>
-                        <option value="bridge">Bridge</option>
-                        <option value="neck">Neck</option>
-                        <option value="fb">Fingerboard</option>
-                        <option value="pegbox">Pegbox</option>
-                        <option value="pegs">Tuning Pegs</option>
-                        <option value="frets">Frets</option>
-                        <option value="strings">Strings</option>
-                    </select>
-                </div>
-            </div>
-        </div>
 
-        <div class="ui-container right">
-            <div class="ui-overlay">
-                <h1>Instructions for the Draughtsman</h1>
-                <div class="instruction-steps">
-                    <div class="step">
-                        <span class="step-num">I</span>
-                        <p>Guide the stylus to a point of interest on the object's surface.</p>
+        <div class="demo-layout">
+            <div class="demo-left-column">
+                <div class="text-content">
+                    <h1>An Interactive Demo of Dürer's Drawing Apparatus</h1>
+                    <h2 style="margin-top: 2rem;">Instructions for the Draughtsman</h2>
+                    <div class="instruction-steps">
+                        <div class="step">
+                            <span class="step-num">I</span>
+                            <p>Guide the Iron Pointer to a point of interest on the Subject's surface.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">II</span>
+                            <p>Click to mark where the Long Thread passes through the Vertical Frame.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">III</span>
+                            <p>Repeat the above two steps to draw multiple points from the Subject. Or click the play button <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> to animate the above steps.</p>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">IV</span>
+                            <p>Observe how a perspective drawing of the Subject emerges on the Door Tablet.</p>
+                        </div>
                     </div>
-                    <div class="step">
-                        <span class="step-num">II</span>
-                        <p>Click to mark where the taut thread passes through the frame.</p>
+                </div>
+            </div>
+
+            <div class="demo-right-column">
+                <div class="button-container">
+                    <div class="object-toggles">
+                        <button class="btn-toggle active" data-target="lute">Lute</button>
+                        <button class="btn-toggle" data-target="teapot">Teapot</button>
+                        <button class="btn-toggle" data-target="sphere">Sphere</button>
                     </div>
-                    <div class="step">
-                        <span class="step-num">III</span>
-                        <p>Repeat the above two steps to draw multiple points from the object.</p>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="renderCanvas"></canvas>
+
+                    <div class="action-buttons-overlay">
+                        <div class="rotate-controls">
+                            <div class="button-group">
+                                <button id="rotateLeftBtn" class="btn-icon" title="Rotate Left">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                                </button>
+                                <button id="rotateRightBtn" class="btn-icon" title="Rotate Right">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="button-group center-actions">
+                            <button id="animateBtn" class="btn-icon" title="Play">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </button>
+                            <button id="fastForwardBtn" class="btn-icon" title="Fast Forward to End" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 19 22 12 13 5 13 19"></polygon><polygon points="2 19 11 12 2 5 2 19"></polygon></svg>
+                            </button>
+                            <button id="stopBtn" class="btn-icon" title="Stop & Reset">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                            </button>
+                            <button id="normalsBtn" class="btn-icon" title="Show Normals">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            </button>
+                        </div>
+
+                        <div class="zoom-controls">
+                            <div class="button-group">
+                                <button id="zoomInBtn" class="btn-icon" title="Zoom In">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                                </button>
+                                <button id="zoomOutBtn" class="btn-icon" title="Zoom Out">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="step">
-                        <span class="step-num">IV</span>
-                        <p>Observe how a perspective drawing of the object emerges like a pointillist depiction of it.</p>
+                    
+                    <!-- Debug Controls (Normals Part Selection) -->
+                    <div id="debugControls" class="debug-overlay" style="display: none;">
+                        <select id="lutePartSelect" class="debug-select">
+                            <option value="all">All Parts</option>
+                            <option value="bowl">Bowl</option>
+                            <option value="top">Soundboard</option>
+                            <option value="neck">Neck</option>
+                            <option value="fb">Fingerboard</option>
+                            <option value="pegbox">Pegbox</option>
+                            <option value="pegs">Pegs</option>
+                            <option value="strings">Strings</option>
+                            <option value="frets">Frets</option>
+                        </select>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <canvas id="renderCanvas"></canvas>
     </section>
 
     <section class="references-section">
@@ -127,6 +244,12 @@
         </ol>
     </section>
 
+        <script src="js/shapes/lute.js"></script>
+    <script src="js/shapes/sphere.js"></script>
+    <script src="js/shapes/teapot.js"></script>
+    <script src="js/sceneSetup.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/apparatusPreview.js"></script>
+    <script src="js/walkthroughAnimation.js"></script>
 </body>
 </html>
