@@ -174,53 +174,71 @@ window.buildProceduralLute = function(scene) {
 
         const pbGroup = new BABYLON.TransformNode("lpegboxGroup", scene);
 
-        // Helper to create a tapered plate (for floor and walls)
-        const createTaperedPlate = (name, width, height, depth, taper) => {
-            const plate = BABYLON.MeshBuilder.CreateBox(name, { width: width, height: height, depth: depth }, scene);
-            const pos = plate.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-            for (let i = 0; i < pos.length; i += 3) {
-                const y = pos[i + 1];
-                const normY = (y / (height / 2) + 1) / 2; // 0 at bottom, 1 at top
+        // Helper to create a high-density tapered plate using a Ribbon
+        const createTaperedPlate = (name, width, height, taper, subdivisionsH = 60, subdivisionsW = 20) => {
+            const pathArray = [];
+            for (let i = 0; i <= subdivisionsH; i++) {
+                const y = -height / 2 + (i / subdivisionsH) * height;
+                const normY = (i / subdivisionsH);
                 const scale = taper + (1 - taper) * normY;
-                pos[i] *= scale; // Taper width
+                const currentW = width * scale;
+                
+                const row = [];
+                for (let j = 0; j <= subdivisionsW; j++) {
+                    const x = -currentW / 2 + (j / subdivisionsW) * currentW;
+                    row.push(new BABYLON.Vector3(x, y, 0));
+                }
+                pathArray.push(row);
             }
-            plate.setVerticesData(BABYLON.VertexBuffer.PositionKind, pos);
-            BABYLON.VertexData.ComputeNormals(pos, plate.getIndices(), plate.getVerticesData(BABYLON.VertexBuffer.NormalKind));
-            return plate;
+            return BABYLON.MeshBuilder.CreateRibbon(name, { 
+                pathArray: pathArray, 
+                sideOrientation: BABYLON.Mesh.DOUBLESIDE 
+            }, scene);
         };
 
-        // Floor (The back of the trough - positioned at local -Z to appear on top after tilt)
-        const pbFloor = createTaperedPlate("lpbFloor", pegboxWidth, pegboxHeight, wallThickness, 0.5);
-        pbFloor.position.z = -(d - t/2);
+        // Floor (High-density double-sided ribbon)
+        const pbFloor = createTaperedPlate("lpbFloor", pegboxWidth, pegboxHeight, 0.5, 60, 20);
+        pbFloor.position.z = -d;
         pbFloor.parent = pbGroup;
 
-        // Side Walls (tapered distance from center)
-        const pbLeft = BABYLON.MeshBuilder.CreateBox("lpbLeft", { width: t, height: pegboxHeight, depth: pegboxDepth }, scene);
-        const lpPos = pbLeft.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-        for (let i = 0; i < lpPos.length; i += 3) {
-            const y = lpPos[i + 1];
-            const normY = (y / (pegboxHeight / 2) + 1) / 2;
-            const scale = 0.5 + 0.5 * normY;
-            lpPos[i] += (-w * scale + t / 2); 
-        }
-        pbLeft.setVerticesData(BABYLON.VertexBuffer.PositionKind, lpPos);
-        BABYLON.VertexData.ComputeNormals(lpPos, pbLeft.getIndices(), pbLeft.getVerticesData(BABYLON.VertexBuffer.NormalKind));
+        // Side Walls (tapered ribbons for high normal density)
+        const createWall = (name, side) => {
+            const pathArray = [];
+            const subsH = 60;
+            const subsW = 10;
+            for (let i = 0; i <= subsH; i++) {
+                const y = -pegboxHeight / 2 + (i / subsH) * pegboxHeight;
+                const normY = (i / subsH);
+                const scale = 0.5 + 0.5 * normY;
+                const currentX = side * (w * scale - t / 2);
+                
+                const row = [];
+                for (let j = 0; j <= subsW; j++) {
+                    const z = -d + (j / subsW) * (2 * d);
+                    row.push(new BABYLON.Vector3(currentX, y, z));
+                }
+                pathArray.push(row);
+            }
+            return BABYLON.MeshBuilder.CreateRibbon(name, { 
+                pathArray: pathArray, 
+                sideOrientation: BABYLON.Mesh.DOUBLESIDE 
+            }, scene);
+        };
+
+        const pbLeft = createWall("lpbLeft", -1);
         pbLeft.parent = pbGroup;
 
-        const pbRight = BABYLON.MeshBuilder.CreateBox("lpbRight", { width: t, height: pegboxHeight, depth: pegboxDepth }, scene);
-        const rpPos = pbRight.getVerticesData(BABYLON.VertexBuffer.PositionKind);
-        for (let i = 0; i < rpPos.length; i += 3) {
-            const y = rpPos[i + 1];
-            const normY = (y / (pegboxHeight / 2) + 1) / 2;
-            const scale = 0.5 + 0.5 * normY;
-            rpPos[i] += (w * scale - t / 2);
-        }
-        pbRight.setVerticesData(BABYLON.VertexBuffer.PositionKind, rpPos);
-        BABYLON.VertexData.ComputeNormals(rpPos, pbRight.getIndices(), pbRight.getVerticesData(BABYLON.VertexBuffer.NormalKind));
+        const pbRight = createWall("lpbRight", 1);
         pbRight.parent = pbGroup;
 
-        // Tip Cap
-        const pbTip = BABYLON.MeshBuilder.CreateBox("lpbTip", { width: pegboxWidth * 0.5, height: t, depth: pegboxDepth }, scene);
+        // Tip Cap (Double-sided for normals)
+        const pbTip = BABYLON.MeshBuilder.CreateGround("lpbTip", { 
+            width: pegboxWidth * 0.5, 
+            height: pegboxDepth, 
+            subdivisions: 20,
+            sideOrientation: BABYLON.Mesh.DOUBLESIDE
+        }, scene);
+        pbTip.rotation.x = 0; // Ground is XZ, we want it as a cap at the bottom
         pbTip.position.y = -pegboxHeight / 2;
         pbTip.parent = pbGroup;
 
