@@ -37,7 +37,7 @@
 
     let targetMesh = null;
     if (typeof buildProceduralLute === "function") {
-        targetMesh = buildProceduralLute();
+        targetMesh = buildProceduralLute(scene);
         if (targetMesh) {
             const targetMaterial = new BABYLON.StandardMaterial("targetMaterial", scene);
             targetMaterial.diffuseColor  = new BABYLON.Color3(0.6, 0.4, 0.2);
@@ -214,7 +214,7 @@
 
     // ── Pill Interaction Logic ───────────────────────────────────────────────
     const pills = [1, 2, 3, 4, 5, 6, 7, 8].map(i => document.getElementById(`pill-${i}`));
-    const steps = document.querySelectorAll('.explanation-section .instruction-steps .step');
+    const steps = document.querySelectorAll('#explanation-steps .step');
     const prevBtn = document.getElementById('prevStepBtn');
     const nextBtn = document.getElementById('nextStepBtn');
     let currentPillIndex = 0;

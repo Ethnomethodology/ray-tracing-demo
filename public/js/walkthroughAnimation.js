@@ -417,7 +417,7 @@
 
     const prevBtn = document.getElementById("prevDraughtsmanBtn");
     const nextBtn = document.getElementById("nextDraughtsmanBtn");
-    const steps = document.querySelectorAll(".walkthrough-section .step");
+    const steps = document.querySelectorAll("#draughtsman-steps .step");
 
     const showStep = (stepNum) => {
         currentStep = stepNum;
