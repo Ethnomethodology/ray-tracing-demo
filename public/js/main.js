@@ -580,25 +580,24 @@ const createScene = function () {
                     }
 
                     if (isVisible) {
-                        // Static occlusion check: trace a ray from the pulley to the edge midpoint.
-                        // If it hits the mesh significantly earlier, this edge is occluded by another part.
-                        const distToMid = BABYLON.Vector3.Distance(pulleyNode, midPoint);
-                        const dirToMid = midPoint.subtract(pulleyNode).normalize();
-                        const ray = new BABYLON.Ray(pulleyNode, dirToMid, distToMid + 1.0);
-                        const hit = ray.intersectsMesh(targetMesh, false);
-
-                        if (hit.hit && hit.distance < distToMid - 0.5) {
-                            isVisible = false;
-                        }
-                    }
-
-                    if (isVisible) {
                         const dist = BABYLON.Vector3.Distance(w1, w2);
                         // Increased spacing (0.8 units) to reduce density and give a dotted wireframe look
                         const steps = Math.max(1, Math.floor(dist / 0.8));
                         for (let s = 0; s <= steps; s++) {
                             const t = s / steps;
                             const sampleP = BABYLON.Vector3.Lerp(w1, w2, t);
+
+                            // Static occlusion check on individual sampled points instead of edges
+                            // to avoid tens of thousands of raycasts during load.
+                            const distToSample = BABYLON.Vector3.Distance(pulleyNode, sampleP);
+                            const dirToSample = sampleP.subtract(pulleyNode).normalize();
+                            const ray = new BABYLON.Ray(pulleyNode, dirToSample, distToSample + 1.0);
+                            const hit = ray.intersectsMesh(targetMesh, false);
+
+                            if (hit.hit && hit.distance < distToSample - 0.5) {
+                                continue; // Skip point if it's occluded
+                            }
+
                             // Sort along Z (longitudinal) to maintain the "scanning" flow
                             const zBucket = Math.round(sampleP.z / 0.2);
                             sortEntries.push({ pos: sampleP, sortVal: -zBucket * 10000 + sampleP.x });
