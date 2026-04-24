@@ -569,19 +569,33 @@ const createScene = function () {
                     // Wireframe Logic: Use an average normal check to keep it "solid" (front-facing only).
                     // This prevents the bowl from becoming a solid black mass of overlapping lines.
                     let isVisible = true;
+                    const midPoint = w1.add(w2).scale(0.5);
                     if (_normals) {
                         const n1 = new BABYLON.Vector3(_normals[a*3], _normals[a*3+1], _normals[a*3+2]);
                         const n2 = new BABYLON.Vector3(_normals[b*3], _normals[b*3+1], _normals[b*3+2]);
                         const avgN = n1.add(n2).scale(0.5);
                         const worldN = BABYLON.Vector3.TransformNormal(avgN, matrix).normalize();
-                        const toPulley = pulleyNode.subtract(w1.add(w2).scale(0.5)).normalize();
+                        const toPulley = pulleyNode.subtract(midPoint).normalize();
                         if (BABYLON.Vector3.Dot(worldN, toPulley) < -0.2) isVisible = false;
                     }
 
                     if (isVisible) {
+                        // Static occlusion check: trace a ray from the pulley to the edge midpoint.
+                        // If it hits the mesh significantly earlier, this edge is occluded by another part.
+                        const distToMid = BABYLON.Vector3.Distance(pulleyNode, midPoint);
+                        const dirToMid = midPoint.subtract(pulleyNode).normalize();
+                        const ray = new BABYLON.Ray(pulleyNode, dirToMid, distToMid + 1.0);
+                        const hit = ray.intersectsMesh(targetMesh, false);
+
+                        if (hit.hit && hit.distance < distToMid - 0.5) {
+                            isVisible = false;
+                        }
+                    }
+
+                    if (isVisible) {
                         const dist = BABYLON.Vector3.Distance(w1, w2);
-                        // Refined balanced spacing (0.4 units)
-                        const steps = Math.max(1, Math.floor(dist / 0.4));
+                        // Increased spacing (0.8 units) to reduce density and give a dotted wireframe look
+                        const steps = Math.max(1, Math.floor(dist / 0.8));
                         for (let s = 0; s <= steps; s++) {
                             const t = s / steps;
                             const sampleP = BABYLON.Vector3.Lerp(w1, w2, t);
