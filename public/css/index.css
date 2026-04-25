@@ -609,6 +609,16 @@ body {
     right: 1.5rem;
 }
 
+.canvas-nav-btn.bottom {
+    top: auto;
+    bottom: 1.5rem;
+    transform: none;
+}
+
+.canvas-nav-btn.bottom:hover {
+    transform: scale(1.1);
+}
+
 .canvas-nav-btn:disabled {
     opacity: 0.1;
     cursor: not-allowed;
