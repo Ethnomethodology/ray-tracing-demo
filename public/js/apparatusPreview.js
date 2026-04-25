@@ -15,6 +15,7 @@
 
     // Static zoomed-out camera
     const isMobile = window.innerWidth <= 900;
+    // Using same zoom as canvas 3
     const defaultRadius = isMobile ? 54 : 45;
     const camera = new BABYLON.ArcRotateCamera(
         "prevCam", -Math.PI / 5, Math.PI / 2.5, defaultRadius,

@@ -24,12 +24,51 @@
 <nav class="bg-[#F4F1EA] dark:bg-stone-900 fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 font-serif font-newsreader tracking-tight border-b-2 border-stone-300 dark:border-stone-800">
     <div class="text-lg font-bold italic text-stone-900 dark:text-stone-100">Respecifying Ray Tracing</div>
     <div class="flex items-center gap-4">
-        <span class="text-[#800020] dark:text-red-400 border-b-2 border-[#800020] pb-1">Part 1 of 3</span>
+        <span class="text-[#800020] dark:text-red-400 ">Part 1 of 3</span>
         <button class="text-[#800020] dark:text-red-400 hover:text-[#800020] dark:hover:text-red-300 transition-colors">
             <span class="material-symbols-outlined">menu</span>
         </button>
     </div>
+    <!-- Dropdown Menu -->
+    <div id="navDropdown" class="hidden absolute top-14 right-6 bg-[#F4F1EA] dark:bg-stone-900 border border-stone-300 dark:border-stone-700 shadow-lg rounded-md overflow-hidden min-w-[250px]">
+        <ul class="py-2 text-sm text-stone-700 dark:text-stone-200">
+            <li>
+                <a href="#" class="block px-4 py-2 bg-[#EAE5D9] dark:bg-stone-800 text-[#800020] dark:text-red-400 font-bold border-l-4 border-[#800020]">
+                    Part 1: Computational Methods...
+                </a>
+            </li>
+            <li>
+                <a href="#" class="block px-4 py-2 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors">
+                    Part 2: Lights, Camera, Interaction
+                </a>
+            </li>
+            <li>
+                <a href="#" class="block px-4 py-2 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors">
+                    Part 3: Implementing a Ray Tracer
+                </a>
+            </li>
+        </ul>
+    </div>
 </nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const menuBtn = document.querySelector('nav button');
+        const dropdown = document.getElementById('navDropdown');
+
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    });
+</script>
+
 
 <div class="flex flex-1 pt-16 flex-col w-full items-center">
     <main class="flex-1 w-full flex justify-center pb-32 pt-12 px-4 md:px-8">
@@ -85,8 +124,7 @@
                     <figure class="w-full mb-8">
                         <img src="images/durer_lute_woodcut.jpg" alt="Dürer's Woodcut" class="w-full h-auto object-cover rounded shadow-sm border border-[#E5E1D8]">
                         <figcaption class="mt-3 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2" style="font-family: 'Newsreader', serif;">
-                            <span class="text-[#722F37] font-bold">Fig. 1</span>
-                            <span><i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525). Draftsman Drawing a Lute.</span>
+                            <span class="text-[#722F37] font-bold mr-1">Fig. 1:</span><span><i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525). Draftsman Drawing a Lute.</span>
                         </figcaption>
                     </figure>
                     <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
@@ -145,14 +183,14 @@
             <div class="demo-right-column">
                 <div class="apparatus-preview-container">
                     <canvas id="previewCanvas"></canvas>
-                    <div id="pill-1" class="apparatus-pill">1</div>
-                    <div id="pill-2" class="apparatus-pill">2</div>
-                    <div id="pill-3" class="apparatus-pill">3</div>
-                    <div id="pill-4" class="apparatus-pill">4</div>
-                    <div id="pill-5" class="apparatus-pill">5</div>
-                    <div id="pill-6" class="apparatus-pill">6</div>
-                    <div id="pill-7" class="apparatus-pill">7</div>
-                    <div id="pill-8" class="apparatus-pill">8</div>
+                    <div id="pill-1" class="apparatus-pill" data-tooltip="Step 1">1</div>
+                    <div id="pill-2" class="apparatus-pill" data-tooltip="Step 2">2</div>
+                    <div id="pill-3" class="apparatus-pill" data-tooltip="Step 3">3</div>
+                    <div id="pill-4" class="apparatus-pill" data-tooltip="Step 4">4</div>
+                    <div id="pill-5" class="apparatus-pill" data-tooltip="Step 5">5</div>
+                    <div id="pill-6" class="apparatus-pill" data-tooltip="Step 6">6</div>
+                    <div id="pill-7" class="apparatus-pill" data-tooltip="Step 7">7</div>
+                    <div id="pill-8" class="apparatus-pill" data-tooltip="Step 8">8</div>
                 </div>
             </div>
         </div>
@@ -206,19 +244,19 @@
                     <h2 style="margin-top: 2rem;">Instructions for the Draughtsman</h2>
                     <div class="instruction-steps">
                         <div class="step">
-                            <span class="step-num">I</span>
+                            <span class="step-num group relative">I<span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Step I</span></span>
                             <p>Guide the Iron Pointer to a point of interest on the Subject's surface.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">II</span>
+                            <span class="step-num group relative">II<span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Step II</span></span>
                             <p>Click to mark where the Long Thread passes through the Vertical Frame.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">III</span>
+                            <span class="step-num group relative">III<span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Step III</span></span>
                             <p>Repeat the above two steps to draw multiple points from the Subject. Or click the play button <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> to animate the above steps.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">IV</span>
+                            <span class="step-num group relative">IV<span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-stone-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">Step IV</span></span>
                             <p>Observe how a perspective drawing of the Subject emerges on the Door Tablet.</p>
                         </div>
                     </div>
@@ -234,8 +272,14 @@
                     </div>
                 </div>
 
-                <div class="canvas-container">
-                    <canvas id="renderCanvas"></canvas>
+                <div class="canvas-container relative flex flex-col h-full w-full bg-white dark:bg-stone-950 rounded-lg overflow-hidden border border-stone-200 dark:border-stone-800">
+                    <div class="flex-grow relative h-[500px]">
+                        <canvas id="renderCanvas" class="absolute inset-0 w-full h-full"></canvas>
+                    </div>
+                    <div class="p-3 text-center border-t border-stone-200 dark:border-stone-800 bg-[#F8F6F0] dark:bg-stone-900">
+                        <span class="text-[#722F37] font-bold text-sm mr-1" style="font-family: 'Newsreader', serif;">Fig. 4:</span>
+                        <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Interactive 3D Simulation of Dürer's Apparatus.</span>
+                    </div>
                     <div id="cameraInfo" class="camera-info-overlay" style="display: none;"></div>
 
                     <div class="action-buttons-overlay">
@@ -331,19 +375,21 @@
 <!-- Footer -->
 <footer class="bg-[#F4F1EA] dark:bg-stone-900 relative w-full pt-20 pb-8 px-4 text-center border-t-4 border-[#800020] dark:border-red-900 mt-auto">
     <div class="max-w-[680px] mx-auto flex flex-col items-center mb-16">
-        <span class="font-ui-nav text-[14px] text-[#6B6B6B] uppercase tracking-widest mb-4" style="font-family: 'Inter', sans-serif;">Next Chapter</span>
+        <span class="font-ui-nav text-[14px] text-[#6B6B6B] uppercase tracking-widest mb-4" style="font-family: 'Inter', sans-serif;">Next Part</span>
         <a class="font-serif font-newsreader text-2xl italic text-stone-900 font-black hover:scale-[1.01] transition-transform block mb-8" href="#">
             Part 2: Lights, Camera, Interaction
         </a>
     </div>
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 justify-between items-center text-sm font-ui-nav text-stone-500 px-4 mt-8 w-full gap-4" style="font-family: 'Inter', sans-serif;">
-        <div class="md:text-left text-lg font-bold italic text-stone-900 dark:text-stone-100 font-serif">
-            Respecifying Ray Tracing
+        <div class="md:text-left flex flex-col">
+            <span class="text-lg font-bold italic text-stone-900 dark:text-stone-100 font-serif">Respecifying Ray Tracing</span>
+            <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" class="text-xs text-stone-400 hover:text-stone-600 transition-colors mt-1">CC-BY-4.0 License</a>
         </div>
         <div class="text-center">
-            &copy; <a class="hover:text-ink-charcoal transition-colors" href="https://dipanjansaha.com">Dipanjan Saha [dipanjansaha.com]</a>
+            &copy; <a class="hover:text-ink-charcoal transition-colors" href="https://dipanjansaha.com">2026 Dipanjan Saha</a>
         </div>
-        <div class="md:text-right">
+        <div class="md:text-right flex items-center justify-end gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#800020] dark:text-red-400"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
             Developed with AI
         </div>
     </div>

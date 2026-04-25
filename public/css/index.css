@@ -233,7 +233,7 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
 .btn-toggle.active {
     background: var(--accent-color);
     color: white;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+    /* Removed white glow box-shadow */
 }
 
 .action-buttons-overlay {
@@ -670,6 +670,31 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
 
 .apparatus-pill:hover {
     transform: translate(-50%, -50%) scale(1.1);
+}
+
+.apparatus-pill::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    pointer-events: none;
+    font-family: 'Inter', sans-serif;
+    font-weight: normal;
+}
+
+.apparatus-pill:hover::after {
+    opacity: 1;
+    visibility: visible;
 }
 
 .apparatus-pill.active {
