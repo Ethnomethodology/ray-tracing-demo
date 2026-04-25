@@ -27,7 +27,7 @@ const createScene = function () {
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const isMobile = window.innerWidth <= 900;
-    const defaultRadius = isMobile ? 65 : 45;
+    const defaultRadius = isMobile ? 75 : 45;
     camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, -3.5), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;

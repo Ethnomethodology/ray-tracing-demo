@@ -14,8 +14,10 @@
     scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
 
     // Static zoomed-out camera
+    const isMobile = window.innerWidth <= 900;
+    const defaultRadius = isMobile ? 75 : 45;
     const camera = new BABYLON.ArcRotateCamera(
-        "prevCam", -Math.PI / 5, Math.PI / 2.5, 45,
+        "prevCam", -Math.PI / 5, Math.PI / 2.5, defaultRadius,
         new BABYLON.Vector3(0, -5, -3.5), scene
     );
 
