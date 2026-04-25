@@ -16,6 +16,7 @@ verify_*.py
 
 # Artifacts
 *.png
+!public/favicon.png
 *.webm
 screenshot.png
 screenshot.py
