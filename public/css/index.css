@@ -566,6 +566,55 @@ body {
     touch-action: none;
 }
 
+/* ── Canvas Navigation Buttons ────────────────────────────────────────────── */
+.canvas-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.5rem;
+    height: 3.5rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-nav-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.canvas-nav-btn:hover {
+    opacity: 1;
+    background: white;
+    color: var(--accent-color);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.canvas-nav-btn.prev {
+    left: 1.5rem;
+}
+
+.canvas-nav-btn.next {
+    right: 1.5rem;
+}
+
+.canvas-nav-btn:disabled {
+    opacity: 0.1;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 /* ── Annotation pills ─────────────────────────────────────────────────────── */
 .apparatus-pill {
     position: absolute;

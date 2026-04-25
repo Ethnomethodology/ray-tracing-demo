@@ -432,10 +432,22 @@
         if (nextBtn) nextBtn.disabled = (stepNum === 4);
     };
 
-    if (prevBtn) prevBtn.addEventListener("click", () => showStep(currentStep - 1));
-    if (nextBtn) nextBtn.addEventListener("click", () => showStep(currentStep + 1));
+    const canvasPrev = document.getElementById('walkthroughPrev');
+    const canvasNext = document.getElementById('walkthroughNext');
+
+    const originalShowStep = showStep;
+    const updatedShowStep = (stepNum) => {
+        originalShowStep(stepNum);
+        if (canvasPrev) canvasPrev.disabled = (stepNum === 1);
+        if (canvasNext) canvasNext.disabled = (stepNum === 4);
+    };
+
+    if (prevBtn) prevBtn.addEventListener("click", () => updatedShowStep(currentStep - 1));
+    if (nextBtn) nextBtn.addEventListener("click", () => updatedShowStep(currentStep + 1));
+    if (canvasPrev) canvasPrev.addEventListener("click", () => updatedShowStep(currentStep - 1));
+    if (canvasNext) canvasNext.addEventListener("click", () => updatedShowStep(currentStep + 1));
 
     // Initialize UI on first load
-    showStep(1);
+    updatedShowStep(1);
 
 })();

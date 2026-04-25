@@ -240,6 +240,9 @@
         if (nextBtn) nextBtn.disabled = (index === pills.length - 1);
     };
 
+    const canvasPrev = document.getElementById('previewPrev');
+    const canvasNext = document.getElementById('previewNext');
+
     if (prevBtn) {
         prevBtn.addEventListener('click', () => {
             if (currentPillIndex > 0) setActivePill(currentPillIndex - 1);
@@ -250,6 +253,23 @@
             if (currentPillIndex < pills.length - 1) setActivePill(currentPillIndex + 1);
         });
     }
+    if (canvasPrev) {
+        canvasPrev.addEventListener('click', () => {
+            if (currentPillIndex > 0) setActivePill(currentPillIndex - 1);
+        });
+    }
+    if (canvasNext) {
+        canvasNext.addEventListener('click', () => {
+            if (currentPillIndex < pills.length - 1) setActivePill(currentPillIndex + 1);
+        });
+    }
+
+    const originalSetActivePill = setActivePill;
+    setActivePill = (index) => {
+        originalSetActivePill(index);
+        if (canvasPrev) canvasPrev.disabled = (index === 0);
+        if (canvasNext) canvasNext.disabled = (index === pills.length - 1);
+    };
 
     // Initialize with first pill active
     setActivePill(0);
