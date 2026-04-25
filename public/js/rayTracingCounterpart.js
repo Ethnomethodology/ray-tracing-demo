@@ -78,12 +78,34 @@
         const direction = spherePos.subtract(lensOrigin).normalize();
         const surfacePoint = spherePos.subtract(direction.scale(2.0)); // Sphere radius is 2.0
         
+        // --- 5. Visual Ray (Dashed line with arrowhead) ---
         const rayLine = BABYLON.MeshBuilder.CreateDashedLines("rayLine", {
             points: [lensOrigin, surfacePoint],
             dashSize: 1,
             gapSize: 0.5
         }, scene);
-        rayLine.color = new BABYLON.Color3(0, 0, 0); // Black ray
+        rayLine.color = new BABYLON.Color3(0, 0, 0);
+
+        // Arrowhead (Cone)
+        const arrowHeight = 0.6;
+        const arrowHead = BABYLON.MeshBuilder.CreateCylinder("arrowHead", {
+            diameterTop: 0,
+            diameterBottom: 0.4,
+            height: arrowHeight,
+            tessellation: 12
+        }, scene);
+        
+        // Position it so the tip touches the surface (offset by half height)
+        arrowHead.position = surfacePoint.subtract(direction.scale(arrowHeight / 2));
+        
+        // Orient it to point from camera to sphere
+        arrowHead.lookAt(spherePos);
+        arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2); // Align cylinder tip with lookAt direction
+        
+        const blackMat = new BABYLON.StandardMaterial("blackMat", scene);
+        blackMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        blackMat.specularColor = new BABYLON.Color3(0, 0, 0);
+        arrowHead.material = blackMat;
     });
 
     // --- 2. Image Plane (16x16 spreadsheet grid) ---
@@ -143,13 +165,7 @@
         pointLight.range = 35;
     });
 
-    // Simple table for context
-    const tableMaterial = new BABYLON.StandardMaterial("tableMaterial", scene);
-    tableMaterial.diffuseColor = new BABYLON.Color3(0.2, 0.15, 0.12); // Slightly lighter
-    const tableMesh = BABYLON.MeshBuilder.CreateBox("tableMesh", { width: 15, height: 0.5, depth: 30 }, scene);
-    tableMesh.position.y = -5.25;
-    tableMesh.position.z = -7.5;
-    tableMesh.material = tableMaterial;
+    // (Table removed for clarity)
 
     // Optional: Slow auto-rotation and pixel pulse
     let time = 0;
