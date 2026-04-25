@@ -1,25 +1,58 @@
+# Dependency directories
 node_modules/
+jspm_packages/
+
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+
+# OS files
 .DS_Store
-.env
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Log files
-*.log
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.settings/
+.sublime-project
+.sublime-workspace
 
-# Temporary test scripts
-test_*.js
-test_*.py
-test_*.html
-verify_*.py
-
-# Artifacts
+# Build and temporary files
+dist/
+build/
+.cache/
+.temp/
+.tmp/
+out/
 *.png
 !public/favicon.png
 *.webm
 screenshot.png
 screenshot.py
 
-# Verification folders
+# Env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Test and verification
+coverage/
+test_*.js
+test_*.py
+test_*.html
+verify_*.py
 /verification/
