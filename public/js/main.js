@@ -22,6 +22,8 @@ const createScene = function () {
     let _scanProgress = 0;
     let _scanPoints = []; // Stores world-space points for the wireframe/outline pass
     let _surfaceNormal = new BABYLON.Vector3(0, 1, 0); // Outward surface normal at current pick point
+    let showNormals = false; // Moved up for render loop access
+    let normalLines = null;
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const isMobile = window.innerWidth <= 900;
@@ -183,6 +185,19 @@ const createScene = function () {
             const animHit = drawPointAtStick();
             if (animHit) showCrossThreads(animHit);
             dotsDrawn++;
+        }
+
+        // 4. Debug Overlay Updates
+        if (showNormals && camera) {
+            const camInfo = document.getElementById("cameraInfo");
+            if (camInfo) {
+                const pos = camera.position;
+                camInfo.textContent = `CAMERA PARAMETERS
+Position: [${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)}]
+Alpha:    ${camera.alpha.toFixed(2)}
+Beta:     ${camera.beta.toFixed(2)}
+Radius:   ${camera.radius.toFixed(2)}`;
+            }
         }
     });
 
@@ -481,8 +496,11 @@ const createScene = function () {
     if (normalsBtn) {
         normalsBtn.addEventListener("click", (e) => {
             showNormals = !showNormals;
-            e.target.classList.toggle("active", showNormals);
+            // Handle both the button itself and its SVG child being clicked
+            const btn = e.target.closest('#normalsBtn');
+            btn.classList.toggle("active", showNormals);
             document.getElementById("debugControls").style.display = showNormals ? "block" : "none";
+            document.getElementById("cameraInfo").style.display = showNormals ? "block" : "none";
             updateNormalLines();
         });
     }
@@ -599,8 +617,6 @@ const createScene = function () {
         _scanProgress = 0;
     };
 
-    let normalLines = null;
-    let showNormals = false;
 
     const updateNormalLines = () => {
         if (normalLines) {
