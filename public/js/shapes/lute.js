@@ -5,7 +5,7 @@ window.buildProceduralLute = function(scene) {
         const R = 2.5;    // bulbous bottom radius
         const L = 6.0;    // body length
         const neckR = 0.45;   // half-width at neck join
-        const STEPS = 60; // Reduced to balance rings with neck subdivisions
+        const STEPS = 24; // Further reduced for wireframe
 
         const profile = [];
         for (let i = 0; i <= STEPS; i++) {
@@ -24,7 +24,7 @@ window.buildProceduralLute = function(scene) {
 
         // 1. Ribbed bowl — half-lathe gives the classic staved back
         const bowl = BABYLON.MeshBuilder.CreateLathe("lbowl", {
-            shape: profile, arc: 0.5, tessellation: 32, // Reduced to balance with neck
+            shape: profile, arc: 0.5, tessellation: 12, // Significantly reduced
             sideOrientation: BABYLON.Mesh.DOUBLESIDE
         }, scene);
         // Do not convert to flat shaded, as it doubles the edges for wireframe
@@ -94,8 +94,8 @@ window.buildProceduralLute = function(scene) {
         const neck = BABYLON.MeshBuilder.CreateCylinder("lneck", {
             diameter: neckWidth,
             height: neckHeight,
-            tessellation: 32, // Matches bowl ribs
-            subdivisions: 40  // Increased to balance with bowl rings
+            tessellation: 12, // Matches bowl ribs
+            subdivisions: 15, cap: BABYLON.Mesh.NO_CAP // Reduced to balance with bowl rings
         }, scene);
 
         // Cylinder height is along Y by default, which matches the box height orientation
@@ -133,7 +133,7 @@ window.buildProceduralLute = function(scene) {
         const fb = BABYLON.MeshBuilder.CreateGround("lfb", {
             width: fbWidthBottom,
             height: fbHeight,
-            subdivisions: 25 // High density for the playing surface
+            subdivisions: 12 // Reduced density
         }, scene);
 
         // Ground's height runs along Z by default, and it faces up (+Y).
@@ -175,7 +175,7 @@ window.buildProceduralLute = function(scene) {
         const pbGroup = new BABYLON.TransformNode("lpegboxGroup", scene);
 
         // Helper to create a high-density tapered plate using a Ribbon
-        const createTaperedPlate = (name, width, height, taper, subdivisionsH = 60, subdivisionsW = 20) => {
+        const createTaperedPlate = (name, width, height, taper, subdivisionsH = 15, subdivisionsW = 6) => {
             const pathArray = [];
             for (let i = 0; i <= subdivisionsH; i++) {
                 const y = -height / 2 + (i / subdivisionsH) * height;
@@ -197,15 +197,15 @@ window.buildProceduralLute = function(scene) {
         };
 
         // Floor (High-density double-sided ribbon)
-        const pbFloor = createTaperedPlate("lpbFloor", pegboxWidth, pegboxHeight, 0.5, 60, 20);
+        const pbFloor = createTaperedPlate("lpbFloor", pegboxWidth, pegboxHeight, 0.5, 15, 6);
         pbFloor.position.z = -d;
         pbFloor.parent = pbGroup;
 
         // Side Walls (tapered ribbons for high normal density)
         const createWall = (name, side) => {
             const pathArray = [];
-            const subsH = 60;
-            const subsW = 10;
+            const subsH = 15;
+            const subsW = 3;
             for (let i = 0; i <= subsH; i++) {
                 const y = -pegboxHeight / 2 + (i / subsH) * pegboxHeight;
                 const normY = (i / subsH);
@@ -235,7 +235,7 @@ window.buildProceduralLute = function(scene) {
         const pbTip = BABYLON.MeshBuilder.CreateGround("lpbTip", { 
             width: pegboxWidth * 0.5, 
             height: pegboxDepth, 
-            subdivisions: 20,
+            subdivisions: 6,
             sideOrientation: BABYLON.Mesh.DOUBLESIDE
         }, scene);
         pbTip.rotation.x = 0; // Ground is XZ, we want it as a cap at the bottom
