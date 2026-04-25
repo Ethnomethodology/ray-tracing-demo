@@ -217,6 +217,8 @@
     // ── Pill Interaction Logic ───────────────────────────────────────────────
     const pills = [1, 2, 3, 4, 5, 6, 7, 8].map(i => document.getElementById(`pill-${i}`));
     const steps = document.querySelectorAll('#explanation-steps .step');
+    const prevBtn = document.getElementById('prevStepBtn');
+    const nextBtn = document.getElementById('nextStepBtn');
     let currentPillIndex = 0;
 
     const setActivePill = (index) => {
@@ -233,6 +235,14 @@
                 else step.classList.remove('active');
             }
         });
+
+        if (prevBtn) prevBtn.disabled = (index === 0);
+        if (nextBtn) nextBtn.disabled = (index === pills.length - 1);
+    };
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (currentPillIndex > 0) setActivePill(currentPillIndex - 1);
         });
     }
     if (nextBtn) {
