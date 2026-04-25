@@ -4,13 +4,13 @@
  */
 
 const canvas = document.getElementById("renderCanvas");
-const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, alpha: true });
 engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 let camera = null; // Shared scope for resize handler
 
 const createScene = function () {
     const scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(1, 1, 1, 1); // Laboratory White
+    scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); // Transparent to show container background
 
     // Performance Optimization: Pre-allocated objects to reduce GC pressure
     const _tempVec = new BABYLON.Vector3();
