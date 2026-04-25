@@ -8,7 +8,7 @@
     scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); 
 
     const isMobile = window.innerWidth <= 900;
-    const defaultRadius = isMobile ? 75 : 45;
+    const defaultRadius = isMobile ? 54 : 45;
     const camera = new BABYLON.ArcRotateCamera("walkthroughCamera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, -3.5), scene);
     camera.attachControl(canvas, false);
 
@@ -209,7 +209,7 @@
             
             camera.alpha = -Math.PI / 5;
             camera.beta = Math.PI / 2.5;
-            camera.radius = isMobile ? 75 : 45;
+            camera.radius = isMobile ? 54 : 45;
             camera.setTarget(new BABYLON.Vector3(0, -5, -3.5));
             if (_crossThreadH) _crossThreadH.setEnabled(false);
             if (_crossThreadV) _crossThreadV.setEnabled(false);
@@ -218,13 +218,13 @@
             const cycle = elapsed % 11.0;
             const startAlpha = -Math.PI / 5;
             const startBeta = Math.PI / 2.5;
-            const startRadius = isMobile ? 75 : 45;
+            const startRadius = isMobile ? 54 : 45;
             const startTarget = new BABYLON.Vector3(0, -5, -3.5);
 
             // Perspective matching the user screenshot: 3/4 view from draughtsman side
             const endAlpha = Math.PI / 3.5; 
             const endBeta = Math.PI / 3.2;
-            const endRadius = isMobile ? 75 : 45;
+            const endRadius = isMobile ? 54 : 45;
             const endTarget = new BABYLON.Vector3(0, -5, -3.5);
 
             if (pencil) pencil.isVisible = false;
@@ -273,7 +273,7 @@
             // Camera position from end of step 2
             camera.alpha = Math.PI / 3.5;
             camera.beta = Math.PI / 3.2;
-            camera.radius = isMobile ? 75 : 45;
+            camera.radius = isMobile ? 54 : 45;
             camera.setTarget(new BABYLON.Vector3(0, -5, -3.5));
 
             lute.isVisible = true;
@@ -369,12 +369,12 @@
 
             const startAlpha = Math.PI / 3.5; 
             const startBeta = Math.PI / 3.2;
-            const startRadius = isMobile ? 75 : 45;
+            const startRadius = isMobile ? 54 : 45;
             const startTarget = new BABYLON.Vector3(0, -5, -3.5);
 
             const endAlpha = -Math.PI / 5;
             const endBeta = Math.PI / 2.5;
-            const endRadius = isMobile ? 75 : 45;
+            const endRadius = isMobile ? 54 : 45;
             const endTarget = new BABYLON.Vector3(0, -5, -3.5);
 
             // Maintain state from end of Step 3
