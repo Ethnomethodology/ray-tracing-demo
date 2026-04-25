@@ -752,19 +752,14 @@ const scene = createScene();
 engine.runRenderLoop(() => { scene.render(); });
 
     const adjustCameraView = () => {
-        // Adjust zoom based on canvas width vs height ratio so it fits the layout container
         const canvasRect = engine.getRenderingCanvasClientRect();
         if (!canvasRect || canvasRect.width === 0) return;
 
-        // Base logic: narrower aspect ratio means we need to pull the camera further back to see the width.
         const aspect = canvasRect.width / canvasRect.height;
-        // Increase zoom by ~1.5x (smaller radius = zoomed in closer)
-        let newRadius = 38; // Default for widescreen desktop
+        let newRadius = 45; // Default desktop
 
-        if (aspect < 1.0) {
-            newRadius = 46 + (1.0 - aspect) * 15; // Mobile / Portrait
-        } else if (aspect < 1.5) {
-            newRadius = 43; // Tablet / Square-ish
+        if (aspect < 1.5) {
+            newRadius = 54; // Mobile / Tablet
         }
 
         camera.radius = newRadius;
