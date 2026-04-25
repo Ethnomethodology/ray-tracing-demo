@@ -109,7 +109,7 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
     flex-direction: column;
     gap: 1.25rem;
     margin-top: 0.5rem;
-    min-height: 110px;
+    min-height: 150px;
 }
 
 .step {
