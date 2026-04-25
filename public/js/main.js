@@ -4,13 +4,13 @@
  */
 
 const canvas = document.getElementById("renderCanvas");
-const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+const engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true, alpha: true });
 engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
 let camera = null; // Shared scope for resize handler
 
 const createScene = function () {
     const scene = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(1, 1, 1, 1); // Laboratory White
+    scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); // Transparent to show container background
 
     // Performance Optimization: Pre-allocated objects to reduce GC pressure
     const _tempVec = new BABYLON.Vector3();
@@ -27,6 +27,7 @@ const createScene = function () {
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const isMobile = window.innerWidth <= 900;
+    // Applied zoom level from canvas 3 to all canvases for mobile
     const defaultRadius = isMobile ? 54 : 45;
     camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, -3.5), scene);
     camera.attachControl(canvas, true);

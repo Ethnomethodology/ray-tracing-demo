@@ -1,68 +1,190 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dürer's Perspective Apparatus | 3D Visualization</title>
+    <title>Respecifying Ray Tracing - Part 1</title>
     <meta name="description" content="A 3D demonstration of Albrecht Dürer's perspective drawing apparatus built with Babylon.js.">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="css/index.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script src="tailwind-config.js"></script>
     <!-- Babylon.js CDN -->
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<style>
+        .references-list a {
+            position: relative;
+            text-decoration: none;
+            color: #722F37; /* Use theme color */
+        }
+        .references-list a:hover {
+            color: #4a1f24;
+            background: rgba(114, 47, 55, 0.05);
+        }
+    </style>
 </head>
-<body>
-    <section class="intro-section">
-        <h1>Ray Tracing Demo</h1>
-        <div class="intro-content">
-            <img src="images/durer_lute_woodcut.jpg" alt="Dürer's Woodcut" class="header-image">
-            <div class="intro-text">
-                <p class="woodcut-caption" style="margin-bottom: 2rem; font-weight: 500;">Based on <i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525).</p>
-                <p class="woodcut-caption">This image is a famous woodcut by the Renaissance artist Albrecht Dürer, titled <em>Draftsman Drawing a Lute</em> (1525). It illustrates a mechanical device designed to help artists create perfect, mathematically accurate perspective drawings of complex three-dimensional objects.</p>
-                <p class="woodcut-caption">The device works by physically mapping the "lines of sight" between an object and an observer's eye. Here is a breakdown of how the mechanism depicted in the image functions:</p>
-            </div>
-        </div>
-    </section>
+<body class="bg-parchment-base text-ink-charcoal antialiased flex flex-col min-h-screen">
+
+
+<!-- TopNavBar -->
+<nav class="bg-[#F4F1EA] dark:bg-stone-900 fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 font-serif font-newsreader tracking-tight border-b-2 border-stone-300 dark:border-stone-800">
+    <div class="text-lg font-bold italic text-stone-900 dark:text-stone-100">Respecifying Ray Tracing</div>
+    <div class="flex items-center gap-4">
+        <span class="text-[#800020] dark:text-red-400 font-medium">Part 1 of 3</span>
+        <button class="text-[#800020] dark:text-red-400 hover:text-[#800020] dark:hover:text-red-300 transition-colors flex items-center justify-center h-8 w-8">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+    </div>
+    <!-- Dropdown Menu -->
+    <div id="navDropdown" class="hidden absolute top-14 right-6 bg-[#F4F1EA] dark:bg-stone-900 border border-stone-300 dark:border-stone-700 shadow-lg rounded-md overflow-hidden min-w-[250px]">
+        <ul class="py-2 text-sm text-stone-700 dark:text-stone-200">
+            <li>
+                <a href="/" class="block px-4 py-2 bg-[#EAE5D9] dark:bg-stone-800 text-[#800020] dark:text-red-400 font-bold border-l-4 border-[#800020]">
+                    Part 1: Computational Methods...
+                </a>
+            </li>
+            <li>
+                <a href="part2" class="block px-4 py-2 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors">
+                    Part 2: Lights, Camera, Interaction
+                </a>
+            </li>
+            <li>
+                <a href="part3" class="block px-4 py-2 hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors">
+                    Part 3: Implementing a Ray Tracer
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const menuBtn = document.querySelector('nav button');
+        const dropdown = document.getElementById('navDropdown');
+
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dropdown.contains(e.target) && !menuBtn.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+    });
+</script>
+
+
+<div class="flex flex-1 pt-16 flex-col w-full items-center">
+    <main class="flex-1 w-full flex justify-center pb-32 pt-12 px-4 md:px-8">
+        <div class="max-w-[1000px] w-full flex flex-col gap-8 relative">
+
+            <section class="w-full mb-16 flex flex-col gap-6 mt-4">
+                <div class="mb-4">
+                    <h1 class="font-serif font-newsreader text-[48px] font-semibold leading-[1.1] tracking-[-0.02em] text-stone-900 mb-4">Respecifying Ray Tracing</h1>
+                    <div class="mb-8 font-sans text-[13px] font-medium leading-[1.2] tracking-[0.05em] text-[#722F37]">
+                        By <a href="https://dipanjansaha.com" target="_blank" class="hover:underline">Dipanjan Saha</a>
+                    </div>
+                    <p class="font-serif font-newsreader text-[19px] text-stone-600 leading-relaxed max-w-[850px]">
+                        A three-part reassessment of Renaissance techniques for modern digital synthesis. This series bridges the gap between historical perspectival geometry and the contemporary ray tracing pipeline.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                    <!-- Card 1 -->
+                    <div class="border-l-[4px] border-[#800020] bg-[#EAE5D9] p-6 flex flex-col gap-4">
+                        <span class="font-label-technical text-label-technical font-bold text-[#800020] uppercase">Part 1</span>
+                        <h4 class="font-headline-part text-[21px] font-medium text-stone-900 leading-snug">Computational Methods of Perspectival Geometry</h4>
+                        <p class="font-body-reading text-[16px] text-stone-600 leading-relaxed">Focuses on Dürer's drawing apparatus and the logic of intersection.</p>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <a href="part2" class="bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
+                        <span class="font-label-technical text-label-technical text-stone-400 uppercase">Part 2</span>
+                        <h4 class="font-headline-part text-[21px] font-medium text-stone-500 leading-snug">Lights, Camera, Interaction</h4>
+                        <p class="font-body-reading text-[16px] text-stone-400 leading-relaxed">Explores the optical turn and the simulation of light behavior.</p>
+                    </a>
+
+                    <!-- Card 3 -->
+                    <a href="part3" class="bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
+                        <span class="font-label-technical text-label-technical text-stone-400 uppercase">Part 3</span>
+                        <h4 class="font-headline-part text-[21px] font-medium text-stone-500 leading-snug">Implementing a Ray Tracer</h4>
+                        <p class="font-body-reading text-[16px] text-stone-400 leading-relaxed">A practical guide to building a modern rendering engine from these principles.</p>
+                    </a>
+                </div>
+            </section>
+            <div class="w-full h-px bg-stone-300 mb-16"></div>
+
+            <header class="mb-section-gap max-w-[680px] mx-auto w-full text-center md:text-left mt-8">
+                <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-4">Computational Methods of Perspectival Geometry</h2>
+                <p class="font-body-reading text-[20px] text-[#6B6B6B] italic" style="font-family: 'Newsreader', serif;">A reassessment of Renaissance techniques for digital synthesis.</p>
+            </header>
+
+            <article class="w-full flex flex-col items-center gap-16">
+                <!-- Intro Section -->
+                <section class="max-w-[680px] w-full flex flex-col items-center">
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6 mb-12" style="font-family: 'Newsreader', serif;">
+                        <p>The codification of perspective during the Renaissance established a mathematical framework that continues to undergird modern computer graphics. While linear perspective is often treated as a solved geometric abstraction, returning to its tactile origins reveals the computational logic embedded in early viewing apparatuses.</p>
+                        <p>Consider Albrecht Dürer's conceptualization of the picture plane. His woodcuts do not merely illustrate artistic practice; they present algorithms for visual synthesis. The intersection of sightlines with a projection plane is a direct analog to primary ray generation in recursive ray tracing architectures.</p>
+                    </div>
+
+                    <figure class="w-full mb-8">
+                        <img src="images/durer_lute_woodcut.jpg" alt="Dürer's Woodcut" class="w-full h-auto object-cover rounded shadow-sm border border-[#E5E1D8]">
+                        <figcaption class="mt-3 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2" style="font-family: 'Newsreader', serif;">
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 1:</span><span><i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525). Draftsman Drawing a Lute.</span>
+                        </figcaption>
+                    </figure>
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>This image is a famous woodcut by the Renaissance artist Albrecht Dürer, titled <em>Draftsman Drawing a Lute</em> (1525). It illustrates a mechanical device designed to help artists create perfect, mathematically accurate perspective drawings of complex three-dimensional objects.</p>
+                        <p>The device works by physically mapping the "lines of sight" between an object and an observer's eye. Here is a breakdown of how the mechanism depicted in the image functions:</p>
+                    </div>
+                </section>
+
 
     <section class="explanation-section">
         <div class="demo-layout">
             <div class="demo-left-column">
                 <div class="text-content">
-                    <h2>The Key Components</h2>
+                    <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">The Key Components</h2>
                     <div class="instruction-steps" id="explanation-steps">
                         <div class="step active">
-                            <span class="step-num">1</span>
-                            <p><strong>The Wall Needle</strong><br>A large needle with a wide eye hammered into the wall. It denotes the near point of sight.</p>
+                            <span class="step-num font-serif">1</span>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>The Wall Needle</strong><br>A large needle with a wide eye hammered into the wall. It denotes the near point of sight.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">2</span>
-                            <p><strong>The Long Thread</strong><br>A strong thread which leads through the wall needle and stretches to the iron pointer.</p>
+                            <span class="step-num font-serif">2</span>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>The Long Thread</strong><br>A strong thread which leads through the wall needle and stretches to the iron pointer.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">3</span>
-                            <p><strong>The Lead Weight</strong><br>A piece of lead that weights the strong thread to keep it stretched.</p>
+                            <span class="step-num font-serif">3</span>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>The Lead Weight</strong><br>A piece of lead that weights the strong thread to keep it stretched.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">4</span>
-                            <p><strong>The Vertical Frame</strong><br>A vertical frame placed on a table parallel to the wall.</p>
+                            <span class="step-num font-serif">4</span>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>The Vertical Frame</strong><br>A vertical frame placed on a table parallel to the wall.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">5</span>
-                            <p><strong>The Door Tablet</strong><br>A door hinged to the frame which serves as your tablet for painting. It is closed to mark the spot where the threads cross.</p>
+                            <span class="step-num font-serif">5</span>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>The Door Tablet</strong><br>A door hinged to the frame which serves as your tablet for painting. It is closed to mark the spot where the threads cross.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">6</span>
-                            <p><strong>The Cross Threads</strong><br>Two threads nailed to the frame, moved crosswise and in straight lines to confine the long thread.</p>
+                            <span class="step-num font-serif">6</span>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>The Cross Threads</strong><br>Two threads nailed to the frame, moved crosswise and in straight lines to confine the long thread.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">7</span>
-                            <p><strong>The Iron Pointer</strong><br>A long iron pointer with a needle's eye, attached to the long thread and moved from point to point on the object.</p>
+                            <span class="step-num font-serif">7</span>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>The Iron Pointer</strong><br>A long iron pointer with a needle's eye, attached to the long thread and moved from point to point on the object.</p>
                         </div>
                         <div class="step">
-                            <span class="step-num">8</span>
-                            <p><strong>The Subject (Lute)</strong><br>A lute or another object to your liking, placed so that it will not move while you are using it.</p>
+                            <span class="step-num font-serif">8</span>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>The Subject (Lute)</strong><br>A lute or another object to your liking, placed so that it will not move while you are using it.</p>
                         </div>
                     </div>
                     <div class="step-navigation">
@@ -75,14 +197,18 @@
             <div class="demo-right-column">
                 <div class="apparatus-preview-container">
                     <canvas id="previewCanvas"></canvas>
-                    <div id="pill-1" class="apparatus-pill">1</div>
-                    <div id="pill-2" class="apparatus-pill">2</div>
-                    <div id="pill-3" class="apparatus-pill">3</div>
-                    <div id="pill-4" class="apparatus-pill">4</div>
-                    <div id="pill-5" class="apparatus-pill">5</div>
-                    <div id="pill-6" class="apparatus-pill">6</div>
-                    <div id="pill-7" class="apparatus-pill">7</div>
-                    <div id="pill-8" class="apparatus-pill">8</div>
+                    <div id="pill-1" class="apparatus-pill" data-tooltip="Pulley">1</div>
+                    <div id="pill-2" class="apparatus-pill" data-tooltip="Thread">2</div>
+                    <div id="pill-3" class="apparatus-pill" data-tooltip="Weight">3</div>
+                    <div id="pill-4" class="apparatus-pill" data-tooltip="Vertical Frame">4</div>
+                    <div id="pill-5" class="apparatus-pill" data-tooltip="Door/Tablet">5</div>
+                    <div id="pill-6" class="apparatus-pill" data-tooltip="Point of Interest">6</div>
+                    <div id="pill-7" class="apparatus-pill" data-tooltip="Pointer">7</div>
+                    <div id="pill-8" class="apparatus-pill" data-tooltip="Subject">8</div>
+                </div>
+                <div class="mt-4 text-center">
+                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 2:</span>
+                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Components of Dürer's Perspective Apparatus.</span>
                 </div>
             </div>
         </div>
@@ -91,19 +217,19 @@
         <div class="demo-layout">
             <div class="demo-left-column">
                 <div class="text-content">
-                    <h2>Instructions for the Draughtsman</h2>
+                    <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">Instructions for the Draughtsman</h2>
                     <div class="instruction-steps" id="draughtsman-steps">
                         <div class="step active" data-step="1">
-                            <p><strong>Step 1:</strong> Move the Iron Pointer to a point on the Subject and stretch the Long Thread.</p>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Step 1:</strong> Move the Iron Pointer to a point on the Subject and stretch the Long Thread.</p>
                         </div>
                         <div class="step" data-step="2">
-                            <p><strong>Step 2:</strong> Move the Cross Threads crosswise to confine the Long Thread against the Vertical Frame.</p>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Step 2:</strong> Move the Cross Threads crosswise to confine the Long Thread against the Vertical Frame.</p>
                         </div>
                         <div class="step" data-step="3">
-                            <p><strong>Step 3:</strong> Close the Drawing Page and mark the point where the Cross Threads intersect.</p>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Step 3:</strong> Close the Drawing Page and mark the point where the Cross Threads intersect.</p>
                         </div>
                         <div class="step" data-step="4">
-                            <p><strong>Step 4:</strong> Open the Page and repeat for each point on the subject.</p>
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Step 4:</strong> Open the Page and repeat for each point on the subject.</p>
                         </div>
                     </div>
                     <div class="step-navigation">
@@ -123,6 +249,10 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </button>
                 </div>
+                <div class="mt-4 text-center">
+                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 3:</span>
+                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Step-by-step Walkthrough of the Drawing Process.</span>
+                </div>
             </div>
         </div>
     </section>
@@ -132,26 +262,10 @@
         <div class="demo-layout">
             <div class="demo-left-column">
                 <div class="text-content">
-                    <h1>An Interactive Demo of Dürer's Drawing Apparatus</h1>
-                    <h2 style="margin-top: 2rem;">Instructions for the Draughtsman</h2>
-                    <div class="instruction-steps">
-                        <div class="step">
-                            <span class="step-num">I</span>
-                            <p>Guide the Iron Pointer to a point of interest on the Subject's surface.</p>
-                        </div>
-                        <div class="step">
-                            <span class="step-num">II</span>
-                            <p>Click to mark where the Long Thread passes through the Vertical Frame.</p>
-                        </div>
-                        <div class="step">
-                            <span class="step-num">III</span>
-                            <p>Repeat the above two steps to draw multiple points from the Subject. Or click the play button <svg class="inline-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg> to animate the above steps.</p>
-                        </div>
-                        <div class="step">
-                            <span class="step-num">IV</span>
-                            <p>Observe how a perspective drawing of the Subject emerges on the Door Tablet.</p>
-                        </div>
-                    </div>
+                    <h1 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">Interactive Simulation</h1>
+                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-8">
+                        Click on any point on the subject to draw it on the tablet. Continue adding points to see the outline of your image emerge. You can also click the play button to animate the entire process.
+                    </p>
                 </div>
             </div>
 
@@ -206,7 +320,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Debug Controls (Normals Part Selection) -->
                     <div id="debugControls" class="debug-overlay" style="display: none;">
                         <select id="lutePartSelect" class="debug-select">
@@ -222,6 +336,10 @@
                         </select>
                     </div>
                 </div>
+                <div class="mt-4 text-center">
+                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 4:</span>
+                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Interactive 3D Simulation of Dürer's Apparatus.</span>
+                </div>
             </div>
         </div>
     </section>
@@ -230,34 +348,64 @@
         <h2>References</h2>
         <ol class="references-list">
             <li>
-                <a href="https://artsandculture.google.com/asset/the-draughtsman-of-the-lute/CQHQAZiHEhh0dQ?hl=en" target="_blank" rel="noopener noreferrer">
+                <a href="https://artsandculture.google.com/asset/the-draughtsman-of-the-lute/CQHQAZiHEhh0dQ?hl=en" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     The Draughtsman of the Lute - Google Arts & Culture
                 </a>
             </li>
             <li>
-                <a href="https://www.vanedwards.co.uk/month/jul99/month.htm" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.vanedwards.co.uk/month/jul99/month.htm" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     Lute Design and the Woodcut of Dürer - Van Edwards
                 </a>
             </li>
             <li>
-                <a href="https://www.pablogarcia.org/testpage-sportello" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.pablogarcia.org/testpage-sportello" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     The Sportello - Pablo Garcia
                 </a>
             </li>
             <li>
-                <a href="https://blogs.unimelb.edu.au/librarycollections/2017/08/13/finding-durers-perspective/" target="_blank" rel="noopener noreferrer">
+                <a href="https://blogs.unimelb.edu.au/librarycollections/2017/08/13/finding-durers-perspective/" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     Finding Dürer’s Perspective - University of Melbourne
                 </a>
             </li>
         </ol>
     </section>
 
-        <script src="js/shapes/lute.js"></script>
+
+            </article>
+        </div>
+    </main>
+</div>
+
+<!-- Footer -->
+<footer class="bg-[#F4F1EA] dark:bg-stone-900 relative w-full pt-20 pb-8 px-4 text-center border-t-4 border-[#800020] dark:border-red-900 mt-auto">
+    <div class="max-w-[var(--reading-column)] mx-auto flex flex-col items-center mb-16">
+        <span class="font-label-technical text-label-technical text-stone-500 uppercase tracking-widest mb-4">Next Part</span>
+        <a class="font-headline-part text-2xl italic text-stone-900 hover:scale-[1.01] transition-transform block mb-8" href="part2">
+            Part 2: Lights, Camera, Interaction
+        </a>
+    </div>
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 justify-between items-center text-sm font-ui-nav text-stone-500 px-4 mt-8 w-full gap-4" style="font-family: 'Inter', sans-serif;">
+        <div class="md:text-left flex flex-col">
+            <span class="text-lg font-bold italic text-stone-900 dark:text-stone-100 font-serif">Respecifying Ray Tracing</span>
+        </div>
+        <div class="text-center flex flex-col items-center">
+            <span>&copy; <a class="hover:text-ink-charcoal transition-colors" href="https://github.com/Ethnomethodology/ray-tracing-demo/blob/main/LICENSE" target="_blank">2026 Dipanjan Saha</a></span>
+        </div>
+        <div class="md:text-right flex items-center justify-end gap-2 text-[#800020] dark:text-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+            Developed with AI
+        </div>
+    </div>
+</footer>
+
+<script src="js/shapes/lute.js"></script>
+
     <script src="js/shapes/sphere.js"></script>
     <script src="js/shapes/teapot.js"></script>
     <script src="js/sceneSetup.js"></script>
     <script src="js/main.js"></script>
     <script src="js/apparatusPreview.js"></script>
     <script src="js/walkthroughAnimation.js"></script>
+
 </body>
 </html>

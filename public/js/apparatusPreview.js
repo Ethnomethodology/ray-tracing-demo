@@ -8,13 +8,14 @@
     const canvas = document.getElementById("previewCanvas");
     if (!canvas) return;
 
-    const engine = new BABYLON.Engine(canvas, true);
+    const engine = new BABYLON.Engine(canvas, true, { alpha: true });
     engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
     const scene  = new BABYLON.Scene(engine);
-    scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
+    scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
     // Static zoomed-out camera
     const isMobile = window.innerWidth <= 900;
+    // Using same zoom as canvas 3
     const defaultRadius = isMobile ? 54 : 45;
     const camera = new BABYLON.ArcRotateCamera(
         "prevCam", -Math.PI / 5, Math.PI / 2.5, defaultRadius,
