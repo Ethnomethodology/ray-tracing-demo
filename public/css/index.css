@@ -225,8 +225,8 @@ body {
 .action-buttons-overlay {
     position: absolute;
     bottom: 2rem;
-    left: 2rem;
-    right: 2rem;
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -519,6 +519,11 @@ body {
     .intro-section,
     .references-section {
         padding: 2rem 1rem;
+    }
+
+    .rotate-controls .button-group,
+    .zoom-controls .button-group {
+        flex-direction: column;
     }
 }
 

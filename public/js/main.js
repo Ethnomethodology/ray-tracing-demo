@@ -196,7 +196,7 @@ const createScene = function () {
 Position: [${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)}]
 Alpha:    ${camera.alpha.toFixed(2)}
 Beta:     ${camera.beta.toFixed(2)}
-Radius:   ${camera.radius.toFixed(2)}`;
+Zoom:     ${camera.radius.toFixed(2)}`;
             }
         }
     });
