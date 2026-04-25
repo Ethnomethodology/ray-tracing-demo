@@ -498,7 +498,8 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
 }
 
 #renderCanvas,
-#rayTracingCanvas {
+#rayTracingCanvas,
+#rayTracingCanvasFinal {
     position: absolute;
     top: 0;
     left: 0;
