@@ -25,14 +25,15 @@
     );
     sceneCamera.attachControl(canvas, true);
 
-    // Standard Lighting
-    const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-    light.intensity = 0.5;
-
     // --- 6. Annotations (GUI) ---
     const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
-    function addLabel(name, mesh, offset = { x: 0, y: 0 }) {
+    function addLabel(name, targetMesh, localPos = BABYLON.Vector3.Zero()) {
+        // Create an invisible anchor mesh at a specific 3D location relative to the target
+        const anchor = new BABYLON.AbstractMesh(name + "_anchor", scene);
+        anchor.parent = targetMesh;
+        anchor.position.copyFrom(localPos);
+
         const label = new BABYLON.GUI.Rectangle();
         label.width = "140px";
         label.height = "40px";
@@ -48,9 +49,9 @@
         text.fontWeight = "500";
         label.addControl(text);
         
-        label.linkWithMesh(mesh);
-        label.linkOffsetX = offset.x;
-        label.linkOffsetY = offset.y;
+        label.linkWithMesh(anchor);
+        label.linkOffsetX = 0;
+        label.linkOffsetY = 0;
         return label;
     }
 
@@ -132,14 +133,13 @@
         blackMat.specularColor = new BABYLON.Color3(0, 0, 0);
         arrowHead.material = blackMat;
 
-        // Annotations
-        addLabel("Camera", cameraModel, { x: -80, y: -60 });
+        // Annotations using 3D anchors
+        addLabel("Camera", cameraModel, new BABYLON.Vector3(-3, 4, -2));
         
         // Ray Label (linked towards the object side of the ray)
         const rayMidPoint = new BABYLON.AbstractMesh("rayMidPoint", scene);
-        // Move closer to object by using a 0.75 interpolation factor
         rayMidPoint.position = lensOrigin.scale(0.25).add(surfacePoint.scale(0.75));
-        addLabel("Ray", rayMidPoint, { x: 0, y: 40 });
+        addLabel("Ray", rayMidPoint, new BABYLON.Vector3(0, 1.5, 0));
     });
 
     // --- 2. Image Plane (16x16 spreadsheet grid) ---
@@ -171,7 +171,7 @@
         }
     }
     frameGroup.position.set(0, 0, 2.25); // Image plane at default height, halfway in Z
-    addLabel("Image Plane", frameGroup, { x: 0, y: -140 });
+    addLabel("Image Plane", frameGroup, new BABYLON.Vector3(0, 6, 0));
 
     // --- 3. Subject (Sphere) ---
     if (typeof buildProceduralSphere === "function") {
@@ -183,7 +183,7 @@
         sphereMaterial.specularPower = 32;
         sphere.material = sphereMaterial;
         
-        addLabel("Object", sphere, { x: 0, y: 80 });
+        addLabel("Object", sphere, new BABYLON.Vector3(0, 3, 0));
     }
 
     // --- 4. Light Source (Bulb Model) ---
@@ -201,7 +201,7 @@
         pointLight.diffuse = new BABYLON.Color3(1, 1, 0.9);
         pointLight.range = 35;
 
-        addLabel("Light", bulbModel, { x: 80, y: 50 });
+        addLabel("Light", bulbModel, new BABYLON.Vector3(2, -4, 0));
     });
 
     // (Table removed for clarity)
