@@ -33,7 +33,6 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 6rem 2rem;
     background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent),
         radial-gradient(circle at bottom left, rgba(99, 102, 241, 0.05), transparent);
 }
@@ -54,12 +53,12 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 4rem;
-    max-width: 1200px;
+    max-width: 1600px;
     width: 100%;
 }
 
 .intro-text {
-    max-width: 800px;
+    max-width: 1200px;
     width: 100%;
 }
 
@@ -226,8 +225,8 @@ body {
 .action-buttons-overlay {
     position: absolute;
     bottom: 2rem;
-    left: 2rem;
-    right: 2rem;
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -326,15 +325,9 @@ body {
     }
 }
 
-@media (max-height: 800px) {
-    .intro-section {
-        padding: 4rem 2rem;
-    }
-}
 
 /* References Section Styles */
 .references-section {
-    padding: 8rem 2rem;
     background-color: #f8fafc;
     display: flex;
     flex-direction: column;
@@ -354,7 +347,7 @@ body {
 .references-list {
     list-style: decimal;
     padding-left: 2rem;
-    max-width: 900px;
+    max-width: 1600px;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -407,12 +400,15 @@ body {
 }
 
 
-.demo-section {
+.demo-section,
+.explanation-section,
+.walkthrough-section,
+.intro-section,
+.references-section {
     position: relative;
     width: 100%;
-    min-height: 100vh;
     border-top: 1px solid var(--glass-border);
-    padding: 2rem;
+    padding: 4rem 2rem;
     box-sizing: border-box;
 }
 
@@ -421,6 +417,7 @@ body {
     flex-direction: row;
     gap: 2rem;
     height: 100%;
+    width: 100%;
     max-width: 1600px;
     margin: 0 auto;
 }
@@ -473,7 +470,8 @@ body {
     color: var(--text-dark);
 }
 
-.canvas-container {
+.canvas-container,
+.apparatus-preview-container {
     flex: 1;
     position: relative;
     min-height: 500px;
@@ -500,15 +498,38 @@ body {
         max-width: 100%;
     }
 
-    .canvas-container {
+    .canvas-container,
+    .apparatus-preview-container {
         height: 60vh;
         min-height: 400px;
+    }
+
+    .demo-section,
+    .explanation-section,
+    .walkthrough-section,
+    .intro-section,
+    .references-section {
+        padding: 3rem 1.5rem;
+    }
+}
+@media (max-width: 768px) {
+    .demo-section,
+    .explanation-section,
+    .walkthrough-section,
+    .intro-section,
+    .references-section {
+        padding: 2rem 1rem;
+    }
+
+    .rotate-controls .button-group,
+    .zoom-controls .button-group {
+        flex-direction: column;
     }
 }
 
 /* ── Woodcut Caption ───────────────────────────────────────────────────────── */
 .woodcut-caption {
-    max-width: 700px;
+    max-width: 1200px;
     text-align: center;
     color: #475569;
     font-size: 0.95rem;
@@ -518,20 +539,11 @@ body {
 
 /* ── Explanation Section ──────────────────────────────────────────────────── */
 .explanation-section {
-    padding: 4rem 2rem;
     background: #f1f5f9;
-    border-top: 1px solid var(--glass-border);
     border-bottom: 1px solid var(--glass-border);
 }
 
 /* ── Right: 3D preview canvas ────────────────────────────────────────────── */
-.apparatus-preview-container {
-    flex: 1;
-    position: relative;
-    min-height: 500px;
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
 
 #stepOneCanvas,
 #stepTwoCanvas {
@@ -552,6 +564,65 @@ body {
     height: 100%;
     outline: none;
     touch-action: none;
+}
+
+/* ── Canvas Navigation Buttons ────────────────────────────────────────────── */
+.canvas-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3.5rem;
+    height: 3.5rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0.4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-nav-btn svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.canvas-nav-btn:hover {
+    opacity: 1;
+    background: white;
+    color: var(--accent-color);
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.canvas-nav-btn.prev {
+    left: 1.5rem;
+}
+
+.canvas-nav-btn.next {
+    right: 1.5rem;
+}
+
+.canvas-nav-btn.bottom {
+    top: auto;
+    bottom: 1.5rem;
+    transform: none;
+}
+
+.canvas-nav-btn.bottom:hover {
+    transform: scale(1.1);
+}
+
+.canvas-nav-btn:disabled {
+    opacity: 0.1;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* ── Annotation pills ─────────────────────────────────────────────────────── */
@@ -591,9 +662,8 @@ body {
 /* ── Debug Overlays ──────────────────────────────────────────────────────── */
 .debug-overlay {
     position: absolute;
-    top: -4rem;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 1rem;
+    left: 1rem;
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
@@ -602,6 +672,25 @@ body {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
     pointer-events: auto;
     z-index: 100;
+}
+
+.camera-info-overlay {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    font-size: 0.7rem;
+    color: var(--text-color);
+    font-family: monospace;
+    pointer-events: none;
+    z-index: 100;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    line-height: 1.4;
+    white-space: pre;
 }
 
 .debug-select {

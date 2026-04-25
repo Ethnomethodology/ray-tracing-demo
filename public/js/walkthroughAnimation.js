@@ -7,7 +7,9 @@
     const scene = new BABYLON.Scene(engine);
     scene.clearColor = new BABYLON.Color4(0, 0, 0, 0); 
 
-    const camera = new BABYLON.ArcRotateCamera("walkthroughCamera", -Math.PI / 5, Math.PI / 2.5, 45, new BABYLON.Vector3(0, -5, 0), scene);
+    const isMobile = window.innerWidth <= 900;
+    const defaultRadius = isMobile ? 54 : 45;
+    const camera = new BABYLON.ArcRotateCamera("walkthroughCamera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, -3.5), scene);
     camera.attachControl(canvas, false);
 
     const { 
@@ -207,8 +209,8 @@
             
             camera.alpha = -Math.PI / 5;
             camera.beta = Math.PI / 2.5;
-            camera.radius = 45;
-            camera.setTarget(new BABYLON.Vector3(0, -5, 0));
+            camera.radius = isMobile ? 54 : 45;
+            camera.setTarget(new BABYLON.Vector3(0, -5, -3.5));
             if (_crossThreadH) _crossThreadH.setEnabled(false);
             if (_crossThreadV) _crossThreadV.setEnabled(false);
 
@@ -216,14 +218,14 @@
             const cycle = elapsed % 11.0;
             const startAlpha = -Math.PI / 5;
             const startBeta = Math.PI / 2.5;
-            const startRadius = 45;
-            const startTarget = new BABYLON.Vector3(0, -5, 0);
+            const startRadius = isMobile ? 54 : 45;
+            const startTarget = new BABYLON.Vector3(0, -5, -3.5);
 
             // Perspective matching the user screenshot: 3/4 view from draughtsman side
             const endAlpha = Math.PI / 3.5; 
             const endBeta = Math.PI / 3.2;
-            const endRadius = 45;
-            const endTarget = new BABYLON.Vector3(0, -5, 0);
+            const endRadius = isMobile ? 54 : 45;
+            const endTarget = new BABYLON.Vector3(0, -5, -3.5);
 
             if (pencil) pencil.isVisible = false;
             pageHinge.rotation.y = 2 * Math.PI / 3;
@@ -271,8 +273,8 @@
             // Camera position from end of step 2
             camera.alpha = Math.PI / 3.5;
             camera.beta = Math.PI / 3.2;
-            camera.radius = 45;
-            camera.setTarget(new BABYLON.Vector3(0, -5, 0));
+            camera.radius = isMobile ? 54 : 45;
+            camera.setTarget(new BABYLON.Vector3(0, -5, -3.5));
 
             lute.isVisible = true;
             lute.visibility = 1.0;
@@ -367,13 +369,13 @@
 
             const startAlpha = Math.PI / 3.5; 
             const startBeta = Math.PI / 3.2;
-            const startRadius = 45;
-            const startTarget = new BABYLON.Vector3(0, -5, 0);
+            const startRadius = isMobile ? 54 : 45;
+            const startTarget = new BABYLON.Vector3(0, -5, -3.5);
 
             const endAlpha = -Math.PI / 5;
             const endBeta = Math.PI / 2.5;
-            const endRadius = 45;
-            const endTarget = new BABYLON.Vector3(0, -5, 0);
+            const endRadius = isMobile ? 54 : 45;
+            const endTarget = new BABYLON.Vector3(0, -5, -3.5);
 
             // Maintain state from end of Step 3
             lute.isVisible = true;
@@ -419,7 +421,7 @@
     const nextBtn = document.getElementById("nextDraughtsmanBtn");
     const steps = document.querySelectorAll("#draughtsman-steps .step");
 
-    const showStep = (stepNum) => {
+    let showStep = (stepNum) => {
         currentStep = stepNum;
         startTime = performance.now();
         steps.forEach((s, i) => {
@@ -430,10 +432,22 @@
         if (nextBtn) nextBtn.disabled = (stepNum === 4);
     };
 
-    if (prevBtn) prevBtn.addEventListener("click", () => showStep(currentStep - 1));
-    if (nextBtn) nextBtn.addEventListener("click", () => showStep(currentStep + 1));
+    const canvasPrev = document.getElementById('walkthroughPrev');
+    const canvasNext = document.getElementById('walkthroughNext');
+
+    const originalShowStep = showStep;
+    const updatedShowStep = (stepNum) => {
+        originalShowStep(stepNum);
+        if (canvasPrev) canvasPrev.disabled = (stepNum === 1);
+        if (canvasNext) canvasNext.disabled = (stepNum === 4);
+    };
+
+    if (prevBtn) prevBtn.addEventListener("click", () => updatedShowStep(currentStep - 1));
+    if (nextBtn) nextBtn.addEventListener("click", () => updatedShowStep(currentStep + 1));
+    if (canvasPrev) canvasPrev.addEventListener("click", () => updatedShowStep(currentStep - 1));
+    if (canvasNext) canvasNext.addEventListener("click", () => updatedShowStep(currentStep + 1));
 
     // Initialize UI on first load
-    showStep(1);
+    updatedShowStep(1);
 
 })();

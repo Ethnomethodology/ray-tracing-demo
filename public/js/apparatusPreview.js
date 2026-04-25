@@ -14,9 +14,11 @@
     scene.clearColor = new BABYLON.Color4(1, 1, 1, 1);
 
     // Static zoomed-out camera
+    const isMobile = window.innerWidth <= 900;
+    const defaultRadius = isMobile ? 54 : 45;
     const camera = new BABYLON.ArcRotateCamera(
-        "prevCam", -Math.PI / 5, Math.PI / 2.5, 45,
-        new BABYLON.Vector3(0, -5, 0), scene
+        "prevCam", -Math.PI / 5, Math.PI / 2.5, defaultRadius,
+        new BABYLON.Vector3(0, -5, -3.5), scene
     );
 
     // Build the full apparatus (no drawing texture → plain white page)
@@ -186,17 +188,17 @@
         const rect = canvas.getBoundingClientRect();
 
         const stringMidB = new BABYLON.Vector3(
-            pulleyNode.x + 1.5,
+            pulleyNode.x + 2.75,
             (pulleyNode.y + weightMesh.position.y) / 2,
             pulleyNode.z
         );
 
         const annotations = [
-            { id: "pill-1", world: new BABYLON.Vector3(pulleyNode.x + 2.0, pulleyNode.y, pulleyNode.z) },
+            { id: "pill-1", world: new BABYLON.Vector3(pulleyNode.x + 3.25, pulleyNode.y + 0.5, pulleyNode.z) },
             { id: "pill-2", world: stringMidB },
-            { id: "pill-3", world: new BABYLON.Vector3(weightMesh.position.x, weightMesh.position.y - 2.0, weightMesh.position.z) },
+            { id: "pill-3", world: new BABYLON.Vector3(weightMesh.position.x + 0.5, weightMesh.position.y - 2.5, weightMesh.position.z) },
             { id: "pill-4", world: new BABYLON.Vector3(0, 7.0, 0) },
-            { id: "pill-5", world: pageMesh.getAbsolutePosition() },
+            { id: "pill-5", world: pageMesh.getAbsolutePosition().add(new BABYLON.Vector3(0, 3.0, 0)) },
             { id: "pill-6", world: currentHitPoint ? new BABYLON.Vector3(currentHitPoint.x + 2.0, currentHitPoint.y - 1.5, currentHitPoint.z) : new BABYLON.Vector3(0, 0, 0) },
             { id: "pill-7", world: new BABYLON.Vector3(stickMesh.position.x - 3.0, stickMesh.position.y + 1.5, stickMesh.position.z) },
             { id: "pill-8", world: targetMesh ? new BABYLON.Vector3(0, targetMesh.position.y - 1.0, targetMesh.position.z - 4.0) : new BABYLON.Vector3(0, 0, 0) }

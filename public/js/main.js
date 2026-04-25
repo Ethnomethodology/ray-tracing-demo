@@ -22,11 +22,13 @@ const createScene = function () {
     let _scanProgress = 0;
     let _scanPoints = []; // Stores world-space points for the wireframe/outline pass
     let _surfaceNormal = new BABYLON.Vector3(0, 1, 0); // Outward surface normal at current pick point
+    let showNormals = false; // Moved up for render loop access
+    let normalLines = null;
 
     // 1. ArcRotateCamera setup - Positioned to the side like the Woodcut's perspective
     const isMobile = window.innerWidth <= 900;
-    const defaultRadius = isMobile ? 65 : 45;
-    camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, 0), scene);
+    const defaultRadius = isMobile ? 54 : 45;
+    camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, -3.5), scene);
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;
@@ -183,6 +185,19 @@ const createScene = function () {
             const animHit = drawPointAtStick();
             if (animHit) showCrossThreads(animHit);
             dotsDrawn++;
+        }
+
+        // 4. Debug Overlay Updates
+        if (showNormals && camera) {
+            const camInfo = document.getElementById("cameraInfo");
+            if (camInfo) {
+                const pos = camera.position;
+                camInfo.textContent = `CAMERA PARAMETERS
+Position: [${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)}]
+Alpha:    ${camera.alpha.toFixed(2)}
+Beta:     ${camera.beta.toFixed(2)}
+Zoom:     ${camera.radius.toFixed(2)}`;
+            }
         }
     });
 
@@ -451,7 +466,7 @@ const createScene = function () {
         document.getElementById("fastForwardBtn").disabled = true;
 
         // Reset Camera
-        const targetPos = new BABYLON.Vector3(0, -5, 0);
+        const targetPos = new BABYLON.Vector3(0, -5, -3.5);
 
         // Animation
         const animationAlpha = new BABYLON.Animation("cameraAlpha", "alpha", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
@@ -459,7 +474,7 @@ const createScene = function () {
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
         const currentIsMobile = window.innerWidth <= 900;
-        const targetRadius = currentIsMobile ? 68 : 38;
+        const targetRadius = currentIsMobile ? 54 : 45;
 
         const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: -Math.PI / 5 }];
         const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.5 }];
@@ -481,8 +496,11 @@ const createScene = function () {
     if (normalsBtn) {
         normalsBtn.addEventListener("click", (e) => {
             showNormals = !showNormals;
-            e.target.classList.toggle("active", showNormals);
+            // Handle both the button itself and its SVG child being clicked
+            const btn = e.target.closest('#normalsBtn');
+            btn.classList.toggle("active", showNormals);
             document.getElementById("debugControls").style.display = showNormals ? "block" : "none";
+            document.getElementById("cameraInfo").style.display = showNormals ? "block" : "none";
             updateNormalLines();
         });
     }
@@ -599,8 +617,6 @@ const createScene = function () {
         _scanProgress = 0;
     };
 
-    let normalLines = null;
-    let showNormals = false;
 
     const updateNormalLines = () => {
         if (normalLines) {
@@ -736,19 +752,14 @@ const scene = createScene();
 engine.runRenderLoop(() => { scene.render(); });
 
     const adjustCameraView = () => {
-        // Adjust zoom based on canvas width vs height ratio so it fits the layout container
         const canvasRect = engine.getRenderingCanvasClientRect();
         if (!canvasRect || canvasRect.width === 0) return;
 
-        // Base logic: narrower aspect ratio means we need to pull the camera further back to see the width.
         const aspect = canvasRect.width / canvasRect.height;
-        // Increase zoom by ~1.5x (smaller radius = zoomed in closer)
-        let newRadius = 38; // Default for widescreen desktop
+        let newRadius = 45; // Default desktop
 
-        if (aspect < 1.0) {
-            newRadius = 46 + (1.0 - aspect) * 15; // Mobile / Portrait
-        } else if (aspect < 1.5) {
-            newRadius = 43; // Tablet / Square-ish
+        if (aspect < 1.5) {
+            newRadius = 54; // Mobile / Tablet
         }
 
         camera.radius = newRadius;
