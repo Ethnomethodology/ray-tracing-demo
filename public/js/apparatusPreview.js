@@ -221,7 +221,7 @@
     const nextBtn = document.getElementById('nextStepBtn');
     let currentPillIndex = 0;
 
-    const setActivePill = (index) => {
+    let setActivePill = (index) => {
         currentPillIndex = index;
         pills.forEach((pill, i) => {
             if (pill) {

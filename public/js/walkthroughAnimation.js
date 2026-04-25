@@ -421,7 +421,7 @@
     const nextBtn = document.getElementById("nextDraughtsmanBtn");
     const steps = document.querySelectorAll("#draughtsman-steps .step");
 
-    const showStep = (stepNum) => {
+    let showStep = (stepNum) => {
         currentStep = stepNum;
         startTime = performance.now();
         steps.forEach((s, i) => {
