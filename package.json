@@ -8,8 +8,8 @@
     "dev": "node server.js"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Dipanjan Saha",
+  "license": "CC-BY-4.0",
   "type": "commonjs",
   "dependencies": {
     "babylonjs": "^9.3.4",
