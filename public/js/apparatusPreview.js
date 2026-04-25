@@ -16,7 +16,7 @@
     // Static zoomed-out camera
     const camera = new BABYLON.ArcRotateCamera(
         "prevCam", -Math.PI / 5, Math.PI / 2.5, 45,
-        new BABYLON.Vector3(0, -5, 2.5), scene
+        new BABYLON.Vector3(0, -5, -3.5), scene
     );
 
     // Build the full apparatus (no drawing texture → plain white page)
