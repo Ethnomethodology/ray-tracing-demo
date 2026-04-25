@@ -99,8 +99,11 @@
             const surfacePoint = spherePos.subtract(direction.scale(2.0)); 
             const totalDistance = BABYLON.Vector3.Distance(lensOrigin, surfacePoint);
             
-            // --- 5. Visual Ray (Animated Cylinder or Static Dashed Line) ---
+            // --- 5. Visual Rays (Animated or Static) ---
+            const bulbPos = new BABYLON.Vector3(0, 15, -11);
             let rayLine = null;
+            let lightRayLine = null;
+            
             if (!animateRay) {
                 rayLine = BABYLON.MeshBuilder.CreateDashedLines("rayLine", {
                     points: [lensOrigin, surfacePoint],
@@ -109,7 +112,7 @@
                 }, scene);
                 rayLine.color = new BABYLON.Color3(0, 0, 0);
             } else {
-                // Use a thin cylinder for smooth animation
+                // Sighting Ray (Camera -> Sphere)
                 rayLine = BABYLON.MeshBuilder.CreateCylinder("rayLine", {
                     height: totalDistance,
                     diameter: 0.05
@@ -118,12 +121,26 @@
                 rayMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
                 rayMat.specularColor = new BABYLON.Color3(0, 0, 0);
                 rayLine.material = rayMat;
-                
-                // Align cylinder with the ray direction
                 rayLine.position = lensOrigin.add(direction.scale(totalDistance / 2));
                 rayLine.lookAt(surfacePoint);
                 rayLine.rotate(BABYLON.Axis.X, Math.PI / 2);
                 rayLine.setEnabled(false);
+
+                // Shadow Ray (Sphere -> Bulb)
+                const toBulbDir = bulbPos.subtract(surfacePoint).normalize();
+                const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 2.2; // Stop at the bulb surface
+                lightRayLine = BABYLON.MeshBuilder.CreateCylinder("lightRayLine", {
+                    height: toBulbDist,
+                    diameter: 0.05
+                }, scene);
+                const lightRayMat = new BABYLON.StandardMaterial("lightRayMat", scene);
+                lightRayMat.diffuseColor = new BABYLON.Color3(0.8, 0.6, 0.2); // Golden color for light ray
+                lightRayMat.emissiveColor = new BABYLON.Color3(0.4, 0.3, 0.1);
+                lightRayLine.material = lightRayMat;
+                lightRayLine.position = surfacePoint.add(toBulbDir.scale(toBulbDist / 2));
+                lightRayLine.lookAt(bulbPos);
+                lightRayLine.rotate(BABYLON.Axis.X, Math.PI / 2);
+                lightRayLine.setEnabled(false);
             }
 
             const arrowHeight = 0.6;
@@ -139,6 +156,17 @@
             blackMat.specularColor = new BABYLON.Color3(0, 0, 0);
             arrowHead.material = blackMat;
 
+            const lightArrowHead = BABYLON.MeshBuilder.CreateCylinder("lightArrowHead", {
+                diameterTop: 0,
+                diameterBottom: 0.4,
+                height: arrowHeight,
+                tessellation: 12
+            }, scene);
+            const goldMat = new BABYLON.StandardMaterial("goldMat", scene);
+            goldMat.diffuseColor = new BABYLON.Color3(0.8, 0.6, 0.2);
+            lightArrowHead.material = goldMat;
+            lightArrowHead.setEnabled(false);
+
             if (!animateRay) {
                 arrowHead.position = surfacePoint.subtract(direction.scale(arrowHeight / 2));
                 arrowHead.lookAt(spherePos);
@@ -147,27 +175,48 @@
                 arrowHead.setEnabled(false);
                 let progress = 0;
                 scene.onBeforeRenderObservable.add(() => {
-                    progress += 0.008; // Speed of ray
-                    if (progress > 1.2) progress = 0; // Reset after pause
+                    progress += 0.008; 
+                    if (progress > 1.5) progress = 0; // Reset after pause
 
-                    const currentProgress = Math.min(progress, 1.0);
-                    const currentDist = totalDistance * currentProgress;
-                    const currentEndPoint = lensOrigin.add(direction.scale(currentDist));
-                    
-                    if (currentProgress > 0.01) {
-                        rayLine.setEnabled(true);
-                        // Scale the cylinder from its center
-                        rayLine.scaling.y = currentProgress;
-                        // Move its center to the midpoint of the current segment
-                        rayLine.position = lensOrigin.add(direction.scale(currentDist / 2));
+                    // Phase 1: Camera -> Sphere (0.0 to 0.6)
+                    if (progress <= 0.6) {
+                        const p1 = Math.min(progress / 0.6, 1.0);
+                        const d1 = totalDistance * p1;
+                        const ep1 = lensOrigin.add(direction.scale(d1));
                         
-                        arrowHead.setEnabled(true);
-                        arrowHead.position = currentEndPoint.subtract(direction.scale(arrowHeight / 2));
+                        rayLine.setEnabled(p1 > 0.01);
+                        rayLine.scaling.y = p1;
+                        rayLine.position = lensOrigin.add(direction.scale(d1 / 2));
+                        
+                        arrowHead.setEnabled(p1 > 0.01);
+                        arrowHead.position = ep1.subtract(direction.scale(arrowHeight / 2));
                         arrowHead.lookAt(spherePos);
                         arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
-                    } else {
-                        rayLine.setEnabled(false);
-                        arrowHead.setEnabled(false);
+
+                        lightRayLine.setEnabled(false);
+                        lightArrowHead.setEnabled(false);
+                    } 
+                    // Phase 2: Sphere -> Bulb (0.6 to 1.2)
+                    else if (progress <= 1.2) {
+                        const p2 = Math.min((progress - 0.6) / 0.6, 1.0);
+                        const toBulbDir = bulbPos.subtract(surfacePoint).normalize();
+                        const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 2.2;
+                        const d2 = toBulbDist * p2;
+                        const ep2 = surfacePoint.add(toBulbDir.scale(d2));
+
+                        rayLine.setEnabled(true);
+                        rayLine.scaling.y = 1.0;
+                        rayLine.position = lensOrigin.add(direction.scale(totalDistance / 2));
+                        arrowHead.setEnabled(true);
+
+                        lightRayLine.setEnabled(p2 > 0.01);
+                        lightRayLine.scaling.y = p2;
+                        lightRayLine.position = surfacePoint.add(toBulbDir.scale(d2 / 2));
+
+                        lightArrowHead.setEnabled(p2 > 0.01);
+                        lightArrowHead.position = ep2.subtract(toBulbDir.scale(arrowHeight / 2));
+                        lightArrowHead.lookAt(bulbPos);
+                        lightArrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
                     }
                 });
             }
