@@ -343,6 +343,30 @@
             </div>
         </div>
     </section>
+    
+    <section class="demo-section">
+        <div class="demo-layout">
+            <div class="demo-left-column">
+                <div class="text-content">
+                    <h1 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">From Apparatus to Algorithm</h1>
+                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-8">
+                        Ray tracing replaces the physical components of Dürer's device with their computational counterparts. The wall needle becomes a virtual <strong>Camera</strong>, the wooden frame becomes a <strong>Digital Image Plane</strong> (a 16x16 pixel grid), and the lighting is simulated by light sources like this <strong>Bulb</strong>. This abstraction allows for the simulation of complex light interactions that were impossible with the physical model.
+                    </p>
+                </div>
+            </div>
+
+            <div class="demo-right-column">
+                <div class="canvas-container">
+                    <canvas id="rayTracingCanvas"></canvas>
+                </div>
+                <div class="mt-4 text-center">
+                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 5:</span>
+                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Computational Counterpart: Camera, Pixel Grid, and Light Source.</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
 
     <section class="references-section">
         <h2>References</h2>
@@ -406,6 +430,8 @@
     <script src="js/main.js"></script>
     <script src="js/apparatusPreview.js"></script>
     <script src="js/walkthroughAnimation.js"></script>
+    <script src="js/rayTracingCounterpart.js"></script>
+
 
 </body>
 </html>
