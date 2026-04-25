@@ -188,15 +188,15 @@
         const rect = canvas.getBoundingClientRect();
 
         const stringMidB = new BABYLON.Vector3(
-            pulleyNode.x + 1.5,
+            pulleyNode.x + 4.0,
             (pulleyNode.y + weightMesh.position.y) / 2,
             pulleyNode.z
         );
 
         const annotations = [
-            { id: "pill-1", world: new BABYLON.Vector3(pulleyNode.x + 2.0, pulleyNode.y, pulleyNode.z) },
+            { id: "pill-1", world: new BABYLON.Vector3(pulleyNode.x + 4.5, pulleyNode.y + 1.0, pulleyNode.z) },
             { id: "pill-2", world: stringMidB },
-            { id: "pill-3", world: new BABYLON.Vector3(weightMesh.position.x, weightMesh.position.y - 2.0, weightMesh.position.z) },
+            { id: "pill-3", world: new BABYLON.Vector3(weightMesh.position.x + 2.0, weightMesh.position.y - 4.0, weightMesh.position.z) },
             { id: "pill-4", world: new BABYLON.Vector3(0, 7.0, 0) },
             { id: "pill-5", world: pageMesh.getAbsolutePosition() },
             { id: "pill-6", world: currentHitPoint ? new BABYLON.Vector3(currentHitPoint.x + 2.0, currentHitPoint.y - 1.5, currentHitPoint.z) : new BABYLON.Vector3(0, 0, 0) },
