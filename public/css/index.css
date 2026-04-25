@@ -1,28 +1,8 @@
-:root {
-    --bg-color: #ffffff;
-    --accent-color: #6366f1;
-    --text-color: #1e293b;
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(0, 0, 0, 0.05);
-    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
-}
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 
-body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: var(--font-main);
-    width: 100vw;
-    min-height: 100vh;
-    overflow-x: hidden;
-    overflow-y: auto;
-    display: block;
-}
+
+
+
 
 
 
@@ -98,19 +78,13 @@ body {
     min-height: 110px;
 }
 
-.step {
-    display: none;
-    gap: 1rem;
-    align-items: flex-start;
-}
+.ste
 
 .step.active {
     display: flex;
 }
 
-.walkthrough-section .step {
-    display: none;
-}
+.walkthrough-section .ste
 
 .walkthrough-section .step.active {
     display: flex !important;
@@ -167,11 +141,7 @@ body {
     text-align: right;
 }
 
-.step p {
-    margin: 0;
-    color: #475569;
-    font-size: 0.85rem;
-}
+.step
 
 .inline-icon {
     width: 1.1em;
@@ -246,18 +216,7 @@ body {
     bottom: 0;
 }
 
-.button-group {
-    display: flex;
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 1rem;
-    padding: 0.25rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    pointer-events: auto;
-    /* Re-enable clicks for the buttons */
-    gap: 0.5rem;
-}
+.button-grou
 
 .btn-icon {
     border: none;
@@ -457,11 +416,7 @@ body {
     color: var(--text-dark);
 }
 
-.text-content p {
-    font-size: 0.95rem;
-    color: var(--text-muted);
-    line-height: 1.5;
-}
+.text-content
 
 .text-content h2 {
     font-size: 1.2rem;
@@ -522,9 +477,7 @@ body {
     }
 
     .rotate-controls .button-group,
-    .zoom-controls .button-group {
-        flex-direction: column;
-    }
+    .zoom-controls .button-grou
 }
 
 /* ── Woodcut Caption ───────────────────────────────────────────────────────── */
@@ -712,4 +665,35 @@ body {
 #normalsBtn.active {
     color: var(--accent-color);
     background: rgba(99, 102, 241, 0.1);
+}/* Tailwind overriding utilities for specific states */
+.step.active {
+    border-left-color: #722F37 !important;
+    opacity: 1 !important;
+}
+
+.step.active .step-num {
+    color: #722F37 !important;
+}
+
+.btn-toggle.active {
+    background-color: #e5e2e1 !important;
+    color: #1c1b1b !important;
+    font-weight: 500 !important;
+}
+
+#animateBtn.playing {
+    color: #722F37 !important;
+    background: rgba(114, 47, 55, 0.1) !important;
+}
+
+#normalsBtn.active {
+    color: #722F37 !important;
+    background: rgba(114, 47, 55, 0.1) !important;
+}
+
+.apparatus-pill.active {
+    background: #722F37 !important;
+    color: white !important;
+    border-color: white !important;
+    box-shadow: 0 2px 8px rgba(114, 47, 55, 0.45) !important;
 }
