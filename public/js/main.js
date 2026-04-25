@@ -474,7 +474,7 @@ Zoom:     ${camera.radius.toFixed(2)}`;
         const animationRadius = new BABYLON.Animation("cameraRadius", "radius", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
 
         const currentIsMobile = window.innerWidth <= 900;
-        const targetRadius = currentIsMobile ? 68 : 38;
+        const targetRadius = currentIsMobile ? 54 : 45;
 
         const keysAlpha = [{ frame: 0, value: camera.alpha }, { frame: 30, value: -Math.PI / 5 }];
         const keysBeta = [{ frame: 0, value: camera.beta }, { frame: 30, value: Math.PI / 2.5 }];
