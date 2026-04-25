@@ -30,18 +30,60 @@
     light.intensity = 0.5;
 
     // --- 1. Camera Model (replaces the nail) ---
-    const cameraPos = new BABYLON.Vector3(0, 10, 15.5);
-    // Table top is at -5.0. Sphere radius is 2.0 (diameter 4).
-    // Center Y is at -3 to sit on the table.
+    const cameraPos = new BABYLON.Vector3(0, 8, 14); // Lowered slightly (10 -> 8)
     const spherePos = new BABYLON.Vector3(0, -3.0, -11);
 
     BABYLON.SceneLoader.ImportMeshAsync("", "models/", "camera.glb", scene).then((result) => {
         const cameraModel = result.meshes[0];
         cameraModel.position.copyFrom(cameraPos);
-        cameraModel.scaling.setAll(0.8); // Scaled down to 1/10th of previous size (8.0 -> 0.8)
+        cameraModel.scaling.setAll(0.8);
         
         // Orient camera towards the sphere
         cameraModel.lookAt(spherePos);
+
+        // --- 5. Visual Ray (from camera lens to sphere surface) ---
+        const boundingInfo = cameraModel.getHierarchyBoundingVectors();
+        const center = BABYLON.Vector3.Center(boundingInfo.min, boundingInfo.max);
+        
+        // Find the lens - search children for 'lens' or 'glass'
+        let lensOrigin = center.clone();
+        const meshes = cameraModel.getChildMeshes();
+        const lensMesh = meshes.find(m => 
+            m.name.toLowerCase().includes("lens") || 
+            m.name.toLowerCase().includes("glass") ||
+            m.name.toLowerCase().includes("optics")
+        );
+
+        if (lensMesh) {
+            lensOrigin = lensMesh.getAbsolutePosition();
+        } else {
+            // Manual adjustment based on visual inspection of the 'vintage_movie_camera' model:
+            // It has reels on top, so we move down from the center.
+            // It points forward, so we move forward from the center.
+            const forward = spherePos.subtract(cameraPos).normalize();
+            const up = BABYLON.Vector3.Up();
+            const right = BABYLON.Vector3.Cross(up, forward).normalize();
+            const realUp = BABYLON.Vector3.Cross(forward, right).normalize();
+
+            // Offset: Adjust these values to align with the lens
+            // forward.scale(X): X is distance out from the camera center
+            // realUp.scale(Y): Y is height (positive is up, negative is down)
+            lensOrigin = center.add(forward.scale(1.2)).add(realUp.scale(-0.4));
+        }
+
+        // Re-orient the camera so the LENS specifically looks at the sphere center
+        // This compensates if the lens isn't exactly on the model's pivot line
+        cameraModel.lookAt(spherePos);
+
+        const direction = spherePos.subtract(lensOrigin).normalize();
+        const surfacePoint = spherePos.subtract(direction.scale(2.0)); // Sphere radius is 2.0
+        
+        const rayLine = BABYLON.MeshBuilder.CreateDashedLines("rayLine", {
+            points: [lensOrigin, surfacePoint],
+            dashSize: 1,
+            gapSize: 0.5
+        }, scene);
+        rayLine.color = new BABYLON.Color3(0, 0, 0); // Black ray
     });
 
     // --- 2. Image Plane (16x16 spreadsheet grid) ---
@@ -83,18 +125,6 @@
         sphereMaterial.specularColor = new BABYLON.Color3(1, 1, 1);
         sphereMaterial.specularPower = 32;
         sphere.material = sphereMaterial;
-
-        // --- 5. Visual Ray (from camera to sphere surface) ---
-        const dist = BABYLON.Vector3.Distance(cameraPos, spherePos);
-        const direction = spherePos.subtract(cameraPos).normalize();
-        const surfacePoint = spherePos.subtract(direction.scale(2.0)); // Radius is 2.0
-        
-        const rayLine = BABYLON.MeshBuilder.CreateDashedLines("rayLine", {
-            points: [cameraPos, surfacePoint],
-            dashSize: 1,
-            gapSize: 0.5
-        }, scene);
-        rayLine.color = new BABYLON.Color3(0, 0, 0); // Black ray
     }
 
     // --- 4. Light Source (Bulb Model) ---
