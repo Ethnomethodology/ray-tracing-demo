@@ -29,6 +29,31 @@
     const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
     light.intensity = 0.5;
 
+    // --- 6. Annotations (GUI) ---
+    const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
+
+    function addLabel(name, mesh, offset = { x: 0, y: 0 }) {
+        const label = new BABYLON.GUI.Rectangle();
+        label.width = "140px";
+        label.height = "40px";
+        label.thickness = 0;
+        label.background = "transparent";
+        advancedTexture.addControl(label);
+        
+        const text = new BABYLON.GUI.TextBlock();
+        text.text = name;
+        text.color = "#333333";
+        text.fontSize = 20;
+        text.fontFamily = "Newsreader, serif";
+        text.fontWeight = "500";
+        label.addControl(text);
+        
+        label.linkWithMesh(mesh);
+        label.linkOffsetX = offset.x;
+        label.linkOffsetY = offset.y;
+        return label;
+    }
+
     // --- 1. Camera Model (replaces the nail) ---
     const cameraPos = new BABYLON.Vector3(0, 8, 14); // Lowered slightly (10 -> 8)
     const spherePos = new BABYLON.Vector3(0, -3.0, -11);
@@ -106,6 +131,15 @@
         blackMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
         blackMat.specularColor = new BABYLON.Color3(0, 0, 0);
         arrowHead.material = blackMat;
+
+        // Annotations
+        addLabel("Camera", cameraModel, { x: -80, y: -60 });
+        
+        // Ray Label (linked towards the object side of the ray)
+        const rayMidPoint = new BABYLON.AbstractMesh("rayMidPoint", scene);
+        // Move closer to object by using a 0.75 interpolation factor
+        rayMidPoint.position = lensOrigin.scale(0.25).add(surfacePoint.scale(0.75));
+        addLabel("Ray", rayMidPoint, { x: 0, y: 40 });
     });
 
     // --- 2. Image Plane (16x16 spreadsheet grid) ---
@@ -137,6 +171,7 @@
         }
     }
     frameGroup.position.set(0, 0, 2.25); // Image plane at default height, halfway in Z
+    addLabel("Image Plane", frameGroup, { x: 0, y: -140 });
 
     // --- 3. Subject (Sphere) ---
     if (typeof buildProceduralSphere === "function") {
@@ -147,6 +182,8 @@
         sphereMaterial.specularColor = new BABYLON.Color3(1, 1, 1);
         sphereMaterial.specularPower = 32;
         sphere.material = sphereMaterial;
+        
+        addLabel("Object", sphere, { x: 0, y: 80 });
     }
 
     // --- 4. Light Source (Bulb Model) ---
@@ -163,6 +200,8 @@
         pointLight.intensity = 1.5;
         pointLight.diffuse = new BABYLON.Color3(1, 1, 0.9);
         pointLight.range = 35;
+
+        addLabel("Light", bulbModel, { x: 80, y: 50 });
     });
 
     // (Table removed for clarity)
