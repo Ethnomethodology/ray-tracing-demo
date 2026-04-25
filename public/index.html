@@ -16,6 +16,17 @@
     <!-- Babylon.js CDN -->
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<style>
+        .references-list a {
+            position: relative;
+            text-decoration: none;
+            color: #722F37; /* Use theme color */
+        }
+        .references-list a:hover {
+            color: #4a1f24;
+            background: rgba(114, 47, 55, 0.05);
+        }
+    </style>
 </head>
 <body class="bg-parchment-base text-ink-charcoal antialiased flex flex-col min-h-screen">
 
@@ -183,14 +194,14 @@
             <div class="demo-right-column">
                 <div class="apparatus-preview-container">
                     <canvas id="previewCanvas"></canvas>
-                    <div id="pill-1" class="apparatus-pill" data-tooltip="Step 1">1</div>
-                    <div id="pill-2" class="apparatus-pill" data-tooltip="Step 2">2</div>
-                    <div id="pill-3" class="apparatus-pill" data-tooltip="Step 3">3</div>
-                    <div id="pill-4" class="apparatus-pill" data-tooltip="Step 4">4</div>
-                    <div id="pill-5" class="apparatus-pill" data-tooltip="Step 5">5</div>
-                    <div id="pill-6" class="apparatus-pill" data-tooltip="Step 6">6</div>
-                    <div id="pill-7" class="apparatus-pill" data-tooltip="Step 7">7</div>
-                    <div id="pill-8" class="apparatus-pill" data-tooltip="Step 8">8</div>
+                    <div id="pill-1" class="apparatus-pill" data-tooltip="Pulley">1</div>
+                    <div id="pill-2" class="apparatus-pill" data-tooltip="Thread">2</div>
+                    <div id="pill-3" class="apparatus-pill" data-tooltip="Weight">3</div>
+                    <div id="pill-4" class="apparatus-pill" data-tooltip="Vertical Frame">4</div>
+                    <div id="pill-5" class="apparatus-pill" data-tooltip="Door/Tablet">5</div>
+                    <div id="pill-6" class="apparatus-pill" data-tooltip="Point of Interest">6</div>
+                    <div id="pill-7" class="apparatus-pill" data-tooltip="Pointer">7</div>
+                    <div id="pill-8" class="apparatus-pill" data-tooltip="Subject">8</div>
                 </div>
             </div>
         </div>
@@ -272,14 +283,8 @@
                     </div>
                 </div>
 
-                <div class="canvas-container relative flex flex-col h-full w-full bg-white dark:bg-stone-950 rounded-lg overflow-hidden border border-stone-200 dark:border-stone-800">
-                    <div class="flex-grow relative h-[500px]">
-                        <canvas id="renderCanvas" class="absolute inset-0 w-full h-full"></canvas>
-                    </div>
-                    <div class="p-3 text-center border-t border-stone-200 dark:border-stone-800 bg-[#F8F6F0] dark:bg-stone-900">
-                        <span class="text-[#722F37] font-bold text-sm mr-1" style="font-family: 'Newsreader', serif;">Fig. 4:</span>
-                        <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Interactive 3D Simulation of Dürer's Apparatus.</span>
-                    </div>
+                <div class="canvas-container">
+                    <canvas id="renderCanvas"></canvas>
                     <div id="cameraInfo" class="camera-info-overlay" style="display: none;"></div>
 
                     <div class="action-buttons-overlay">
@@ -336,6 +341,10 @@
                         </select>
                     </div>
                 </div>
+                <div class="mt-4 text-center">
+                    <span class="text-[#722F37] font-bold text-sm mr-1" style="font-family: 'Newsreader', serif;">Fig. 4:</span>
+                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Interactive 3D Simulation of Dürer's Apparatus.</span>
+                </div>
             </div>
         </div>
     </section>
@@ -344,22 +353,22 @@
         <h2>References</h2>
         <ol class="references-list">
             <li>
-                <a href="https://artsandculture.google.com/asset/the-draughtsman-of-the-lute/CQHQAZiHEhh0dQ?hl=en" target="_blank" rel="noopener noreferrer">
+                <a href="https://artsandculture.google.com/asset/the-draughtsman-of-the-lute/CQHQAZiHEhh0dQ?hl=en" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     The Draughtsman of the Lute - Google Arts & Culture
                 </a>
             </li>
             <li>
-                <a href="https://www.vanedwards.co.uk/month/jul99/month.htm" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.vanedwards.co.uk/month/jul99/month.htm" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     Lute Design and the Woodcut of Dürer - Van Edwards
                 </a>
             </li>
             <li>
-                <a href="https://www.pablogarcia.org/testpage-sportello" target="_blank" rel="noopener noreferrer">
+                <a href="https://www.pablogarcia.org/testpage-sportello" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     The Sportello - Pablo Garcia
                 </a>
             </li>
             <li>
-                <a href="https://blogs.unimelb.edu.au/librarycollections/2017/08/13/finding-durers-perspective/" target="_blank" rel="noopener noreferrer">
+                <a href="https://blogs.unimelb.edu.au/librarycollections/2017/08/13/finding-durers-perspective/" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     Finding Dürer’s Perspective - University of Melbourne
                 </a>
             </li>
@@ -383,13 +392,13 @@
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 justify-between items-center text-sm font-ui-nav text-stone-500 px-4 mt-8 w-full gap-4" style="font-family: 'Inter', sans-serif;">
         <div class="md:text-left flex flex-col">
             <span class="text-lg font-bold italic text-stone-900 dark:text-stone-100 font-serif">Respecifying Ray Tracing</span>
+        </div>
+        <div class="text-center flex flex-col items-center">
+            <span>&copy; <a class="hover:text-ink-charcoal transition-colors" href="https://dipanjansaha.com">2026 Dipanjan Saha</a></span>
             <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" class="text-xs text-stone-400 hover:text-stone-600 transition-colors mt-1">CC-BY-4.0 License</a>
         </div>
-        <div class="text-center">
-            &copy; <a class="hover:text-ink-charcoal transition-colors" href="https://dipanjansaha.com">2026 Dipanjan Saha</a>
-        </div>
-        <div class="md:text-right flex items-center justify-end gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[#800020] dark:text-red-400"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
+        <div class="md:text-right flex items-center justify-end gap-2 text-[#800020] dark:text-red-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="currentColor"<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></svg>
             Developed with AI
         </div>
     </div>
