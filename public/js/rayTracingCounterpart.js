@@ -8,7 +8,7 @@
  * - Sphere remains the subject.
  */
 (function () {
-    function initRayTracingScene(canvasId, showLabels = true) {
+    function initRayTracingScene(canvasId, showLabels = true, animateRay = false) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
 
@@ -61,7 +61,7 @@
             return label;
         }
 
-        // --- 1. Camera Model (replaces the nail) ---
+        // --- 1. Camera Model ---
         const cameraPos = new BABYLON.Vector3(0, 8, 14);
         const spherePos = new BABYLON.Vector3(0, -3.0, -11);
 
@@ -97,13 +97,34 @@
 
             const direction = spherePos.subtract(lensOrigin).normalize();
             const surfacePoint = spherePos.subtract(direction.scale(2.0)); 
+            const totalDistance = BABYLON.Vector3.Distance(lensOrigin, surfacePoint);
             
-            const rayLine = BABYLON.MeshBuilder.CreateDashedLines("rayLine", {
-                points: [lensOrigin, surfacePoint],
-                dashSize: 1,
-                gapSize: 0.5
-            }, scene);
-            rayLine.color = new BABYLON.Color3(0, 0, 0);
+            // --- 5. Visual Ray (Animated Cylinder or Static Dashed Line) ---
+            let rayLine = null;
+            if (!animateRay) {
+                rayLine = BABYLON.MeshBuilder.CreateDashedLines("rayLine", {
+                    points: [lensOrigin, surfacePoint],
+                    dashSize: 1,
+                    gapSize: 0.5
+                }, scene);
+                rayLine.color = new BABYLON.Color3(0, 0, 0);
+            } else {
+                // Use a thin cylinder for smooth animation
+                rayLine = BABYLON.MeshBuilder.CreateCylinder("rayLine", {
+                    height: totalDistance,
+                    diameter: 0.05
+                }, scene);
+                const rayMat = new BABYLON.StandardMaterial("rayMat", scene);
+                rayMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+                rayMat.specularColor = new BABYLON.Color3(0, 0, 0);
+                rayLine.material = rayMat;
+                
+                // Align cylinder with the ray direction
+                rayLine.position = lensOrigin.add(direction.scale(totalDistance / 2));
+                rayLine.lookAt(surfacePoint);
+                rayLine.rotate(BABYLON.Axis.X, Math.PI / 2);
+                rayLine.setEnabled(false);
+            }
 
             const arrowHeight = 0.6;
             const arrowHead = BABYLON.MeshBuilder.CreateCylinder("arrowHead", {
@@ -113,14 +134,43 @@
                 tessellation: 12
             }, scene);
             
-            arrowHead.position = surfacePoint.subtract(direction.scale(arrowHeight / 2));
-            arrowHead.lookAt(spherePos);
-            arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2); 
-            
             const blackMat = new BABYLON.StandardMaterial("blackMat", scene);
             blackMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
             blackMat.specularColor = new BABYLON.Color3(0, 0, 0);
             arrowHead.material = blackMat;
+
+            if (!animateRay) {
+                arrowHead.position = surfacePoint.subtract(direction.scale(arrowHeight / 2));
+                arrowHead.lookAt(spherePos);
+                arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2); 
+            } else {
+                arrowHead.setEnabled(false);
+                let progress = 0;
+                scene.onBeforeRenderObservable.add(() => {
+                    progress += 0.008; // Speed of ray
+                    if (progress > 1.2) progress = 0; // Reset after pause
+
+                    const currentProgress = Math.min(progress, 1.0);
+                    const currentDist = totalDistance * currentProgress;
+                    const currentEndPoint = lensOrigin.add(direction.scale(currentDist));
+                    
+                    if (currentProgress > 0.01) {
+                        rayLine.setEnabled(true);
+                        // Scale the cylinder from its center
+                        rayLine.scaling.y = currentProgress;
+                        // Move its center to the midpoint of the current segment
+                        rayLine.position = lensOrigin.add(direction.scale(currentDist / 2));
+                        
+                        arrowHead.setEnabled(true);
+                        arrowHead.position = currentEndPoint.subtract(direction.scale(arrowHeight / 2));
+                        arrowHead.lookAt(spherePos);
+                        arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
+                    } else {
+                        rayLine.setEnabled(false);
+                        arrowHead.setEnabled(false);
+                    }
+                });
+            }
 
             if (showLabels) {
                 addLabel("Camera", cameraModel, new BABYLON.Vector3(-3, 4, -2));
@@ -189,6 +239,6 @@
     }
 
     // Initialize scenes
-    initRayTracingScene("rayTracingCanvas", true);
-    initRayTracingScene("rayTracingCanvasFinal", false);
+    initRayTracingScene("rayTracingCanvas", true, false);
+    initRayTracingScene("rayTracingCanvasFinal", false, true);
 })();
