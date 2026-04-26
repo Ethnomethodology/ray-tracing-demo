@@ -61,6 +61,41 @@
             return label;
         }
 
+        // --- 2. Image Plane ---
+        const gridSize = 10;
+        const resolution = 16;
+        const pixelSize = gridSize / resolution;
+        
+        const cellMaterial = new BABYLON.StandardMaterial("cellMaterial", scene);
+        cellMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+        cellMaterial.alpha = 0.2;
+        cellMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        const paintedMat = new BABYLON.StandardMaterial("paintedMat", scene);
+        paintedMat.diffuseColor = new BABYLON.Color3(0.6, 0.4, 0.2); // Sphere color
+        paintedMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        const frameGroup = new BABYLON.TransformNode("frameGroup", scene);
+        for (let x = 0; x < resolution; x++) {
+            for (let y = 0; y < resolution; y++) {
+                // Include canvasId to make cells uniquely identifiable for animation
+                const cell = BABYLON.MeshBuilder.CreatePlane(`cell_${canvasId}_${x}_${y}`, { 
+                    size: pixelSize,
+                    sideOrientation: BABYLON.Mesh.DOUBLESIDE
+                }, scene);
+                cell.parent = frameGroup;
+                cell.position.x = (x - (resolution - 1) / 2) * pixelSize;
+                cell.position.y = (y - (resolution - 1) / 2) * pixelSize;
+                cell.position.z = 0;
+                cell.material = cellMaterial;
+                cell.enableEdgesRendering();
+                cell.edgesWidth = 4.0;
+                cell.edgesColor = new BABYLON.Color4(0.2, 0.4, 1.0, 1.0);
+            }
+        }
+        frameGroup.position.set(0, 0, 2.25); 
+        if (showLabels) addLabel("Image Plane", frameGroup, new BABYLON.Vector3(0, 6, 0));
+
         // --- 1. Camera Model ---
         const cameraPos = new BABYLON.Vector3(0, 8, 14);
         const spherePos = new BABYLON.Vector3(0, -3.0, -11);
@@ -99,6 +134,13 @@
             const surfacePoint = spherePos.subtract(direction.scale(2.0)); 
             const totalDistance = BABYLON.Vector3.Distance(lensOrigin, surfacePoint);
             
+            // Intersection with the grid plane (z = 2.25)
+            const tPlane = (2.25 - lensOrigin.z) / direction.z;
+            const ix = lensOrigin.x + direction.x * tPlane;
+            const iy = lensOrigin.y + direction.y * tPlane;
+            const gridX = Math.round(ix / pixelSize + (resolution - 1) / 2);
+            const gridY = Math.round(iy / pixelSize + (resolution - 1) / 2);
+
             // --- 5. Visual Rays (Animated or Static) ---
             const bulbPos = new BABYLON.Vector3(0, 15, -11);
             let rayLine = null;
@@ -174,9 +216,17 @@
             } else {
                 arrowHead.setEnabled(false);
                 let progress = 0;
+                let pixelPainted = false;
                 scene.onBeforeRenderObservable.add(() => {
                     progress += 0.008; 
-                    if (progress > 1.5) progress = 0; // Reset after pause
+                    if (progress > 1.8) {
+                        progress = 0; // Reset after pause
+                        if (pixelPainted) {
+                            const cell = scene.getMeshByName(`cell_${canvasId}_${gridX}_${gridY}`);
+                            if (cell) cell.material = cellMaterial;
+                            pixelPainted = false;
+                        }
+                    }
 
                     // Phase 1: Camera -> Sphere (0.0 to 0.6)
                     if (progress <= 0.6) {
@@ -218,6 +268,14 @@
                         lightArrowHead.lookAt(bulbPos);
                         lightArrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
                     }
+                    // Phase 3: Paint the Pixel (1.2 to 1.8)
+                    else if (progress > 1.2 && !pixelPainted) {
+                        const cell = scene.getMeshByName(`cell_${canvasId}_${gridX}_${gridY}`);
+                        if (cell) {
+                            cell.material = paintedMat;
+                            pixelPainted = true;
+                        }
+                    }
                 });
             }
 
@@ -229,32 +287,6 @@
             }
         });
 
-        // --- 2. Image Plane ---
-        const gridSize = 10;
-        const resolution = 16;
-        const pixelSize = gridSize / resolution;
-        
-        const cellMaterial = new BABYLON.StandardMaterial("cellMaterial", scene);
-        cellMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
-        cellMaterial.alpha = 0.2;
-        cellMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
-
-        const frameGroup = new BABYLON.TransformNode("frameGroup", scene);
-        for (let x = 0; x < resolution; x++) {
-            for (let y = 0; y < resolution; y++) {
-                const cell = BABYLON.MeshBuilder.CreatePlane(`cell_${x}_${y}`, { size: pixelSize }, scene);
-                cell.parent = frameGroup;
-                cell.position.x = (x - (resolution - 1) / 2) * pixelSize;
-                cell.position.y = (y - (resolution - 1) / 2) * pixelSize;
-                cell.position.z = 0;
-                cell.material = cellMaterial;
-                cell.enableEdgesRendering();
-                cell.edgesWidth = 4.0;
-                cell.edgesColor = new BABYLON.Color4(0.2, 0.4, 1.0, 1.0);
-            }
-        }
-        frameGroup.position.set(0, 0, 2.25); 
-        if (showLabels) addLabel("Image Plane", frameGroup, new BABYLON.Vector3(0, 6, 0));
 
         // --- 3. Subject ---
         if (typeof buildProceduralSphere === "function") {
