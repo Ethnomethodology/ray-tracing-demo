@@ -266,7 +266,7 @@
             r2_3_arrow.setEnabled(false);
 
             // --- 7. Shadow Ray Path (For Slide 3) ---
-            const target3 = new BABYLON.Vector3(1.8, -2.12, -11); // Moved right to skip two pixels and hit a new one
+            const target3 = new BABYLON.Vector3(1.2, -4.6, -11); // Bottom part of sphere
             const dir3 = target3.subtract(lensOrigin).normalize();
             const dist3 = BABYLON.Vector3.Distance(lensOrigin, target3);
             
@@ -276,10 +276,6 @@
             const i3y = lensOrigin.y + dir3.y * tP3;
             const g3X = Math.round(i3x / pixelSize + (resolution - 1) / 2);
             const g3Y = Math.round(i3y / pixelSize + (resolution - 1) / 2);
-
-            const redCubeBottom = new BABYLON.Vector3(1.8, 4.25, -11); // Hit point on red cube bottom
-            const dist3_2 = BABYLON.Vector3.Distance(target3, redCubeBottom);
-            const dir3_2 = redCubeBottom.subtract(target3).normalize();
 
             // Meshes for Ray 3
             const r3_1 = BABYLON.MeshBuilder.CreateCylinder("r3_1", { height: dist3, diameter: 0.05 }, scene);
@@ -292,14 +288,42 @@
             const r3_1_arrow = arrowHead.clone("r3_1_arrow");
             r3_1_arrow.setEnabled(false);
 
-            const r3_2 = BABYLON.MeshBuilder.CreateCylinder("r3_2", { height: dist3_2, diameter: 0.05 }, scene);
-            r3_2.material = blackMat;
-            r3_2.position = target3.add(dir3_2.scale(dist3_2/2));
-            r3_2.lookAt(redCubeBottom);
-            r3_2.rotate(BABYLON.Axis.X, Math.PI/2);
-            r3_2.setEnabled(false);
+            const toBulb3Dir = bulbPos.subtract(target3).normalize();
+            const toBulb3Dist = BABYLON.Vector3.Distance(target3, bulbPos) - 2.1;
+            
+            const r3_2_dashed = BABYLON.MeshBuilder.CreateCylinder("r3_2_dashed", {
+                height: toBulb3Dist,
+                diameter: 0.08
+            }, scene);
+            
+            const dashMat = new BABYLON.StandardMaterial("dashMat", scene);
+            const dashTex = new BABYLON.DynamicTexture("dashTex", { width: 512, height: 64 }, scene);
+            const dashCtx = dashTex.getContext();
+            dashCtx.clearRect(0, 0, 512, 64);
+            dashCtx.fillStyle = "#ff0000"; // Pure red
+            dashCtx.fillRect(0, 0, 350, 64); 
+            dashTex.update();
+            dashTex.hasAlpha = true;
+            dashTex.uScale = 4; 
+            dashMat.diffuseTexture = dashTex;
+            dashMat.emissiveTexture = dashTex; // Make it self-illuminated
+            dashMat.useAlphaFromDiffuseTexture = true;
+            dashMat.specularColor = new BABYLON.Color3(0, 0, 0);
+            dashMat.emissiveColor = new BABYLON.Color3(1, 0, 0); // Bright red glow
+            
+            r3_2_dashed.material = dashMat;
+            r3_2_dashed.position = target3.add(toBulb3Dir.scale(toBulb3Dist / 2));
+            r3_2_dashed.lookAt(bulbPos);
+            r3_2_dashed.rotate(BABYLON.Axis.X, Math.PI / 2);
+            r3_2_dashed.setEnabled(false);
+
+            const redMat = new BABYLON.StandardMaterial("redMat", scene);
+            redMat.diffuseColor = new BABYLON.Color3(1, 0, 0);
+            redMat.emissiveColor = new BABYLON.Color3(1, 0, 0); // Self-illuminated arrow head
+            redMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
             const r3_2_arrow = arrowHead.clone("r3_2_arrow");
+            r3_2_arrow.material = redMat;
             r3_2_arrow.setEnabled(false);
 
             if (!animateRay) {
@@ -313,14 +337,37 @@
                 let pixel2Painted = false;
                 let pixel3Painted = false;
 
+                let lastStep = window.currentRayStep;
                 scene.onBeforeRenderObservable.add(() => {
+                    // --- Phase Transition Reset ---
+                    if (window.currentRayStep !== lastStep) {
+                        // Reset all animation meshes
+                        [rayLine, lightRayLine, arrowHead, lightArrowHead, 
+                         r2_1, r2_1_arrow, r2_2, r2_2_arrow, r2_3, r2_3_arrow,
+                         r3_1, r3_1_arrow, r3_2_dashed, r3_2_arrow].forEach(m => {
+                            if (m) m.setEnabled(false);
+                        });
+                        
+                        // Reset all grid cells to default material
+                        for (let x = 0; x < resolution; x++) {
+                            for (let y = 0; y < resolution; y++) {
+                                const cell = scene.getMeshByName(`cell_${canvasId}_${x}_${y}`);
+                                if (cell) cell.material = cellMaterial;
+                            }
+                        }
+                        
+                        // Reset animation state
+                        progress = 0;
+                        pixelPainted = false;
+                        pixel2Painted = false;
+                        pixel3Painted = false;
+                        lastStep = window.currentRayStep;
+                    }
+
                     const cube = scene.getMeshByName("obstacleCube");
                     if (cube) cube.setEnabled(window.currentRayStep > 1 && window.currentRayStep < 3); // Hide blue in 3
                     const occluderLabel = scene.getMeshByName("Occluder_anchor");
                     if (occluderLabel) occluderLabel.setEnabled(window.currentRayStep > 1 && window.currentRayStep < 3);
-
-                    const redCube = scene.getMeshByName("redCube");
-                    if (redCube) redCube.setEnabled(window.currentRayStep === 3);
 
                     // --- Slide 3: Shadow Animation ---
                     if (window.currentRayStep === 3) {
@@ -353,21 +400,23 @@
                         // Phase 1: Lens -> Sphere
                         if (progress <= 0.6) {
                             const p = progress / 0.6;
-                            const ep = lensOrigin.add(dir3.scale(dist3 * p));
+                            const d = dist3 * p;
+                            const ep = lensOrigin.add(dir3.scale(d));
                             r3_1.setEnabled(true);
                             r3_1.scaling.y = p;
-                            r3_1.position = lensOrigin.add(dir3.scale((dist3 * p) / 2));
+                            r3_1.position = lensOrigin.add(dir3.scale(d / 2));
                             r3_1_arrow.setEnabled(true);
                             r3_1_arrow.position = ep.subtract(dir3.scale(arrowHeight / 2));
                             r3_1_arrow.lookAt(target3);
                             r3_1_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
-                            r3_2.setEnabled(false);
+                            r3_2_dashed.setEnabled(false);
                             r3_2_arrow.setEnabled(false);
                         } 
-                        // Phase 2: Sphere -> Red Cube Bottom
+                        // Phase 2: Sphere -> Light (Dashed)
                         else if (progress <= 1.2) {
                             const p = (progress - 0.6) / 0.6;
-                            const ep = target3.add(dir3_2.scale(dist3_2 * p));
+                            const currentDist = toBulb3Dist * p;
+                            const ep = target3.add(toBulb3Dir.scale(currentDist));
                             
                             // Ensure Segment 1 is finalized
                             r3_1.setEnabled(true);
@@ -378,12 +427,13 @@
                             r3_1_arrow.lookAt(target3);
                             r3_1_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
 
-                            r3_2.setEnabled(true);
-                            r3_2.scaling.y = p;
-                            r3_2.position = target3.add(dir3_2.scale((dist3_2 * p) / 2));
+                            r3_2_dashed.setEnabled(true);
+                            r3_2_dashed.scaling.y = p;
+                            r3_2_dashed.position = target3.add(toBulb3Dir.scale(currentDist / 2));
+
                             r3_2_arrow.setEnabled(true);
-                            r3_2_arrow.position = ep.subtract(dir3_2.scale(arrowHeight / 2));
-                            r3_2_arrow.lookAt(redCubeBottom);
+                            r3_2_arrow.position = ep.subtract(toBulb3Dir.scale(arrowHeight / 2));
+                            r3_2_arrow.lookAt(bulbPos);
                             r3_2_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
                         }
                         // Phase 3: Paint Black
@@ -397,12 +447,13 @@
                             r3_1_arrow.lookAt(target3);
                             r3_1_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
 
-                            r3_2.setEnabled(true);
-                            r3_2.scaling.y = 1.0;
-                            r3_2.position = target3.add(dir3_2.scale(dist3_2 / 2));
+                            r3_2_dashed.setEnabled(true);
+                            r3_2_dashed.scaling.y = 1.0;
+                            r3_2_dashed.position = target3.add(toBulb3Dir.scale(toBulb3Dist / 2));
+
                             r3_2_arrow.setEnabled(true);
-                            r3_2_arrow.position = redCubeBottom.subtract(dir3_2.scale(arrowHeight / 2));
-                            r3_2_arrow.lookAt(redCubeBottom);
+                            r3_2_arrow.position = target3.add(toBulb3Dir.scale(toBulb3Dist)).subtract(toBulb3Dir.scale(arrowHeight / 2));
+                            r3_2_arrow.lookAt(bulbPos);
                             r3_2_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
 
                             if (!pixel3Painted) {
@@ -435,7 +486,7 @@
                         lightArrowHead.setEnabled(false);
                         r3_1.setEnabled(false);
                         r3_1_arrow.setEnabled(false);
-                        r3_2.setEnabled(false);
+                        r3_2_dashed.setEnabled(false);
                         r3_2_arrow.setEnabled(false);
 
                         // Recursive Phases
@@ -521,7 +572,7 @@
                     r2_3_arrow.setEnabled(false);
                     r3_1.setEnabled(false);
                     r3_1_arrow.setEnabled(false);
-                    r3_2.setEnabled(false);
+                    r3_2_dashed.setEnabled(false);
                     r3_2_arrow.setEnabled(false);
 
                     progress += 0.008; 
@@ -547,6 +598,8 @@
                         arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
                         lightRayLine.setEnabled(false);
                         lightArrowHead.setEnabled(false);
+                        r3_2_dashed.setEnabled(false);
+                        r3_2_arrow.setEnabled(false);
                     } else if (progress <= 1.2) {
                         const p2 = Math.min((progress - 0.6) / 0.6, 1.0);
                         const toBulbDir = bulbPos.subtract(surfacePoint).normalize();
@@ -601,15 +654,6 @@
             cubeMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.8); // Sober blue
             cubeMat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
             cube.material = cubeMat;
-
-            // Add red cube (Slide 3 specific)
-            const redCube = BABYLON.MeshBuilder.CreateBox("redCube", { size: 3.5 }, scene);
-            redCube.position.set(0.5, 6, -11); // Shifted right to block the new ray path
-            const redCubeMat = new BABYLON.StandardMaterial("redCubeMat", scene);
-            redCubeMat.diffuseColor = new BABYLON.Color3(0.8, 0.2, 0.2); // Vibrant red
-            redCubeMat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-            redCube.material = redCubeMat;
-            redCube.setEnabled(false);
 
             const sphereMaterial = new BABYLON.StandardMaterial("sphereMat", scene);
             sphereMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.9, 0.5);
