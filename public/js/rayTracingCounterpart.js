@@ -266,7 +266,7 @@
             r2_3_arrow.setEnabled(false);
 
             // --- 7. Shadow Ray Path (For Slide 3) ---
-            const target3 = new BABYLON.Vector3(0.5, -1.2, -11); // Slightly off-center top
+            const target3 = new BABYLON.Vector3(1.8, -2.12, -11); // Moved right to skip two pixels and hit a new one
             const dir3 = target3.subtract(lensOrigin).normalize();
             const dist3 = BABYLON.Vector3.Distance(lensOrigin, target3);
             
@@ -277,7 +277,7 @@
             const g3X = Math.round(i3x / pixelSize + (resolution - 1) / 2);
             const g3Y = Math.round(i3y / pixelSize + (resolution - 1) / 2);
 
-            const redCubeBottom = new BABYLON.Vector3(0.5, 4.25, -11); // Hit point on red cube bottom
+            const redCubeBottom = new BABYLON.Vector3(1.8, 4.25, -11); // Hit point on red cube bottom
             const dist3_2 = BABYLON.Vector3.Distance(target3, redCubeBottom);
             const dir3_2 = redCubeBottom.subtract(target3).normalize();
 
@@ -604,7 +604,7 @@
 
             // Add red cube (Slide 3 specific)
             const redCube = BABYLON.MeshBuilder.CreateBox("redCube", { size: 3.5 }, scene);
-            redCube.position.set(0, 6, -11);
+            redCube.position.set(0.5, 6, -11); // Shifted right to block the new ray path
             const redCubeMat = new BABYLON.StandardMaterial("redCubeMat", scene);
             redCubeMat.diffuseColor = new BABYLON.Color3(0.8, 0.2, 0.2); // Vibrant red
             redCubeMat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
