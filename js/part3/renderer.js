@@ -114,19 +114,32 @@ export class PathTracer {
 
                 // Set SPP and Reset
                 this.targetSPP = parseInt(tab.dataset.spp);
-                this.reset();
+                this.reset().catch(console.error);
             });
         });
     }
 
-    reset() {
-        this.color_buffer.fill([0, 0, 0]);
-        this.tonemapped_buffer.fill([0, 0, 0, 0]);
-        this.count_var.fill(0);
+    async reset() {
+        const wasPaused = this.isPaused;
+        this.isPaused = true;
+        
+        this.clearKernel();
         this.totalSamples = 0;
+        await ti.sync();
+        
+        this.canvas.setImage(this.tonemapped_buffer);
+        this.isPaused = wasPaused;
     }
 
     setupKernels() {
+        this.clearKernel = ti.kernel(() => {
+            for (let I of ti.ndrange(res[0], res[1])) {
+                color_buffer[I] = [0.0, 0.0, 0.0];
+                tonemapped_buffer[I] = [0.0, 0.0, 0.0, 0.0];
+            }
+            count_var[0] = 0;
+        });
+
         ti.addToKernelScope({
             intersect_light: (pos, d, tmax, t) => {
                 let far_t = f32(inf);
@@ -289,7 +302,7 @@ export class PathTracer {
         });
 
         this.renderKernel = ti.kernel(() => {
-            for (let UV of ndrange(res[0], res[1])) {
+            for (let UV of ti.ndrange(res[0], res[1])) {
                 let u = UV[0];
                 let v = UV[1];
                 let aspect_ratio = res[0] / res[1];
@@ -340,7 +353,7 @@ export class PathTracer {
         });
 
         this.tonemapKernel = ti.kernel((accumulated) => {
-            for (let I of ndrange(res[0], res[1])) {
+            for (let I of ti.ndrange(res[0], res[1])) {
                 let color = ti.sqrt((color_buffer[I] / accumulated) * 100.0);
                 tonemapped_buffer[I] = [color.x, color.y, color.z, 1.0];
             }
@@ -352,18 +365,18 @@ export class PathTracer {
         let last_t = new Date().getTime();
 
         const frame = async () => {
-            if (this.isPaused) return;
-            
-            if (this.totalSamples < this.targetSPP) {
+            if (!this.isPaused && this.totalSamples < this.targetSPP) {
                 const burst = Math.min(interval, this.targetSPP - this.totalSamples);
                 for (let i = 0; i < burst; ++i) {
                     this.renderKernel();
                     this.totalSamples += 1;
                 }
-                this.tonemapKernel(this.totalSamples);
-                await ti.sync();
                 
-                this.canvas.setImage(this.tonemapped_buffer);
+                if (this.totalSamples > 0) {
+                    this.tonemapKernel(this.totalSamples);
+                    await ti.sync();
+                    this.canvas.setImage(this.tonemapped_buffer);
+                }
             }
             
             requestAnimationFrame(frame);
