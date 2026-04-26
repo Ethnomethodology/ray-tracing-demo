@@ -14,8 +14,9 @@ export class PathTracer {
         this.canvasId = canvasId;
         this.res = [800, 800];
         this.totalSamples = 0;
+        this.targetSPP = 1024;
         this.isPaused = false;
-        
+
         // Scene Parameters
         this.params = {
             max_ray_depth: 10,
@@ -40,22 +41,10 @@ export class PathTracer {
 
         // Scene Objects
         this.scene = {
-            sphere_center: [0.4, 0.225, 1.75],
-            sphere_radius: 0.22,
-            box_min: [0.0, 0.0, 0.0],
-            box_max: [0.55, 1.1, 0.55],
-            box_m_inv: [
-                [0.92387953, 0, -0.38268343, 0.91459408],
-                [0, 1, 0, 0],
-                [0.38268343, 0, 0.92387953, -0.37883727],
-                [0, 0, 0, 1],
-            ],
-            box_m_inv_t: [
-                [0.92387953, 0, 0.38268343, 0],
-                [0, 1, 0, 0],
-                [-0.38268343, 0, 0.92387953, 0],
-                [0.91459408, 0, -0.37883727, 1],
-            ]
+            sp1_center: [0.4, 0.33, 1.75],
+            sp1_radius: 0.33,
+            sp2_center: [-0.35, 0.33, 0.6],
+            sp2_radius: 0.33
         };
     }
 
@@ -72,17 +61,17 @@ export class PathTracer {
             color_buffer: this.color_buffer,
             tonemapped_buffer: this.tonemapped_buffer,
             count_var: this.count_var,
-            
+
             // Params
             ...this.params,
-            
+
             // Materials
             mat_none: Materials.NONE,
             mat_lambertian: Materials.LAMBERTIAN,
             mat_specular: Materials.SPECULAR,
             mat_glass: Materials.GLASS,
             mat_light: Materials.LIGHT,
-            
+
             // Light
             light_min_pos: this.light.pos_min,
             light_max_pos: this.light.pos_max,
@@ -90,15 +79,13 @@ export class PathTracer {
             light_normal: this.light.normal,
             light_area: this.light.area,
             light_y_pos: this.light.pos_min[1],
-            
+
             // Scene
-            sp1_center: this.scene.sphere_center,
-            sp1_radius: this.scene.sphere_radius,
-            box_min: this.scene.box_min,
-            box_max: this.scene.box_max,
-            box_m_inv: this.scene.box_m_inv,
-            box_m_inv_t: this.scene.box_m_inv_t,
-            
+            sp1_center: this.scene.sp1_center,
+            sp1_radius: this.scene.sp1_radius,
+            sp2_center: this.scene.sp2_center,
+            sp2_radius: this.scene.sp2_radius,
+
             // Modular Functions
             ...MathUtils,
             ...Geometry,
@@ -112,24 +99,36 @@ export class PathTracer {
         htmlCanvas.width = 500;
         htmlCanvas.height = 500;
         this.canvas = new ti.Canvas(htmlCanvas);
+
+        this.setupUI();
+    }
+
+    setupUI() {
+        const selector = document.getElementById('spp_selector');
+        const resetBtn = document.getElementById('reset_btn');
+        this.sppDisplay = document.getElementById('current_spp');
+
+        if (selector) {
+            selector.addEventListener('change', (e) => {
+                this.targetSPP = parseInt(e.target.value);
+            });
+        }
+
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this.reset());
+        }
+    }
+
+    reset() {
+        this.color_buffer.fill([0, 0, 0]);
+        this.tonemapped_buffer.fill([0, 0, 0, 0]);
+        this.count_var.fill(0);
+        this.totalSamples = 0;
+        if (this.sppDisplay) this.sppDisplay.innerText = '0';
     }
 
     setupKernels() {
-        // High-level scene intersection function
         ti.addToKernelScope({
-            intersect_aabb_transformed: (box_min, box_max, o, d, near_t, near_norm) => {
-                let obj_o = mat_mul_point(box_m_inv, o);
-                let obj_d = mat_mul_vec(box_m_inv, d);
-                let far_t = f32(inf);
-                let intersect = intersect_aabb(box_min, box_max, obj_o, obj_d, near_t, far_t, near_norm);
-                if (intersect && 0 < near_t) {
-                    near_norm = mat_mul_vec(box_m_inv_t, near_norm);
-                } else {
-                    intersect = 0;
-                }
-                return intersect;
-            },
-
             intersect_light: (pos, d, tmax, t) => {
                 let far_t = f32(inf);
                 let near_norm = f32([0, 0, 0]);
@@ -146,7 +145,7 @@ export class PathTracer {
                 let cur_dist = f32(inf);
                 let hit_pos = [0.0, 0.0, 0.0];
 
-                // Sphere
+                // Sphere 1 (Glass)
                 cur_dist = intersect_sphere(pos, ray_dir, sp1_center, sp1_radius, hit_pos);
                 if (0 < cur_dist && cur_dist < closest) {
                     closest = cur_dist;
@@ -155,39 +154,39 @@ export class PathTracer {
                     mat = mat_glass;
                 }
 
-                // Transformed Box
-                let pnorm = f32([0, 0, 0]);
-                let hit = intersect_aabb_transformed(box_min, box_max, pos, ray_dir, cur_dist, pnorm);
-                if (hit && 0 < cur_dist && cur_dist < closest) {
+                // Sphere 2 (Mirror)
+                cur_dist = intersect_sphere(pos, ray_dir, sp2_center, sp2_radius, hit_pos);
+                if (0 < cur_dist && cur_dist < closest) {
                     closest = cur_dist;
-                    normal = pnorm;
-                    c = [0.8, 0.5, 0.4];
+                    normal = (hit_pos - sp2_center).normalized();
+                    c = [0.95, 0.95, 0.95];
                     mat = mat_specular;
                 }
 
                 // Walls (Planes)
                 let gray = [0.93, 0.93, 0.93];
-                
+                let pnorm = [0.0, 0.0, 0.0];
+
                 // Left
                 pnorm = [1.0, 0.0, 0.0];
                 intersect_plane(pos, ray_dir, [-1.1, 0.0, 0.0], pnorm, cur_dist, hit_pos);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = [0.65, 0.05, 0.05]; mat = mat_lambertian; }
-                
+
                 // Right
                 pnorm = [-1.0, 0.0, 0.0];
                 intersect_plane(pos, ray_dir, [1.1, 0.0, 0.0], pnorm, cur_dist, hit_pos);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = [0.12, 0.45, 0.15]; mat = mat_lambertian; }
-                
+
                 // Bottom
                 pnorm = [0.0, 1.0, 0.0];
                 intersect_plane(pos, ray_dir, [0.0, 0.0, 0.0], pnorm, cur_dist, hit_pos);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = gray; mat = mat_lambertian; }
-                
+
                 // Top
                 pnorm = [0.0, -1.0, 0.001];
                 intersect_plane(pos, ray_dir, [0.0, 2.0, 0.0], pnorm, cur_dist, hit_pos);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = gray; mat = mat_lambertian; }
-                
+
                 // Far
                 pnorm = [0.0, 0.0, 1.0];
                 intersect_plane(pos, ray_dir, [0.0, 0.0, 0.0], pnorm, cur_dist, hit_pos);
@@ -299,7 +298,7 @@ export class PathTracer {
                 let cur_iter = count_var[0];
                 let str_x = i32(cur_iter / stratify_res);
                 let str_y = cur_iter % stratify_res;
-                
+
                 let ray_dir = [
                     (2 * fov * (u + (str_x + ti.random()) * inv_stratify)) / res[1] - fov * aspect_ratio - 1e-5,
                     (2 * fov * (v + (str_y + ti.random()) * inv_stratify)) / res[1] - fov - 1e-5,
@@ -329,7 +328,7 @@ export class PathTracer {
                     let pdf = 1.0;
                     ray_dir = sample_ray_dir(ray_dir, hit_normal, mat, pdf);
                     pos = hit_pos + 1e-4 * ray_dir;
-                    
+
                     if (mat == mat_lambertian) {
                         throughput = (throughput * lambertian_brdf * hit_color * dot_or_zero(hit_normal, ray_dir)) / pdf;
                     } else {
@@ -352,22 +351,26 @@ export class PathTracer {
     async run() {
         const interval = 10;
         let last_t = new Date().getTime();
-        
+
         const frame = async () => {
             if (this.isPaused) return;
             
-            for (let i = 0; i < interval; ++i) {
-                this.renderKernel();
-                this.totalSamples += 1;
+            if (this.totalSamples < this.targetSPP) {
+                const burst = Math.min(interval, this.targetSPP - this.totalSamples);
+                for (let i = 0; i < burst; ++i) {
+                    this.renderKernel();
+                    this.totalSamples += 1;
+                }
+                this.tonemapKernel(this.totalSamples);
+                await ti.sync();
+                
+                if (this.sppDisplay) {
+                    this.sppDisplay.innerText = this.totalSamples;
+                }
+                
+                this.canvas.setImage(this.tonemapped_buffer);
             }
-            this.tonemapKernel(this.totalSamples);
-            await ti.sync();
             
-            const curr_t = new Date().getTime();
-            const samplesPerSecond = interval / ((curr_t - last_t) / 1000.0);
-            last_t = curr_t;
-            
-            this.canvas.setImage(this.tonemapped_buffer);
             requestAnimationFrame(frame);
         };
         await frame();

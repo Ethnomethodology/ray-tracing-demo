@@ -136,7 +136,7 @@
                             </p>
                             <ul class="list-disc pl-6 space-y-4">
                                 <li><strong>Glass Sphere:</strong> A dielectric material with a refractive index of 2.4, simulating realistic refraction and caustics.</li>
-                                <li><strong>Specular Box:</strong> A rotated cuboid with a perfectly reflective surface, capturing the surrounding environment.</li>
+                                <li><strong>Mirror Sphere:</strong> A perfectly reflective specular surface, mirroring the environment and the glass sphere.</li>
                                 <li><strong>Area Light:</strong> A rectangular light source at the ceiling that produces soft, physically accurate shadows.</li>
                                 <li><strong>Lambertian Walls:</strong> Diffuse surfaces (Red, Green, and Gray) that contribute to global illumination through color bleeding.</li>
                             </ul>
@@ -145,8 +145,29 @@
                 </div>
 
                 <!-- Right Column: Canvas -->
-                <div class="demo-right-column items-center justify-center">
-                    <div class="flex items-center justify-center w-full h-full">
+                <div class="demo-right-column items-center justify-center relative">
+                    <!-- SPP Controls -->
+                    <div class="absolute top-4 left-4 z-10 flex flex-col gap-2 bg-black/60 backdrop-blur-md p-3 rounded-lg text-white font-ui-nav text-xs border border-white/10">
+                        <div class="flex items-center justify-between gap-4">
+                            <span>Target SPP:</span>
+                            <select id="spp_selector" class="bg-stone-800 text-white border border-stone-600 rounded px-1 py-0.5 outline-none cursor-pointer">
+                                <option value="1">1</option>
+                                <option value="16">16</option>
+                                <option value="64">64</option>
+                                <option value="256">256</option>
+                                <option value="1024" selected>1024</option>
+                                <option value="4096">4096</option>
+                                <option value="16384">16384</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center justify-between gap-4">
+                            <span>Current SPP:</span>
+                            <span id="current_spp" class="font-bold text-red-400">0</span>
+                        </div>
+                        <button id="reset_btn" class="mt-2 bg-red-900/50 hover:bg-red-900 transition-colors py-1 rounded border border-red-500/30">Reset Accumulation</button>
+                    </div>
+
+                    <div class="flex items-center justify-center w-full h-full p-8">
                         <canvas id="result_canvas"></canvas>
                     </div>
                     <div class="mt-4 text-center">
