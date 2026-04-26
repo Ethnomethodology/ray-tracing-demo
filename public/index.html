@@ -368,24 +368,42 @@
         </div>
     </section>
 
-    <section class="demo-section">
+    <section class="demo-section ray-tracing-walkthrough-section">
         <div class="demo-layout">
             <div class="demo-left-column">
                 <div class="text-content">
                     <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">The Abstracted Synthesis</h2>
-                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-8">
-                        When we remove the annotations, we see the pure geometric synthesis of the scene. Each pixel on the grid is the result of a mathematical calculation—a ray shot from the camera, through a pixel, and into the 3D space to find an intersection. This process, repeated thousands or millions of times, is what generates the images we see on our modern screens.
-                    </p>
+                    <div class="instruction-steps" id="raytracing-steps">
+                        <div class="step active" data-step="1">
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Phase 1: The Sighting Ray</strong><br>A ray is cast from the camera lens through a pixel on the digital grid to find the nearest object.</p>
+                        </div>
+                        <div class="step" data-step="2">
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Phase 2: The Shadow Ray</strong><br>From the hit point, a second ray is cast towards the light source to determine visibility and shading.</p>
+                        </div>
+                        <div class="step" data-step="3">
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Phase 3: Pixel Synthesis</strong><br>The computer calculates the final color and "paints" the pixel on the 2D grid.</p>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <button id="prevRaytracingBtn" class="nav-btn" disabled>Previous</button>
+                        <button id="nextRaytracingBtn" class="nav-btn">Next</button>
+                    </div>
                 </div>
             </div>
 
             <div class="demo-right-column">
                 <div class="canvas-container">
                     <canvas id="rayTracingCanvasFinal"></canvas>
+                    <button id="raytracingPrev" class="canvas-nav-btn prev bottom" aria-label="Previous Step">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <button id="raytracingNext" class="canvas-nav-btn next bottom" aria-label="Next Step">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
                 </div>
                 <div class="mt-4 text-center">
                     <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 6:</span>
-                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Computational Counterpart: Unobstructed View.</span>
+                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Computational Counterpart: The Recursive Path.</span>
                 </div>
             </div>
         </div>
