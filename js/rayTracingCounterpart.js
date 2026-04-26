@@ -103,7 +103,7 @@
         const cameraPos = new BABYLON.Vector3(0, 8, 14);
         const spherePos = new BABYLON.Vector3(0, -3.0, -11);
 
-        BABYLON.SceneLoader.ImportMeshAsync("", "models/", "camera.glb", scene).then((result) => {
+        BABYLON.SceneLoader.ImportMeshAsync("", (window.assetBaseUrl || "") + "models/", "camera.glb", scene).then((result) => {
             const cameraModel = result.meshes[0];
             cameraModel.position.copyFrom(cameraPos);
             cameraModel.scaling.setAll(0.8);
@@ -672,7 +672,7 @@
 
         // --- 4. Light Source ---
         const bulbPos = new BABYLON.Vector3(0, 15, -11);
-        BABYLON.SceneLoader.ImportMeshAsync("", "models/", "bulb.glb", scene).then((result) => {
+        BABYLON.SceneLoader.ImportMeshAsync("", (window.assetBaseUrl || "") + "models/", "bulb.glb", scene).then((result) => {
             const bulbModel = result.meshes[0];
             bulbModel.position.copyFrom(bulbPos);
             bulbModel.scaling.setAll(0.3);
