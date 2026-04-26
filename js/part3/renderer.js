@@ -90,72 +90,24 @@ export class PathTracer {
             ...MathUtils,
             ...Geometry,
             sample_brdf: Materials.sample_brdf,
-            compute_brdf_pdf: Materials.compute_brdf_pdf
-        });
+            compute_brdf_pdf: Materials.compute_brdf_pdf,
 
-        this.setupKernels();
-
-        const htmlCanvas = document.getElementById(this.canvasId);
-        htmlCanvas.width = 500;
-        htmlCanvas.height = 500;
-        this.canvas = new ti.Canvas(htmlCanvas);
-
-        this.setupUI();
-    }
-
-    setupUI() {
-        const tabs = document.querySelectorAll('.btn-toggle');
-
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Update active state
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-
-                // Set SPP and Reset
-                this.targetSPP = parseInt(tab.dataset.spp);
-                this.reset().catch(console.error);
-            });
-        });
-    }
-
-    async reset() {
-        const wasPaused = this.isPaused;
-        this.isPaused = true;
-        
-        this.clearKernel();
-        this.totalSamples = 0;
-        await ti.sync();
-        
-        this.canvas.setImage(this.tonemapped_buffer);
-        this.isPaused = wasPaused;
-    }
-
-    setupKernels() {
-        this.clearKernel = ti.kernel(() => {
-            for (let I of ti.ndrange(res[0], res[1])) {
-                color_buffer[I] = [0.0, 0.0, 0.0];
-                tonemapped_buffer[I] = [0.0, 0.0, 0.0, 0.0];
-            }
-            count_var[0] = 0;
-        });
-
-        ti.addToKernelScope({
-            intersect_light: (pos, d, tmax, t) => {
-                let far_t = f32(inf);
-                let near_norm = f32([0, 0, 0]);
-                let hit = intersect_aabb(light_min_pos, light_max_pos, pos, d, t, far_t, near_norm);
+            intersect_light: (pos, d, tmax) => {
+                let res = intersect_aabb(light_min_pos, light_max_pos, pos, d);
+                let hit = i32(res[0]);
+                let t = res[1];
                 let result = 0;
-                if (hit && 0 < t && t < tmax) {
+                if (hit == 1 && 0 < t && t < tmax) {
                     result = 1;
                 }
                 return result;
             },
 
-            intersect_scene: (pos, ray_dir, normal, c, mat) => {
+            intersect_scene: (pos, ray_dir, normal, c) => {
                 let closest = f32(inf);
                 let cur_dist = f32(inf);
                 let hit_pos = [0.0, 0.0, 0.0];
+                let mat = mat_none;
 
                 // Sphere 1 (Glass)
                 cur_dist = intersect_sphere(pos, ray_dir, sp1_center, sp1_radius, hit_pos);
@@ -181,53 +133,56 @@ export class PathTracer {
 
                 // Left
                 pnorm = [1.0, 0.0, 0.0];
-                intersect_plane(pos, ray_dir, [-1.1, 0.0, 0.0], pnorm, cur_dist, hit_pos);
+                cur_dist = intersect_plane(pos, ray_dir, [-1.1, 0.0, 0.0], pnorm);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = [0.65, 0.05, 0.05]; mat = mat_lambertian; }
-
+ 
                 // Right
                 pnorm = [-1.0, 0.0, 0.0];
-                intersect_plane(pos, ray_dir, [1.1, 0.0, 0.0], pnorm, cur_dist, hit_pos);
+                cur_dist = intersect_plane(pos, ray_dir, [1.1, 0.0, 0.0], pnorm);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = [0.12, 0.45, 0.15]; mat = mat_lambertian; }
-
+ 
                 // Bottom
                 pnorm = [0.0, 1.0, 0.0];
-                intersect_plane(pos, ray_dir, [0.0, 0.0, 0.0], pnorm, cur_dist, hit_pos);
+                cur_dist = intersect_plane(pos, ray_dir, [0.0, 0.0, 0.0], pnorm);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = gray; mat = mat_lambertian; }
-
+ 
                 // Top
                 pnorm = [0.0, -1.0, 0.001];
-                intersect_plane(pos, ray_dir, [0.0, 2.0, 0.0], pnorm, cur_dist, hit_pos);
+                cur_dist = intersect_plane(pos, ray_dir, [0.0, 2.0, 0.0], pnorm);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = gray; mat = mat_lambertian; }
-
+ 
                 // Far
                 pnorm = [0.0, 0.0, 1.0];
-                intersect_plane(pos, ray_dir, [0.0, 0.0, 0.0], pnorm, cur_dist, hit_pos);
+                cur_dist = intersect_plane(pos, ray_dir, [0.0, 0.0, 0.0], pnorm);
                 if (0 < cur_dist && cur_dist < closest) { closest = cur_dist; normal = pnorm; c = gray; mat = mat_lambertian; }
-
+ 
                 // Light
-                let t_light = f32(0);
-                if (intersect_light(pos, ray_dir, closest, t_light)) {
-                    closest = t_light;
+                if (intersect_light(pos, ray_dir, closest)) {
+                    let res_l = intersect_aabb(light_min_pos, light_max_pos, pos, ray_dir);
+                    closest = res_l[1];
                     normal = light_normal;
                     c = gray;
                     mat = mat_light;
                 }
-                return closest;
+                let res = [0.0, 0.0];
+                res = [closest, f32(mat)];
+                return res;
             },
 
             visible_to_light: (pos, ray_dir) => {
                 let normal = f32([0, 0, 0]);
                 let c = f32([0, 0, 0]);
-                let mat = mat_none;
-                intersect_scene(pos + eps * ray_dir, ray_dir, normal, c, mat);
+                let res = intersect_scene(pos + eps * ray_dir, ray_dir, normal, c);
+                let mat = i32(res[1]);
                 return mat == mat_light;
             },
 
             compute_area_light_pdf: (pos, ray_dir) => {
-                let t = 0.0;
-                let hit_l = intersect_light(pos, ray_dir, inf, t);
+                let res = intersect_aabb(light_min_pos, light_max_pos, pos, ray_dir);
+                let hit_l = i32(res[0]);
+                let t = res[1];
                 let pdf = 0.0;
-                if (hit_l) {
+                if (hit_l == 1) {
                     let l_cos = light_normal.dot(-ray_dir);
                     if (l_cos > eps) {
                         let tmp = ray_dir * t;
@@ -310,6 +265,54 @@ export class PathTracer {
             }
         });
 
+        this.setupKernels();
+
+        const htmlCanvas = document.getElementById(this.canvasId);
+        htmlCanvas.width = 500;
+        htmlCanvas.height = 500;
+        this.canvas = new ti.Canvas(htmlCanvas);
+
+        this.setupUI();
+    }
+
+    setupUI() {
+        const tabs = document.querySelectorAll('.btn-toggle');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active state
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Set SPP and Reset
+                this.targetSPP = parseInt(tab.dataset.spp);
+                this.reset().catch(console.error);
+            });
+        });
+    }
+
+    async reset() {
+        const wasPaused = this.isPaused;
+        this.isPaused = true;
+        
+        this.clearKernel();
+        this.totalSamples = 0;
+        await ti.sync();
+        
+        this.canvas.setImage(this.tonemapped_buffer);
+        this.isPaused = wasPaused;
+    }
+
+    setupKernels() {
+        this.clearKernel = ti.kernel(() => {
+            for (let I of ti.ndrange(res[0], res[1])) {
+                color_buffer[I] = [0.0, 0.0, 0.0];
+                tonemapped_buffer[I] = [0.0, 0.0, 0.0, 0.0];
+            }
+            count_var[0] = 0;
+        });
+
+
         this.renderKernel = ti.kernel(() => {
             for (let UV of ti.ndrange(res[0], res[1])) {
                 let u = UV[0];
@@ -336,8 +339,9 @@ export class PathTracer {
                 while (depth < max_ray_depth) {
                     let hit_normal = f32([0, 0, 0]);
                     let hit_color = f32([0, 0, 0]);
-                    let mat = mat_none;
-                    let closest = intersect_scene(pos, ray_dir, hit_normal, hit_color, mat);
+                    let res = intersect_scene(pos, ray_dir, hit_normal, hit_color);
+                    let closest = res[0];
+                    let mat = i32(res[1]);
                     if (mat == mat_none) break;
 
                     let hit_pos = pos + closest * ray_dir;

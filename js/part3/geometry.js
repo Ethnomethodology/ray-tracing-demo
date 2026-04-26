@@ -44,21 +44,20 @@ export const Geometry = {
         return dist;
     },
 
-    intersect_plane: (pos, d, pt_on_plane, norm, dist, hit_pos) => {
-        dist = 1e9;
-        hit_pos = [0.0, 0.0, 0.0];
+    intersect_plane: (pos, d, pt_on_plane, norm) => {
+        let dist = f32(1e9);
         let denom = d.dot(norm);
         if (abs(denom) > 1e-4) {
             dist = norm.dot(pt_on_plane - pos) / denom;
-            hit_pos = pos + d * dist;
         }
+        return dist;
     },
 
-    intersect_aabb: (box_min, box_max, o, d, near_t, far_t, near_norm) => {
+    intersect_aabb: (box_min, box_max, o, d) => {
         let intersect = 1;
-        near_t = -1e9;
-        far_t = 1e9;
-        near_norm = [0.0, 0.0, 0.0];
+        let near_t = f32(-1e9);
+        let far_t = f32(1e9);
+        let near_norm = [0.0, 0.0, 0.0];
 
         let near_face = 0;
         let near_is_max = 0;
@@ -84,7 +83,7 @@ export const Geometry = {
                 }
             }
         }
-        if (near_t > far_t) {
+        if (near_t > far_t || far_t < 0) {
             intersect = 0;
         }
         if (intersect) {
@@ -94,6 +93,8 @@ export const Geometry = {
                 }
             }
         }
-        return intersect;
+        let res = [0.0, 0.0, 0.0, 0.0, 0.0];
+        res = [f32(intersect), near_t, near_norm.x, near_norm.y, near_norm.z];
+        return res;
     }
 };
