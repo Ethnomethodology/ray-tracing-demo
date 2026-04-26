@@ -26,8 +26,8 @@ export class PathTracer {
             camera_pos: [0.0, 0.6, 3.0],
             refr_idx: 2.4,
             lambertian_brdf: 1.0 / Math.PI,
-            stratify_res: 5,
-            inv_stratify: 1.0 / 5.0
+            stratify_res: 4,
+            inv_stratify: 1.0 / 4.0
         };
 
         // Light Source
@@ -271,9 +271,9 @@ export class PathTracer {
                 return direct_li;
             },
 
-            sample_ray_dir: (indir, normal, mat, pdf) => {
+            sample_ray_dir: (indir, normal, mat) => {
                 let u = [0.0, 0.0, 0.0];
-                pdf = 1.0;
+                let pdf = 1.0;
                 if (mat == mat_lambertian) {
                     u = sample_brdf(normal);
                     pdf = max(eps, compute_brdf_pdf(normal, u));
@@ -283,8 +283,14 @@ export class PathTracer {
                     let cos = indir.dot(normal);
                     let ni_over_nt = refr_idx;
                     let outn = normal;
-                    if (cos > 0.0) { outn = -normal; cos = refr_idx * cos; }
-                    else { ni_over_nt = 1.0 / refr_idx; cos = -cos; }
+                    if (cos > 0.0) { 
+                        outn = -normal; 
+                        ni_over_nt = refr_idx; 
+                        cos = -indir.dot(normal);
+                    } else { 
+                        ni_over_nt = 1.0 / refr_idx; 
+                        cos = -cos; 
+                    }
 
                     let refr_dir = refract(indir, outn, ni_over_nt);
                     let refl_prob = 1.0;
@@ -297,7 +303,10 @@ export class PathTracer {
                         u = refr_dir;
                     }
                 }
-                return u.normalized();
+                let res = [0.0, 0.0, 0.0, 0.0];
+                let un = u.normalized();
+                res = [un.x, un.y, un.z, pdf];
+                return res;
             }
         });
 
@@ -321,6 +330,9 @@ export class PathTracer {
                 let throughput = [1.0, 1.0, 1.0];
 
                 let depth = 0;
+                let last_pdf = 1.0;
+                let was_specular = 1; // Camera is "specular" for first hit
+
                 while (depth < max_ray_depth) {
                     let hit_normal = f32([0, 0, 0]);
                     let hit_color = f32([0, 0, 0]);
@@ -330,21 +342,31 @@ export class PathTracer {
 
                     let hit_pos = pos + closest * ray_dir;
                     if (mat == mat_light) {
-                        acc_color += throughput * light_color;
+                        if (was_specular == 1) {
+                            acc_color += throughput * light_color;
+                        } else {
+                            // MIS for indirect hit on light
+                            let light_pdf = compute_area_light_pdf(pos, ray_dir);
+                            let w = mis_power_heuristic(last_pdf, light_pdf);
+                            acc_color += throughput * light_color * w;
+                        }
                         break;
                     } else if (mat == mat_lambertian) {
                         acc_color += throughput * sample_direct_light(hit_pos, hit_normal, hit_color);
                     }
 
                     depth += 1;
-                    let pdf = 1.0;
-                    ray_dir = sample_ray_dir(ray_dir, hit_normal, mat, pdf);
+                    let sample_res = sample_ray_dir(ray_dir, hit_normal, mat);
+                    ray_dir = [sample_res[0], sample_res[1], sample_res[2]];
+                    last_pdf = sample_res[3];
                     pos = hit_pos + 1e-4 * ray_dir;
 
                     if (mat == mat_lambertian) {
-                        throughput = (throughput * lambertian_brdf * hit_color * dot_or_zero(hit_normal, ray_dir)) / pdf;
+                        throughput = (throughput * lambertian_brdf * hit_color * dot_or_zero(hit_normal, ray_dir)) / last_pdf;
+                        was_specular = 0;
                     } else {
                         throughput *= hit_color;
+                        was_specular = 1;
                     }
                 }
                 color_buffer[[u, v]] += acc_color;
