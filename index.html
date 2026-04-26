@@ -35,7 +35,7 @@
 
 
 <!-- TopNavBar -->
-<nav class="bg-[#F4F1EA] dark:bg-stone-900 fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 font-serif font-newsreader tracking-tight border-b-2 border-stone-300 dark:border-stone-800">
+<nav style="view-transition-name: top-nav-bar" class="bg-[#F4F1EA] dark:bg-stone-900 fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 font-serif font-newsreader tracking-tight border-b-2 border-stone-300 dark:border-stone-800">
     <div class="text-lg font-bold italic text-stone-900 dark:text-stone-100">Respecifying Ray Tracing</div>
     <div class="flex items-center gap-4">
         <span class="text-[#800020] dark:text-red-400 font-medium">Part 1 of 3</span>
@@ -101,21 +101,21 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                     <!-- Card 1 -->
-                    <div class="border-l-[4px] border-[#800020] bg-[#EAE5D9] p-6 flex flex-col gap-4">
+                    <div style="view-transition-name: nav-card-1" class="nav-card active border-l-[4px] border-[#800020] bg-[#EAE5D9] p-6 flex flex-col gap-4">
                         <span class="font-label-technical text-label-technical font-bold text-[#800020] uppercase">Part 1</span>
                         <h4 class="font-headline-part text-[21px] font-medium text-stone-900 leading-snug">Computational Methods of Perspectival Geometry</h4>
                         <p class="font-body-reading text-[16px] text-stone-600 leading-relaxed">Focuses on Dürer's drawing apparatus and the logic of intersection.</p>
                     </div>
 
                     <!-- Card 2 -->
-                    <a href="part2/" class="bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
+                    <a href="part2/" style="view-transition-name: nav-card-2" class="nav-card bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
                         <span class="font-label-technical text-label-technical text-stone-400 uppercase">Part 2</span>
                         <h4 class="font-headline-part text-[21px] font-medium text-stone-500 leading-snug">Lights, Camera, Interaction</h4>
                         <p class="font-body-reading text-[16px] text-stone-400 leading-relaxed">Explores the optical turn and the simulation of light behavior.</p>
                     </a>
 
                     <!-- Card 3 -->
-                    <a href="part3/" class="bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
+                    <a href="part3/" style="view-transition-name: nav-card-3" class="nav-card bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
                         <span class="font-label-technical text-label-technical text-stone-400 uppercase">Part 3</span>
                         <h4 class="font-headline-part text-[21px] font-medium text-stone-500 leading-snug">Implementing a Ray Tracer</h4>
                         <p class="font-body-reading text-[16px] text-stone-400 leading-relaxed">A practical guide to building a modern rendering engine from these principles.</p>

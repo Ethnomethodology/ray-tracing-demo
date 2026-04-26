@@ -34,10 +34,10 @@
 
 
 <!-- TopNavBar -->
-<nav class="bg-[#F4F1EA] dark:bg-stone-900 fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 border-b-2 border-stone-300 dark:border-stone-800">
-    <div class="font-ui-nav text-ui-nav font-bold italic text-stone-900 dark:text-stone-100">Respecifying Ray Tracing</div>
+<nav style="view-transition-name: top-nav-bar" class="bg-[#F4F1EA] dark:bg-stone-900 fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-3 font-serif font-newsreader tracking-tight border-b-2 border-stone-300 dark:border-stone-800">
+    <div class="text-lg font-bold italic text-stone-900 dark:text-stone-100">Respecifying Ray Tracing</div>
     <div class="flex items-center gap-4">
-        <span class="font-ui-nav text-ui-nav text-[#800020] dark:text-red-400 font-medium">Part 3 of 3</span>
+        <span class="text-[#800020] dark:text-red-400 font-medium">Part 3 of 3</span>
         <button class="text-[#800020] dark:text-red-400 hover:text-[#800020] dark:hover:text-red-300 transition-colors flex items-center justify-center h-8 w-8">
             <span class="material-symbols-outlined">menu</span>
         </button>
@@ -84,7 +84,8 @@
 
 
 <div class="flex flex-1 pt-16 flex-col w-full items-center">
-    <main class="flex-1 w-full max-w-[1000px] flex flex-col gap-8 pb-32 pt-12 px-4 md:px-8 relative">
+    <main class="flex-1 w-full flex justify-center pb-32 pt-12 px-4 md:px-8">
+        <div class="max-w-[1000px] w-full flex flex-col gap-8 relative">
         
         <!-- Header Section -->
         <section class="w-full mb-16 flex flex-col gap-6 mt-4">
@@ -99,17 +100,17 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                <a href="../" class="bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
+                <a href="../" style="view-transition-name: nav-card-1" class="nav-card bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
                     <span class="font-label-technical text-label-technical text-stone-400 uppercase">Part 1</span>
                     <h4 class="font-headline-part text-[21px] font-medium text-stone-500 leading-snug">Computational Methods of Perspectival Geometry</h4>
                     <p class="font-body-reading text-[16px] text-stone-400 leading-relaxed">Focuses on Dürer's drawing apparatus and the logic of intersection.</p>
                 </a>
-                <a href="../part2/" class="bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
+                <a href="../part2/" style="view-transition-name: nav-card-2" class="nav-card bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
                     <span class="font-label-technical text-label-technical text-stone-400 uppercase">Part 2</span>
                     <h4 class="font-headline-part text-[21px] font-medium text-stone-500 leading-snug">Lights, Camera, Interaction</h4>
                     <p class="font-body-reading text-[16px] text-stone-400 leading-relaxed">Explores the optical turn and the simulation of light behavior.</p>
                 </a>
-                <div class="border-l-[4px] border-[#800020] bg-[#EAE5D9] p-6 flex flex-col gap-4">
+                <div style="view-transition-name: nav-card-3" class="nav-card active border-l-[4px] border-[#800020] bg-[#EAE5D9] p-6 flex flex-col gap-4">
                     <span class="font-label-technical text-label-technical font-bold text-[#800020] uppercase">Part 3</span>
                     <h4 class="font-headline-part text-[21px] font-medium text-stone-900 leading-snug">Implementing a Ray Tracer</h4>
                     <p class="font-body-reading text-[16px] text-stone-600 leading-relaxed">A practical guide to building a modern rendering engine from these principles.</p>
@@ -175,6 +176,7 @@
             </ol>
         </section>
 
+        </div>
     </main>
 </div>
 
