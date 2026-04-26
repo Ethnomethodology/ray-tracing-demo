@@ -27,6 +27,16 @@ body {
     display: block;
 }
 
+/* Smooth Page Transitions */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
+}
+
 /* Make UI elements use sans-serif */
 button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
     font-family: var(--font-ui) !important;
@@ -90,6 +100,21 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
 
 .header-image:hover {
     transform: scale(1.03) translateY(-10px);
+}
+
+/* Card Interaction Enhancements */
+.nav-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+
+.nav-card.active {
+    transform: none;
+    box-shadow: none;
 }
 
 
@@ -497,7 +522,9 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
     overflow: hidden;
 }
 
-#renderCanvas {
+#renderCanvas,
+#rayTracingCanvas,
+#rayTracingCanvasFinal {
     position: absolute;
     top: 0;
     left: 0;

@@ -682,7 +682,7 @@ Zoom:     ${camera.radius.toFixed(2)}`;
         } else if (type === "teapot") {
             // Clear lute-specific debug state
             window.currentLuteParts = {};
-            BABYLON.SceneLoader.ImportMeshAsync("", "models/", "teapot.glb", scene).then((result) => {
+            BABYLON.SceneLoader.ImportMeshAsync("", (window.assetBaseUrl || "") + "models/", "teapot.glb", scene).then((result) => {
                 // Step 1: Force-compute world matrices for the ENTIRE hierarchy
                 // (GLB root often carries a -90° X rotation for glTF Y-up → Babylon Z-up)
                 result.meshes.forEach(m => m.computeWorldMatrix(true));
