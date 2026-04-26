@@ -588,6 +588,8 @@
         });
         if (prevBtn) prevBtn.disabled = window.currentRayStep === 1;
         if (nextBtn) nextBtn.disabled = window.currentRayStep === totalRaySteps;
+        if (prevCanvasBtn) prevCanvasBtn.disabled = window.currentRayStep === 1;
+        if (nextCanvasBtn) nextCanvasBtn.disabled = window.currentRayStep === totalRaySteps;
     }
 
     [nextBtn, nextCanvasBtn].forEach(btn => {
@@ -607,4 +609,6 @@
             }
         });
     });
+
+    updateRaySteps(); // Initial state
 })();
