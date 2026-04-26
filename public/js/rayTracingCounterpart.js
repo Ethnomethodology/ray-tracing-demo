@@ -338,7 +338,7 @@
                         const c2 = scene.getMeshByName(`cell_${canvasId}_${g2X}_${g2Y}`);
                         if (c2) c2.material = paintedMat;
 
-                        // Hide other rays
+                        // Hide other steps' rays
                         rayLine.setEnabled(false);
                         lightRayLine.setEnabled(false);
                         arrowHead.setEnabled(false);
@@ -368,9 +368,16 @@
                         else if (progress <= 1.2) {
                             const p = (progress - 0.6) / 0.6;
                             const ep = target3.add(dir3_2.scale(dist3_2 * p));
+                            
+                            // Ensure Segment 1 is finalized
+                            r3_1.setEnabled(true);
                             r3_1.scaling.y = 1.0;
                             r3_1.position = lensOrigin.add(dir3.scale(dist3 / 2));
                             r3_1_arrow.setEnabled(true);
+                            r3_1_arrow.position = target3.subtract(dir3.scale(arrowHeight / 2));
+                            r3_1_arrow.lookAt(target3);
+                            r3_1_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+
                             r3_2.setEnabled(true);
                             r3_2.scaling.y = p;
                             r3_2.position = target3.add(dir3_2.scale((dist3_2 * p) / 2));
@@ -380,10 +387,29 @@
                             r3_2_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
                         }
                         // Phase 3: Paint Black
-                        else if (progress > 1.2 && !pixel3Painted) {
-                            const cell = scene.getMeshByName(`cell_${canvasId}_${g3X}_${g3Y}`);
-                            if (cell) cell.material = blackMat;
-                            pixel3Painted = true;
+                        else if (progress > 1.2) {
+                            // Finalize all segments
+                            r3_1.setEnabled(true);
+                            r3_1.scaling.y = 1.0;
+                            r3_1.position = lensOrigin.add(dir3.scale(dist3 / 2));
+                            r3_1_arrow.setEnabled(true);
+                            r3_1_arrow.position = target3.subtract(dir3.scale(arrowHeight / 2));
+                            r3_1_arrow.lookAt(target3);
+                            r3_1_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                            r3_2.setEnabled(true);
+                            r3_2.scaling.y = 1.0;
+                            r3_2.position = target3.add(dir3_2.scale(dist3_2 / 2));
+                            r3_2_arrow.setEnabled(true);
+                            r3_2_arrow.position = redCubeBottom.subtract(dir3_2.scale(arrowHeight / 2));
+                            r3_2_arrow.lookAt(redCubeBottom);
+                            r3_2_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                            if (!pixel3Painted) {
+                                const cell = scene.getMeshByName(`cell_${canvasId}_${g3X}_${g3Y}`);
+                                if (cell) cell.material = blackMat;
+                                pixel3Painted = true;
+                            }
                         }
                         return;
                     }
@@ -402,11 +428,15 @@
                         const cell1 = scene.getMeshByName(`cell_${canvasId}_${gridX}_${gridY}`);
                         if (cell1) cell1.material = paintedMat;
 
-                        // Hide Slide 1 rays
+                        // Hide other steps' rays
                         rayLine.setEnabled(false);
                         lightRayLine.setEnabled(false);
                         arrowHead.setEnabled(false);
                         lightArrowHead.setEnabled(false);
+                        r3_1.setEnabled(false);
+                        r3_1_arrow.setEnabled(false);
+                        r3_2.setEnabled(false);
+                        r3_2_arrow.setEnabled(false);
 
                         // Recursive Phases
                         if (progress <= 0.6) {
@@ -426,6 +456,16 @@
                         } else if (progress <= 1.2) {
                             const p = (progress - 0.6) / 0.6;
                             const ep = surf2.add(dir2_2.scale(dist2_2 * p));
+
+                            // Ensure Segment 1 is finalized
+                            r2_1.setEnabled(true);
+                            r2_1.scaling.y = 1.0;
+                            r2_1.position = lensOrigin.add(dir2.scale(dist2 / 2));
+                            r2_1_arrow.setEnabled(true);
+                            r2_1_arrow.position = target2.subtract(dir2.scale(arrowHeight / 2));
+                            r2_1_arrow.lookAt(target2);
+                            r2_1_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+
                             r2_2.setEnabled(true);
                             r2_2.scaling.y = p;
                             r2_2.position = surf2.add(dir2_2.scale((dist2_2 * p) / 2));
@@ -433,9 +473,29 @@
                             r2_2_arrow.position = ep.subtract(dir2_2.scale(arrowHeight / 2));
                             r2_2_arrow.lookAt(cubeFace);
                             r2_2_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+                            r2_3.setEnabled(false);
+                            r2_3_arrow.setEnabled(false);
                         } else if (progress <= 1.8) {
                             const p = (progress - 1.2) / 0.6;
                             const ep = cubeFace.add(dir2_3.scale(dist2_3 * p));
+
+                            // Ensure Segments 1 & 2 are finalized
+                            r2_1.setEnabled(true);
+                            r2_1.scaling.y = 1.0;
+                            r2_1.position = lensOrigin.add(dir2.scale(dist2 / 2));
+                            r2_1_arrow.setEnabled(true);
+                            r2_1_arrow.position = target2.subtract(dir2.scale(arrowHeight / 2));
+                            r2_1_arrow.lookAt(target2);
+                            r2_1_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                            r2_2.setEnabled(true);
+                            r2_2.scaling.y = 1.0;
+                            r2_2.position = surf2.add(dir2_2.scale(dist2_2 / 2));
+                            r2_2_arrow.setEnabled(true);
+                            r2_2_arrow.position = cubeFace.subtract(dir2_2.scale(arrowHeight / 2));
+                            r2_2_arrow.lookAt(cubeFace);
+                            r2_2_arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+
                             r2_3.setEnabled(true);
                             r2_3.scaling.y = p;
                             r2_3.position = cubeFace.add(dir2_3.scale((dist2_3 * p) / 2));
@@ -452,12 +512,17 @@
                     }
 
                     // --- Slide 1: Primary Ray Animation ---
+                    // Hide other steps' rays
                     r2_1.setEnabled(false);
                     r2_1_arrow.setEnabled(false);
                     r2_2.setEnabled(false);
                     r2_2_arrow.setEnabled(false);
                     r2_3.setEnabled(false);
                     r2_3_arrow.setEnabled(false);
+                    r3_1.setEnabled(false);
+                    r3_1_arrow.setEnabled(false);
+                    r3_2.setEnabled(false);
+                    r3_2_arrow.setEnabled(false);
 
                     progress += 0.008; 
                     if (progress > 1.8) {
@@ -488,10 +553,16 @@
                         const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 2.2;
                         const d2 = toBulbDist * p2;
                         const ep2 = surfacePoint.add(toBulbDir.scale(d2));
+
+                        // Finalize Slide 1 Segment 1
                         rayLine.setEnabled(true);
                         rayLine.scaling.y = 1.0;
                         rayLine.position = lensOrigin.add(direction.scale(totalDistance / 2));
                         arrowHead.setEnabled(true);
+                        arrowHead.position = surfacePoint.subtract(direction.scale(arrowHeight / 2));
+                        arrowHead.lookAt(spherePos);
+                        arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
+
                         lightRayLine.setEnabled(p2 > 0.01);
                         lightRayLine.scaling.y = p2;
                         lightRayLine.position = surfacePoint.add(toBulbDir.scale(d2 / 2));
