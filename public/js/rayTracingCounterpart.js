@@ -647,13 +647,18 @@
             const sphere = buildProceduralSphere("subjectSphere", scene, { diameter: 4.0 });
             sphere.position.set(0, -3.0, -11);
             
-            // Add blue cube obstacle
-            const cube = BABYLON.MeshBuilder.CreateBox("obstacleCube", { size: 3.5 }, scene);
-            cube.position.set(-10, 5, -13);
-            const cubeMat = new BABYLON.StandardMaterial("cubeMat", scene);
-            cubeMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.8); // Sober blue
-            cubeMat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-            cube.material = cubeMat;
+            // Add blue cube obstacle (only for the animated walkthrough)
+            if (animateRay) {
+                const cube = BABYLON.MeshBuilder.CreateBox("obstacleCube", { size: 3.5 }, scene);
+                cube.position.set(-10, 5, -13);
+                const cubeMat = new BABYLON.StandardMaterial("cubeMat", scene);
+                cubeMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.8); // Sober blue
+                cubeMat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+                cube.material = cubeMat;
+                if (showLabels) {
+                    addLabel("Occluder", cube, new BABYLON.Vector3(0, 3, 0));
+                }
+            }
 
             const sphereMaterial = new BABYLON.StandardMaterial("sphereMat", scene);
             sphereMaterial.diffuseColor = new BABYLON.Color3(0.5, 0.9, 0.5);
@@ -662,7 +667,6 @@
             sphere.material = sphereMaterial;
             if (showLabels) {
                 addLabel("Object", sphere, new BABYLON.Vector3(0, 3, 0));
-                addLabel("Occluder", cube, new BABYLON.Vector3(0, 3, 0));
             }
         }
 
