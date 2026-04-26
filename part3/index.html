@@ -122,53 +122,34 @@
         <!-- Demo Section (2-Column Layout) -->
         <section class="demo-section">
             <div class="demo-layout">
-                <!-- Left Column: Narrative -->
+                <!-- Left Column: Simple Title -->
                 <div class="demo-left-column">
                     <div class="text-content">
-                        <header class="mb-8">
-                            <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-4">The Abstracted Synthesis</h2>
-                            <p class="font-body-reading text-[20px] text-[#6B6B6B] italic" style="font-family: 'Newsreader', serif;">Implementing a Real-Time Path Tracer.</p>
-                        </header>
-                        
-                        <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
-                            <p>
-                                This Cornell-style scene demonstrates the interaction of light with various physical surfaces through recursive path tracing:
-                            </p>
-                            <ul class="list-disc pl-6 space-y-4">
-                                <li><strong>Glass Sphere:</strong> A dielectric material with a refractive index of 2.4, simulating realistic refraction and caustics.</li>
-                                <li><strong>Mirror Sphere:</strong> A perfectly reflective specular surface, mirroring the environment and the glass sphere.</li>
-                                <li><strong>Area Light:</strong> A rectangular light source at the ceiling that produces soft, physically accurate shadows.</li>
-                                <li><strong>Lambertian Walls:</strong> Diffuse surfaces (Red, Green, and Gray) that contribute to global illumination through color bleeding.</li>
-                            </ul>
-                        </div>
+                        <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-4">Path Tracing</h2>
                     </div>
                 </div>
 
                 <!-- Right Column: Canvas -->
-                <div class="demo-right-column items-center justify-center relative">
-                    <!-- SPP Controls -->
-                    <div class="absolute top-4 left-4 z-10 flex flex-col gap-2 bg-black/60 backdrop-blur-md p-3 rounded-lg text-white font-ui-nav text-xs border border-white/10">
-                        <div class="flex items-center justify-between gap-4">
-                            <span>Target SPP:</span>
-                            <select id="spp_selector" class="bg-stone-800 text-white border border-stone-600 rounded px-1 py-0.5 outline-none cursor-pointer">
-                                <option value="1">1</option>
-                                <option value="16">16</option>
-                                <option value="64">64</option>
-                                <option value="256">256</option>
-                                <option value="1024" selected>1024</option>
-                                <option value="4096">4096</option>
-                                <option value="16384">16384</option>
-                            </select>
+                <div class="demo-right-column">
+                    <div class="flex flex-col items-center gap-6">
+                        <!-- SPP Tabs (with SPP label tab) -->
+                        <div class="object-toggles" id="spp_tabs" style="width: 500px; display: flex; flex-wrap: wrap; justify-content: center;">
+                            <div class="px-3 py-1 text-[10px] font-bold text-stone-400 flex items-center border-r border-stone-200 mr-1" style="cursor: default;">SPP</div>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="8">8</button>
+                            <button class="btn-toggle active text-[9px] px-2 py-1" data-spp="16">16</button>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="32">32</button>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="64">64</button>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="128">128</button>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="256">256</button>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="512">512</button>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="1024">1024</button>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="2048">2048</button>
+                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="4096">4096</button>
                         </div>
-                        <div class="flex items-center justify-between gap-4">
-                            <span>Current SPP:</span>
-                            <span id="current_spp" class="font-bold text-red-400">0</span>
-                        </div>
-                        <button id="reset_btn" class="mt-2 bg-red-900/50 hover:bg-red-900 transition-colors py-1 rounded border border-red-500/30">Reset Accumulation</button>
-                    </div>
 
-                    <div class="flex items-center justify-center w-full h-full p-8">
-                        <canvas id="result_canvas"></canvas>
+                        <div class="canvas-container" style="flex: 0 0 500px; width: 500px; margin: 0; overflow: hidden; position: relative;">
+                            <canvas id="result_canvas" style="width: 500px; height: 500px; position: static;"></canvas>
+                        </div>
                     </div>
                     <div class="mt-4 text-center">
                         <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 7:</span>

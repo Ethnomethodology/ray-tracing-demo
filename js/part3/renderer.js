@@ -14,7 +14,7 @@ export class PathTracer {
         this.canvasId = canvasId;
         this.res = [800, 800];
         this.totalSamples = 0;
-        this.targetSPP = 1024;
+        this.targetSPP = 16;
         this.isPaused = false;
 
         // Scene Parameters
@@ -104,19 +104,19 @@ export class PathTracer {
     }
 
     setupUI() {
-        const selector = document.getElementById('spp_selector');
-        const resetBtn = document.getElementById('reset_btn');
-        this.sppDisplay = document.getElementById('current_spp');
+        const tabs = document.querySelectorAll('.btn-toggle');
 
-        if (selector) {
-            selector.addEventListener('change', (e) => {
-                this.targetSPP = parseInt(e.target.value);
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Update active state
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                // Set SPP and Reset
+                this.targetSPP = parseInt(tab.dataset.spp);
+                this.reset();
             });
-        }
-
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => this.reset());
-        }
+        });
     }
 
     reset() {
@@ -124,7 +124,6 @@ export class PathTracer {
         this.tonemapped_buffer.fill([0, 0, 0, 0]);
         this.count_var.fill(0);
         this.totalSamples = 0;
-        if (this.sppDisplay) this.sppDisplay.innerText = '0';
     }
 
     setupKernels() {
@@ -363,10 +362,6 @@ export class PathTracer {
                 }
                 this.tonemapKernel(this.totalSamples);
                 await ti.sync();
-                
-                if (this.sppDisplay) {
-                    this.sppDisplay.innerText = this.totalSamples;
-                }
                 
                 this.canvas.setImage(this.tonemapped_buffer);
             }
