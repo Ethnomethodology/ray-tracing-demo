@@ -162,8 +162,20 @@
 
     <section class="explanation-section !border-t-0 !border-b-0">
         <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
+            <div class="demo-right-column pt-8">
+                <div class="apparatus-preview-container">
+                    <canvas id="previewCanvas"></canvas>
+                    <div id="pill-1" class="apparatus-pill" data-tooltip="Pulley">1</div>
+                    <div id="pill-2" class="apparatus-pill" data-tooltip="Thread">2</div>
+                    <div id="pill-3" class="apparatus-pill" data-tooltip="Weight">3</div>
+                    <div id="pill-4" class="apparatus-pill" data-tooltip="Vertical Frame">4</div>
+                    <div id="pill-5" class="apparatus-pill" data-tooltip="Door/Tablet">5</div>
+                    <div id="pill-6" class="apparatus-pill" data-tooltip="Point of Interest">6</div>
+                    <div id="pill-7" class="apparatus-pill" data-tooltip="Pointer">7</div>
+                    <div id="pill-8" class="apparatus-pill" data-tooltip="Subject">8</div>
+                </div>
+
+                <div class="text-content !px-0 !pb-0 !pt-8">
                     <div class="instruction-steps" id="explanation-steps">
                         <div class="step active">
                             <span class="step-num font-serif">1</span>
@@ -203,20 +215,6 @@
                         <button id="nextStepBtn" class="nav-btn">Next</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="demo-right-column">
-                <div class="apparatus-preview-container">
-                    <canvas id="previewCanvas"></canvas>
-                    <div id="pill-1" class="apparatus-pill" data-tooltip="Pulley">1</div>
-                    <div id="pill-2" class="apparatus-pill" data-tooltip="Thread">2</div>
-                    <div id="pill-3" class="apparatus-pill" data-tooltip="Weight">3</div>
-                    <div id="pill-4" class="apparatus-pill" data-tooltip="Vertical Frame">4</div>
-                    <div id="pill-5" class="apparatus-pill" data-tooltip="Door/Tablet">5</div>
-                    <div id="pill-6" class="apparatus-pill" data-tooltip="Point of Interest">6</div>
-                    <div id="pill-7" class="apparatus-pill" data-tooltip="Pointer">7</div>
-                    <div id="pill-8" class="apparatus-pill" data-tooltip="Subject">8</div>
-                </div>
                 <div class="mt-4 text-center">
                     <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 2:</span>
                     <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Components of Dürer's Perspective Apparatus.</span>
@@ -229,8 +227,18 @@
     <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Instructions for the Draughtsman</h3>
     <section class="demo-section walkthrough-section !border-t-0">
         <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
+            <div class="demo-right-column pt-8">
+                <div class="canvas-container">
+                    <canvas id="walkthroughCanvas"></canvas>
+                    <button id="walkthroughPrev" class="canvas-nav-btn prev bottom" aria-label="Previous Step">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <button id="walkthroughNext" class="canvas-nav-btn next bottom" aria-label="Next Step">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+
+                <div class="text-content !px-0 !pb-0 !pt-8">
                     <div class="instruction-steps" id="draughtsman-steps">
                         <div class="step active" data-step="1">
                             <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Step 1:</strong> Move the Iron Pointer to a point on the Subject and stretch the Long Thread.</p>
@@ -250,18 +258,6 @@
                         <button id="nextDraughtsmanBtn" class="nav-btn">Next</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="demo-right-column">
-                <div class="canvas-container">
-                    <canvas id="walkthroughCanvas"></canvas>
-                    <button id="walkthroughPrev" class="canvas-nav-btn prev bottom" aria-label="Previous Step">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    </button>
-                    <button id="walkthroughNext" class="canvas-nav-btn next bottom" aria-label="Next Step">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
-                </div>
                 <div class="mt-4 text-center">
                     <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 3:</span>
                     <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Step-by-step Walkthrough of the Drawing Process.</span>
@@ -277,16 +273,8 @@
     <section class="demo-section !border-t-0">
 
         <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
-                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-0">
-                        Click on any point on the subject to draw it on the tablet. Continue adding points to see the outline of your image emerge. You can also click the play button to animate the entire process.
-                    </p>
-                </div>
-            </div>
-
-            <div class="demo-right-column">
-                <div class="button-container">
+            <div class="demo-right-column pt-8">
+                <div class="button-container pb-4">
                     <div class="object-toggles">
                         <button class="btn-toggle active" data-target="lute">Lute</button>
                         <button class="btn-toggle" data-target="teapot">Teapot</button>
@@ -352,6 +340,12 @@
                         </select>
                     </div>
                 </div>
+
+                <div class="text-content !px-0 !pb-0 !pt-8">
+                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-0">
+                        Click on any point on the subject to draw it on the tablet. Continue adding points to see the outline of your image emerge. You can also click the play button to animate the entire process.
+                    </p>
+                </div>
                 <div class="mt-4 text-center">
                     <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 4:</span>
                     <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Interactive 3D Simulation of Dürer's Apparatus.</span>
@@ -375,17 +369,15 @@
     </div>
     <section class="demo-section !border-t-0">
         <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
+            <div class="demo-right-column pt-8">
+                <div class="canvas-container">
+                    <canvas id="rayTracingCanvas"></canvas>
+                </div>
+
+                <div class="text-content !px-0 !pb-0 !pt-8">
                     <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-0">
                         Ray tracing replaces the physical components of Dürer's device with their computational counterparts. The wall needle becomes a virtual <strong>Camera</strong>, the wooden frame becomes a <strong>Digital Image Plane</strong> (a 16x16 pixel grid), and the lighting is simulated by light sources like this <strong>Bulb</strong>. This abstraction allows for the simulation of complex light interactions that were impossible with the physical model.
                     </p>
-                </div>
-            </div>
-
-            <div class="demo-right-column">
-                <div class="canvas-container">
-                    <canvas id="rayTracingCanvas"></canvas>
                 </div>
                 <div class="mt-4 text-center">
                     <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 5:</span>
@@ -397,8 +389,18 @@
 
     <section class="demo-section ray-tracing-walkthrough-section">
         <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
+            <div class="demo-right-column pt-8">
+                <div class="canvas-container">
+                    <canvas id="rayTracingCanvasFinal"></canvas>
+                    <button id="raytracingPrev" class="canvas-nav-btn prev bottom" aria-label="Previous Step">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <button id="raytracingNext" class="canvas-nav-btn next bottom" aria-label="Next Step">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+
+                <div class="text-content !px-0 !pb-0 !pt-8">
                     <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">The Abstracted Synthesis</h2>
                     <div class="instruction-steps" id="raytracing-steps">
                         <div class="step active" data-step="1">
@@ -415,18 +417,6 @@
                         <button id="prevRaytracingBtn" class="nav-btn" disabled>Previous</button>
                         <button id="nextRaytracingBtn" class="nav-btn">Next</button>
                     </div>
-                </div>
-            </div>
-
-            <div class="demo-right-column">
-                <div class="canvas-container">
-                    <canvas id="rayTracingCanvasFinal"></canvas>
-                    <button id="raytracingPrev" class="canvas-nav-btn prev bottom" aria-label="Previous Step">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    </button>
-                    <button id="raytracingNext" class="canvas-nav-btn next bottom" aria-label="Next Step">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
                 </div>
                 <div class="mt-4 text-center">
                     <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 6:</span>
