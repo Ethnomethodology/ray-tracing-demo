@@ -134,7 +134,7 @@
                 <div class="demo-right-column">
                     <div class="flex flex-col items-center gap-6">
                         <!-- SPP Tabs (with SPP label tab) -->
-                        <div class="object-toggles" id="spp_tabs" style="width: 500px; display: flex; flex-wrap: wrap; justify-content: center;">
+                        <div class="object-toggles" id="spp_tabs" style="max-width: 100%; display: flex; flex-wrap: wrap; justify-content: center;">
                             <div class="px-3 py-1 text-[10px] font-bold text-stone-400 flex items-center border-r border-stone-200 mr-1" style="cursor: default;">SPP</div>
                             <button class="btn-toggle text-[9px] px-2 py-1" data-spp="8">8</button>
                             <button class="btn-toggle active text-[9px] px-2 py-1" data-spp="16">16</button>
@@ -148,7 +148,7 @@
                             <button class="btn-toggle text-[9px] px-2 py-1" data-spp="4096">4096</button>
                         </div>
 
-                        <div class="canvas-container" style="flex: 0 0 500px; width: 500px; margin: 0; overflow: hidden; position: relative;">
+                        <div class="canvas-container" style="flex: 1; width: 100%; display: flex; justify-content: center; align-items: center; margin: 0; overflow: hidden; position: relative; min-height: 500px;">
                             <canvas id="result_canvas" style="width: 500px; height: 500px; position: static;"></canvas>
                         </div>
                     </div>
