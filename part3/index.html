@@ -120,42 +120,39 @@
 
         <div class="w-full h-px bg-stone-300 mb-12"></div>
 
-        <!-- Demo Section (2-Column Layout) -->
-        <section class="demo-section">
-            <div class="demo-layout">
-                <!-- Left Column: Simple Title -->
-                <div class="demo-left-column">
-                    <div class="text-content">
-                        <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-4">Path Tracing</h2>
-                    </div>
+        <!-- Demo Section (Stacked Card Layout) -->
+        <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0">
+            <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-8 flex flex-col gap-6">
+                <!-- Description on Top -->
+                <div class="w-full text-center mb-2">
+                    <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal">Path Tracing</h2>
                 </div>
 
-                <!-- Right Column: Canvas -->
-                <div class="demo-right-column">
-                    <div class="flex flex-col items-center gap-6">
-                        <!-- SPP Tabs (with SPP label tab) -->
-                        <div class="object-toggles" id="spp_tabs" style="max-width: 100%; display: flex; flex-wrap: wrap; justify-content: center;">
-                            <div class="px-3 py-1 text-[10px] font-bold text-stone-400 flex items-center border-r border-stone-200 mr-1" style="cursor: default;">SPP</div>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="8">8</button>
-                            <button class="btn-toggle active text-[9px] px-2 py-1" data-spp="16">16</button>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="32">32</button>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="64">64</button>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="128">128</button>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="256">256</button>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="512">512</button>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="1024">1024</button>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="2048">2048</button>
-                            <button class="btn-toggle text-[9px] px-2 py-1" data-spp="4096">4096</button>
-                        </div>
+                <!-- Canvas and Controls -->
+                <div class="flex flex-col items-center gap-6">
+                    <!-- SPP Tabs (with SPP label tab) -->
+                    <div class="object-toggles" id="spp_tabs" style="max-width: 100%; display: flex; flex-wrap: wrap; justify-content: center;">
+                        <div class="px-3 py-1 text-[10px] font-bold text-stone-400 flex items-center border-r border-stone-200 mr-1" style="cursor: default;">SPP</div>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="8">8</button>
+                        <button class="btn-toggle active text-[9px] px-2 py-1" data-spp="16">16</button>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="32">32</button>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="64">64</button>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="128">128</button>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="256">256</button>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="512">512</button>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="1024">1024</button>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="2048">2048</button>
+                        <button class="btn-toggle text-[9px] px-2 py-1" data-spp="4096">4096</button>
+                    </div>
 
-                        <div class="canvas-container" style="flex: 1; width: 100%; display: flex; justify-content: center; align-items: center; margin: 0; overflow: hidden; position: relative; min-height: 500px;">
-                            <canvas id="result_canvas" style="width: 500px; height: 500px; position: static;"></canvas>
-                        </div>
+                    <div class="canvas-container" style="flex: 1; width: 100%; display: flex; justify-content: center; align-items: center; margin: 0; overflow: hidden; position: relative; min-height: 500px;">
+                        <canvas id="result_canvas" style="width: 500px; height: 500px; position: static; border-radius: 4px; border: 1px solid #E5E1D8;"></canvas>
                     </div>
-                    <div class="mt-4 text-center">
-                        <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 7:</span>
-                        <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Real-time Path Tracing: Progressive Synthesis.</span>
-                    </div>
+                </div>
+                
+                <div class="mt-2 text-center">
+                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 7:</span>
+                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Real-time Path Tracing: Progressive Synthesis.</span>
                 </div>
             </div>
         </section>
