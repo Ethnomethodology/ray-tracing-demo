@@ -66,7 +66,7 @@ tailwind.config = {
             "spacing": {
                 "marginalia-width": "220px",
                 "reading-column": "680px",
-                "section-gap": "6rem",
+                "section-gap": "4rem",
                 "gutter-base": "2rem"
             },
             "fontFamily": {
