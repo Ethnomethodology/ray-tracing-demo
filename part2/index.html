@@ -19,6 +19,11 @@
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
     <style>
         .references-list a {
             position: relative;
@@ -44,6 +49,14 @@
             margin: 2rem 0;
             padding: 2rem;
             text-align: center;
+        }
+        /* KaTeX tweaks */
+        .katex-display {
+            margin: 2rem 0;
+            color: #722F37;
+        }
+        .katex {
+            font-size: 1.1em;
         }
     </style>
 </head>
@@ -166,7 +179,7 @@
                             (Image Placeholder: A 3D interactive Cartesian grid showing a virtual camera, image plane, and scene objects)
                         </div>
 
-                        <p>What we observe in a physical scene must be re-presented as a Cartesian plane, where every conceivable point possesses a unique (x, y, z) coordinate that precisely locates it within this three-dimensional space. To make progress in any simulation work, a visual re-presentation must be translated into a formal, mathematical space. This is where the 'obviousness' of analytical geometry comes into play for a practitioner. A circle on a screen is not just a shape; it is immediately seen as a locus of points on a Cartesian plane, defined by coordinates and a radius.</p>
+                        <p>What we observe in a physical scene must be re-presented as a Cartesian plane, where every conceivable point possesses a unique $(x, y, z)$ coordinate that precisely locates it within this three-dimensional space. To make progress in any simulation work, a visual re-presentation must be translated into a formal, mathematical space. This is where the 'obviousness' of analytical geometry comes into play for a practitioner. A circle on a screen is not just a shape; it is immediately seen as a locus of points on a Cartesian plane, defined by coordinates and a radius.</p>
                         <p>By re-presenting our camera, image plane, and objects within this coordinate system, we are actively knitting the informal 'world' of visual perception together with the formal 'model' of Galilean mathematics. Galileo's achievement lies in rendering observable properties of the world through mathematical descriptions. More specifically, Galilean physics presents the world around us as a mathematical field, akin to a Cartesian plane, where each point in that field can be determined by its coordinates. This move, which seems elementary, is the bedrock on which all subsequent computation is built. It makes the virtual world measurable, and therefore, analysable. A Cartesian system allows for precise calculation, but it is a thoroughgoing abstraction of the visual field. It provides the necessary structure to solve the mathematical problems of ray tracing.</p>
                     </div>
                 </section>
@@ -177,29 +190,29 @@
                 <section class="max-w-[680px] w-full flex flex-col items-center">
                     <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
                         <p>When attempting to model the path of a ray on computers within this coordinate system, we face two immediate problems. The first is an algebraic problem: how to calculate if a ray intersects an object (such as a sphere) and at which point.</p>
-                        <p>To mathematically determine if a ray hits a sphere, we need algebraic formulations for both the ‘ray’ and the ‘sphere’. The ray (<i>R</i>) can be written in a parametric form, where the position of any point along the ray is a function of the parameter <i>t</i>:</p>
-                        <p class="text-center font-mono py-4"><i>R(t) = o + dt</i></p>
-                        <p>In this equation, <i>d</i> is a vector that has both direction and magnitude, and <i>o</i> is the origin. At time <i>t = 0</i>, the ray is at the origin. The parametric form gives us a mathematical way to calculate points on the path of the ray.</p>
-                        <p>If we consider a sphere with radius <i>r</i> centred at <i>C</i>, any point <i>P</i> on the surface of the sphere satisfies the equation:</p>
-                        <p class="text-center font-mono py-4"><i>||P - C|| = r</i></p>
-                        <p>This equation states that the distance from the centre (<i>C</i>) of the sphere to the point of interest (<i>P</i>) is equal to the radius of the sphere (<i>r</i>).</p>
+                        <p>To mathematically determine if a ray hits a sphere, we need algebraic formulations for both the ‘ray’ and the ‘sphere’. The ray ($R$) can be written in a parametric form, where the position of any point along the ray is a function of the parameter $t$:</p>
+                        $$R(t) = o + dt$$
+                        <p>In this equation, $d$ is a vector that has both direction and magnitude, and $o$ is the origin. At time $t = 0$, the ray is at the origin. The parametric form gives us a mathematical way to calculate points on the path of the ray.</p>
+                        <p>If we consider a sphere with radius $r$ centred at $C$, any point $P$ on the surface of the sphere satisfies the equation:</p>
+                        $$||P - C|| = r$$
+                        <p>This equation states that the distance from the centre ($C$) of the sphere to the point of interest ($P$) is equal to the radius of the sphere ($r$).</p>
 
                         <div class="placeholder-box">
                             (Image Placeholder: Diagram showing a vector ray intersecting a sphere, demonstrating the algebraic substitution)
                         </div>
 
                         <p>At this juncture, the knitting-work between physics, geometry, and algebra becomes explicit. We have two independent mathematical descriptions, one for a ray and one for a sphere. The physical question, “Does the ray hit the sphere?”, is translated into the algebraic question, “Is there a point in space that satisfies both of these equations simultaneously?”.</p>
-                        <p>By substituting the ray's equation into the sphere's equation (<i>||o + dt - C|| = r</i>) and performing the dot product, we arrive at a standard quadratic equation:</p>
-                        <p class="text-center font-mono py-4"><i>at<sup>2</sup> + bt + c = 0</i></p>
+                        <p>By substituting the ray's equation into the sphere's equation ($||o + dt - C|| = r$) and performing the dot product, we arrive at a standard quadratic equation:</p>
+                        $$at^2 + bt + c = 0$$
                         <p>where:</p>
                         <ul class="list-none space-y-2 pl-12 italic">
-                            <li>a = d · d</li>
-                            <li>b = 2(m · d)</li>
-                            <li>c = (m · m) - r<sup>2</sup></li>
+                            <li>$a = d \cdot d$</li>
+                            <li>$b = 2(m \cdot d)$</li>
+                            <li>$c = (m \cdot m) - r^2$</li>
                         </ul>
-                        <p>(with <i>m</i> representing the vector <i>o - C</i>).</p>
-                        <p>This is a moment of practical abstraction. The complex geometric problem of a line intersecting a 3D sphere has been successfully knitted into a simple, well-understood algebraic problem from high school mathematics. The physical world of light and objects has been transformed into an expression of coefficients <i>a</i>, <i>b</i>, and <i>c</i>.</p>
-                        <p>In algebra, the solution to a quadratic equation is given by the formula <i>t = (-b ± √(b<sup>2</sup> - 4ac)) / 2a</i>. The discriminant (<i>b<sup>2</sup> - 4ac</i>) determines if the quadratic equation has no solution, exactly one solution, or two different solutions. Here, the logic flows back from algebra to geometry. The value of the discriminant—a purely algebraic property—is knitted back to the physical reality it re-presents. A negative discriminant is not just a mathematical dead-end (no real roots); it is the program's way of concluding that the ray has missed the sphere entirely. The iterable dialogue between the domains thus provides a definitive computational answer to our initial physical question.</p>
+                        <p>(with $m$ representing the vector $o - C$).</p>
+                        <p>This is a moment of practical abstraction. The complex geometric problem of a line intersecting a 3D sphere has been successfully knitted into a simple, well-understood algebraic problem from high school mathematics. The physical world of light and objects has been transformed into an expression of coefficients $a$, $b$, and $c$.</p>
+                        <p>In algebra, the solution to a quadratic equation is given by the formula $t = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$. The discriminant ($b^2 - 4ac$) determines if the quadratic equation has no solution, exactly one solution, or two different solutions. Here, the logic flows back from algebra to geometry. The value of the discriminant—a purely algebraic property—is knitted back to the physical reality it re-presents. A negative discriminant is not just a mathematical dead-end (no real roots); it is the program's way of concluding that the ray has missed the sphere entirely. The iterable dialogue between the domains thus provides a definitive computational answer to our initial physical question.</p>
                         <p>However, since a ray can intersect more than one sphere in the scene, it introduces the second problem, which is computational: how to determine which of the intersected spheres is closest to the origin of the ray. We need to solve these two problems for each pixel on the image plane, to determine which object would appear first when a ray is traced through that pixel. The algorithm answers the question, 'Which object does this ray hit first?' by methodically, and unintelligently, checking every single object in the scene, one by one. It compares the distances of each intersection point from the origin of the ray to determine which point is closest. This sequential search is the most direct translation of the visual question into computational logic.</p>
                     </div>
                 </section>
@@ -216,12 +229,12 @@
                         </div>
 
                         <p>For basic renderings, scientists often use empirical models like the Blinn-Phong reflection model, which approximates ambient, diffuse, and specular light. While these approximations compute colour quickly and efficiently, they are not physically accurate; they are modelled after empirical observations of how light interacts with different material surfaces. The practitioner makes a deliberate choice to deviate from a faithful simulation of physics. Instead of knitting the algorithm to the complex laws of light transport, they knit it to a simplified, empirical model designed for computational efficiency. However, to make the ray tracing algorithm applicable in contexts where physical accuracy is crucial, we must look beyond simple shader models and turn to the physical laws of optics.</p>
-                        <p>Consider the case of a perfect mirror. When a light ray hits a perfectly smooth, reflective surface, it bounces off in a predictable direction. In our coordinate system, the reflected direction (<i>R</i>), which is unknown, can be derived based on the known vectors: the direction of the incoming ray (<i>V</i>) and the surface normal on the intersected point (<i>N</i>). The normal is simply a vector perpendicular to the surface at the point of intersection. Using these vectors, we can determine the reflected direction using the following formula:</p>
-                        <p class="text-center font-mono py-4"><i>R = V - 2(V · N)N</i></p>
+                        <p>Consider the case of a perfect mirror. When a light ray hits a perfectly smooth, reflective surface, it bounces off in a predictable direction. In our coordinate system, the reflected direction ($R$), which is unknown, can be derived based on the known vectors: the direction of the incoming ray ($V$) and the surface normal on the intersected point ($N$). The normal is simply a vector perpendicular to the surface at the point of intersection. Using these vectors, we can determine the reflected direction using the following formula:</p>
+                        $$R = V - 2(V \cdot N)N$$
                         <p>This exact mathematical translation allows the computer to seamlessly trace the ray's new path after bouncing off a mirrored surface.</p>
                         <p>But what happens when the object is not a mirror, but a glass sphere or a body of water? Such transparent materials exhibit both reflection and refraction. A portion of the light bounces off the surface, while the rest transmits through the material, bending as it enters a medium of different density. In modern optics, this bending is governed by Snell's Law of Refraction:</p>
-                        <p class="text-center font-mono py-4"><i>n<sub>1</sub> sin θ<sub>1</sub> = n<sub>2</sub> sin θ<sub>2</sub></i></p>
-                        <p>Where <i>n<sub>1</sub></i> and <i>n<sub>2</sub></i> are the indices of refraction for the two media (e.g., air and glass), and the angles denote how much the light ray bends relative to the surface normal. By encoding Snell's Law and reflection formulas, the computer can split a single incoming ray into a reflected ray and a refracted ray, recursively tracking both to accurately simulate the behaviour of light interacting with transparent materials.</p>
+                        $$n_1 \sin \theta_1 = n_2 \sin \theta_2$$
+                        <p>Where $n_1$ and $n_2$ are the indices of refraction for the two media (e.g., air and glass), and the angles denote how much the light ray bends relative to the surface normal. By encoding Snell's Law and reflection formulas, the computer can split a single incoming ray into a reflected ray and a refracted ray, recursively tracking both to accurately simulate the behaviour of light interacting with transparent materials.</p>
                     </div>
                 </section>
 
@@ -237,8 +250,8 @@
                         </div>
 
                         <p>To formally describe this complex interaction, James T. Kajiya published the "rendering equation" in his pioneering research on computer graphics in 1986:</p>
-                        <p class="text-center font-mono py-4"><i>L<sub>o</sub>(p, ω<sub>o</sub>) = L<sub>e</sub>(p, ω<sub>o</sub>) + ∫<sub>S<sup>2</sup></sub> f(p, ω<sub>o</sub>, ω<sub>i</sub>) L<sub>i</sub>(p, ω<sub>i</sub>) |cos θ<sub>i</sub>| dω<sub>i</sub></i></p>
-                        <p>This equation captures the essence of how light travels through physical media. It states that the total light leaving a point (<i>L<sub>o</sub></i>) is the sum of the light emitted by that point (<i>L<sub>e</sub></i>) plus the light scattered towards the viewer from all other incoming directions over the hemisphere (<i>S<sup>2</sup></i>). The "integral" form of the equation, i.e., its depiction as an integration, mathematically re-presents these infinite possible paths a light ray could travel.</p>
+                        $$L_o(p, \omega_o) = L_e(p, \omega_o) + \int_{S^2} f(p, \omega_o, \omega_i) L_i(p, \omega_i) |\cos \theta_i| d\omega_i$$
+                        <p>This equation captures the essence of how light travels through physical media. It states that the total light leaving a point ($L_o$) is the sum of the light emitted by that point ($L_e$) plus the light scattered towards the viewer from all other incoming directions over the hemisphere ($S^2$). The "integral" form of the equation, i.e., its depiction as an integration, mathematically re-presents these infinite possible paths a light ray could travel.</p>
                         <p>Here lies the fundamental crisis of photorealism. The rendering equation is physically accurate, but it is an "uncomputable truth." Any source of light in any natural setting would generate infinite numbers of rays, bouncing on and off different surfaces while illuminating them. However, calculating the paths of every possible ray is practically impossible due to the limitation of the computing capacities of digital computers.</p>
                         <p>This presents a branching problem. At each stage of the process, there are many possibilities determining the fate of the ray. It can scatter at one angle, change its velocity, be absorbed, or reflect. But the problem is to know what a succession and branching of perhaps hundreds of thousands or millions of rays will do. While we can write integral equations for the "expected values," solving them or even getting an approximative idea of the properties of the solution is an entirely different matter. If a computer attempted to solve the rendering equation analytically for a complex scene, evaluating all infinite combinations, the simulation would hang forever.</p>
                     </div>
