@@ -253,7 +253,7 @@
             const r2_2_arrow = arrowHead.clone("r2_2_arrow");
             r2_2_arrow.setEnabled(false);
 
-            const dist2_3 = BABYLON.Vector3.Distance(cubeFace, bulbPos) - 2.1;
+            const dist2_3 = BABYLON.Vector3.Distance(cubeFace, bulbPos) - 0.8;
             const dir2_3 = bulbPos.subtract(cubeFace).normalize();
             const r2_3 = BABYLON.MeshBuilder.CreateCylinder("r2_3", { height: dist2_3, diameter: 0.05 }, scene);
             r2_3.material = blackMat;
