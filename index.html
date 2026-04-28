@@ -122,7 +122,6 @@
                     </a>
                 </div>
             </section>
-            <div class="w-full h-px bg-stone-300 mb-12"></div>
 
             <header class="mb-section-gap max-w-[680px] mx-auto w-full text-center md:text-left mt-8">
                 <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-4">Computational Methods of Perspectival Geometry</h2>
@@ -139,9 +138,10 @@
                     </div>
                 </section>
 
-                <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+                
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Sportello - Dürer's Drawing Apparatus</h3>
 
-                <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Sportello - Dürer's Drawing Apparatus</h3>
 
                 
                 <div class="max-w-[680px] w-full flex flex-col items-center px-0 mb-12">
@@ -227,7 +227,6 @@
                     <span><i>Components of Dürer's Perspective Apparatus.</i></span>
                 </div>
     </section>
-    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
 
     
     <div class="max-w-[680px] mx-auto w-full px-0 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed">
@@ -272,8 +271,6 @@
                     <span><i>Step-by-step Walkthrough of the Drawing Process.</i></span>
                 </div>
     </section>
-
-    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
 
     
     <div class="max-w-[680px] mx-auto w-full px-0 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed">
@@ -360,15 +357,16 @@
                     <span><i>Interactive 3D Simulation of Dürer's Apparatus.</i></span>
                 </div>
     </section>
-    
-    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
 
     
     <div class="max-w-[680px] mx-auto w-full px-0 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed">
         <p>The questions arise: how do we trace such threads (or rays) from the object to a computer screen? In what sense does it make sense to say that tracing rays is equivalent to “sampling the objects”? To understand the logical purpose such arguments play in practice, we must walk through how this physical geometry is methodically respecified.</p>
     </div>
 
+    
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
     <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Respecifying Dürer for the Digital Screen</h3>
+
 
     <div class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
         <p>If we want to model Dürer’s instructions for drawing on a computer, the “objects”, the “thread”, the “grid”, and so on need to be programmed in a way that the computer can execute. Dürer showed us that for perspective drawing, we needed a “drawing tablet,” “a near point of sight,” “a strong thread,” and so on. His pointer can move freely over the object because the thread passes through the needle that is 'hammered into the wall'. That needle acts as the 'near point of sight'—the fixed point from which the perspective is being drawn.</p>
@@ -398,13 +396,31 @@
         <p>However, for ease of computation, these rays are traced in reverse order: from the camera to the object to the light, rather than the way light “travels” in physical scenes from light sources to objects to the camera. Since, in geometrical optics, light rays are treated as if they travel in straight lines, tracing them in reverse does not alter their paths. Moreover, in a physical scene, most of the light rays will never end up hitting the camera. Thus, by starting its path from the camera we can ensure it ends in a light, avoiding unnecessary computation of rays that do not contribute to the final image.</p>
     </div>
 
+    
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
     <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">The Problem of Perspective: Rasterization vs. Ray Tracing</h3>
+
 
     <div class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
         <p>When we look through a window, we see the neighbouring buildings appear larger than the distant hills, even though we know the hills are significantly larger. This illustrates the problem of perspective. In computer graphics, scenes are drawn artificially based on the geometric and material properties of different objects present within the scene. They are drawn from a single perspective, where the image plane acts as a reference plane through which rays are traced.</p>
         <p>Traditionally, computer scientists have solved this projection problem using a technique known as rasterization, where the 'Z axis' values of objects are compared to see which appears first. Although this method significantly reduces compute time, it is not physically accurate. What ray tracing does differently is that it traces rays from camera to the scene and calculates colours of pixels based on the way rays physically interact with the objects present within the scene. The algorithm determines the order of objects by drawing rays from the camera to check which surface this ray intersects with first. This surface could be on an object, a light source, or the camera itself.</p>
     </div>
 
+
+    
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Shadows, Bounces, and Managing Constraints</h3>
+
+
+    <div class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
+        <p>Even if our ray hits a point on the surface of an object, it does not guarantee that it will be visible from the perspective of the camera. The point will only be visible if we can draw another imaginary line from it to the light source. If there is another object between the point and the light source, we will not be able to complete the path of our ray, and the point is considered to be in shadow.</p>
+        <p>To solve this, the algorithm uses a new tool that has no physical counterpart: the 'shadow ray'. This is not a simulation of a real phenomenon, but a computational probe. It is a question posed in the language of the algorithm itself: “Can a new ray, originating at this point of intersection, reach the light source without being blocked?”.</p>
+        <p>Furthermore, the colour of a point depends not only on whether it is visible from the light source directly but also on whether it is visible indirectly via reflections and ambient light. When a ray hits a surface, the algorithm computes the reflected direction and traces a new ray along this reflected direction.</p>
+        <p>However, as we have limited computing capacity, we need to define how many times we allow a ray to reflect within the scene. This practical constraint illustrates that theoretical ideals, such as an infinitely reflecting ray, have limits to their practical realisation.</p>
+        <p>In nature, a light ray's path is effectively infinite, bouncing between surfaces until its energy dissipates. A computer program, however, cannot simulate such infinitude. We will see in the later parts how practitioners make a theoretical issue like the "infinite details" of a physical phenomenon computationally tractable through different programming techniques, preventing infinite loops by bounding the number of times a ray can bounce. In this context, these programming decisions become the computational equivalent of a stop sign based on what would be considered 'enough'. It is a necessary compromise, an admission that the simulation is not the phenomenon itself, but a bounded, finite and practically purposeful inquiry into its behaviour.</p>
+    </div>
+
+    
     <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
                 <div class="canvas-container">
@@ -418,7 +434,6 @@
                 </div>
 
                 <div class="text-content !px-0 !pb-0">
-                    <h4 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-6">The Abstracted Synthesis</h4>
                     <div class="instruction-steps" id="raytracing-steps">
                         <div class="step active" data-step="1">
                             <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Direct Illumination</strong><br>Once a ray hits a surface in the scene, the algorithm checks for ‘direct illumination’ by seeing if the point can be connected to a light source with a straight line. If there is no object between that point and the light source, the ray completes its path, and the corresponding pixel is painted.</p>
@@ -442,22 +457,9 @@
                 </div>
     </section>
 
-    
     <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
-
-    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Shadows, Bounces, and Managing Constraints</h3>
-
-    <div class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
-        <p>Even if our ray hits a point on the surface of an object, it does not guarantee that it will be visible from the perspective of the camera. The point will only be visible if we can draw another imaginary line from it to the light source. If there is another object between the point and the light source, we will not be able to complete the path of our ray, and the point is considered to be in shadow.</p>
-        <p>To solve this, the algorithm uses a new tool that has no physical counterpart: the 'shadow ray'. This is not a simulation of a real phenomenon, but a computational probe. It is a question posed in the language of the algorithm itself: “Can a new ray, originating at this point of intersection, reach the light source without being blocked?”.</p>
-        <p>Furthermore, the colour of a point depends not only on whether it is visible from the light source directly but also on whether it is visible indirectly via reflections and ambient light. When a ray hits a surface, the algorithm computes the reflected direction and traces a new ray along this reflected direction.</p>
-        <p>However, as we have limited computing capacity, we need to define how many times we allow a ray to reflect within the scene. This practical constraint illustrates that theoretical ideals, such as an infinitely reflecting ray, have limits to their practical realisation.</p>
-        <p>In nature, a light ray's path is effectively infinite, bouncing between surfaces until its energy dissipates. A computer program, however, cannot simulate such infinitude. We will see in the later parts how practitioners make a theoretical issue like the "infinite details" of a physical phenomenon computationally tractable through different programming techniques, preventing infinite loops by bounding the number of times a ray can bounce. In this context, these programming decisions become the computational equivalent of a stop sign based on what would be considered 'enough'. It is a necessary compromise, an admission that the simulation is not the phenomenon itself, but a bounded, finite and practically purposeful inquiry into its behaviour.</p>
-    </div>
-
-    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
-
     <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Conclusion: From Geometry to Photorealism</h3>
+
 
     <div class="max-w-[680px] mx-auto w-full px-0 mt-8 mb-24 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
         <p>By slowing down the analysis to focus on these constitutive details, we make the work of respecification tangible. Dürer's physical apparatus—a historical, mechanical practice—is methodically respecified into a computational one. The “thread” became a “ray”, the “drawing frame” became an “image plane”, and the physical act of plotting points became the logic of "sampling". This translation demonstrates how visual phenomena are broken down into formal, instructable parts that a computer can execute.</p>
@@ -465,10 +467,10 @@
         <p>In the next part, we will explore how disparate techniques from algebra, geometry, optics, statistics, and simulation modelling are woven together to render a physically accurate scene. More importantly, we will question what physical "accuracy" actually means in this computationally constrained environment, how such a thing can be measured, and how the pursuit of "photorealism" is ultimately a negotiated, pragmatic achievement rather than a perfect mirror of physical reality.</p>
     </div>
 
-
+    
     <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
-
     <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">References</h3>
+
     <section class="references-section !border-t-0">
         <div class="max-w-[680px] mx-auto w-full px-0">
             <ol class="references-list">
