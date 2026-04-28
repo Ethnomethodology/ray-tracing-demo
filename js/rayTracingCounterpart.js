@@ -223,8 +223,8 @@
             const g2X = Math.round(i2x / pixelSize + (resolution - 1) / 2);
             const g2Y = Math.round(i2y / pixelSize + (resolution - 1) / 2);
 
-            const cubePos = new BABYLON.Vector3(-10, 5, -13);
-            const cubeFace = new BABYLON.Vector3(-8.25, 3.95, -12.65); // Right face (facing the sphere)
+            const cubePos = new BABYLON.Vector3(-10, 2, -13);
+            const cubeFace = new BABYLON.Vector3(-8.25, 0.95, -12.65); // Right face (facing the sphere)
             
             const bluePaintedMat = new BABYLON.StandardMaterial("bluePaintedMat", scene);
             bluePaintedMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.8);
@@ -650,7 +650,7 @@
             // Add blue cube obstacle (only for the animated walkthrough)
             if (animateRay) {
                 const cube = BABYLON.MeshBuilder.CreateBox("obstacleCube", { size: 3.5 }, scene);
-                cube.position.set(-10, 5, -13);
+                cube.position.set(-10, 2, -13);
                 const cubeMat = new BABYLON.StandardMaterial("cubeMat", scene);
                 cubeMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.8); // Sober blue
                 cubeMat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
