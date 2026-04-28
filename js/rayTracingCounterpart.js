@@ -19,7 +19,7 @@
 
         // Camera for the scene view (not the physical camera model)
         const isMobile = window.innerWidth <= 900;
-        const defaultRadius = isMobile ? 54 : 45;
+        const defaultRadius = isMobile ? 42 : 35;
         const sceneCamera = new BABYLON.ArcRotateCamera(
             "sceneCamera", -Math.PI / 5, Math.PI / 2.3, defaultRadius,
             new BABYLON.Vector3(0, 2.0, -2.0), scene

@@ -9,7 +9,7 @@
 
     const isMobile = window.innerWidth <= 900;
     // Using same zoom as canvas 3
-    const defaultRadius = isMobile ? 54 : 45;
+    const defaultRadius = isMobile ? 42 : 35;
     const camera = new BABYLON.ArcRotateCamera("walkthroughCamera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, -3.5), scene); camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
     camera.attachControl(canvas, false);
 
