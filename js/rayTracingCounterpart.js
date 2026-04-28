@@ -19,10 +19,10 @@
 
         // Camera for the scene view (not the physical camera model)
         const isMobile = window.innerWidth <= 900;
-        const defaultRadius = isMobile ? 42 : 35;
+        const defaultRadius = isMobile ? 36 : 28;
         const sceneCamera = new BABYLON.ArcRotateCamera(
             "sceneCamera", -Math.PI / 5, Math.PI / 2.3, defaultRadius,
-            new BABYLON.Vector3(0, 2.0, -2.0), scene
+            new BABYLON.Vector3(0, 4.0, -2.0), scene
         ); sceneCamera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
         sceneCamera.attachControl(canvas, true);
 
@@ -145,7 +145,7 @@
             const gridY = Math.round(iy / pixelSize + (resolution - 1) / 2);
 
             // --- 5. Visual Rays (Animated or Static) ---
-            const bulbPos = new BABYLON.Vector3(0, 15, -11);
+            const bulbPos = new BABYLON.Vector3(0, 8, -11);
             let rayLine = null;
             let lightRayLine = null;
 
@@ -671,7 +671,7 @@
         }
 
         // --- 4. Light Source ---
-        const bulbPos = new BABYLON.Vector3(0, 15, -11);
+        const bulbPos = new BABYLON.Vector3(0, 8, -11);
         BABYLON.SceneLoader.ImportMeshAsync("", (window.assetBaseUrl || "") + "models/", "bulb.glb", scene).then((result) => {
             const bulbModel = result.meshes[0];
             bulbModel.position.copyFrom(bulbPos);
