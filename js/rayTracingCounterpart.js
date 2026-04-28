@@ -23,7 +23,7 @@
         const sceneCamera = new BABYLON.ArcRotateCamera(
             "sceneCamera", -Math.PI / 5, Math.PI / 2.3, defaultRadius,
             new BABYLON.Vector3(0, 2.0, -2.0), scene
-        );
+        ); sceneCamera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
         sceneCamera.attachControl(canvas, true);
 
         // --- 6. Annotations (GUI) ---

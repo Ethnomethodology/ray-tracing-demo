@@ -20,7 +20,7 @@
     const camera = new BABYLON.ArcRotateCamera(
         "prevCam", -Math.PI / 5, Math.PI / 2.5, defaultRadius,
         new BABYLON.Vector3(0, -5, -3.5), scene
-    );
+    ); camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
 
     // Build the full apparatus (no drawing texture → plain white page)
     const { 
