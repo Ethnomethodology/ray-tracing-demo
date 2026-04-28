@@ -205,11 +205,11 @@
                         <p>By substituting the ray's equation into the sphere's equation ($||o + dt - C|| = r$) and performing the dot product, we arrive at a standard quadratic equation:</p>
                         $$at^2 + bt + c = 0$$
                         <p>where:</p>
-                        <ul class="list-none space-y-2 pl-12 italic">
-                            <li>$a = d \cdot d$</li>
-                            <li>$b = 2(m \cdot d)$</li>
-                            <li>$c = (m \cdot m) - r^2$</li>
-                        </ul>
+                        $$\begin{aligned}
+                        a &= d \cdot d \\
+                        b &= 2(m \cdot d) \\
+                        c &= (m \cdot m) - r^2
+                        \end{aligned}$$
                         <p>(with $m$ representing the vector $o - C$).</p>
                         <p>This is a moment of practical abstraction. The complex geometric problem of a line intersecting a 3D sphere has been successfully knitted into a simple, well-understood algebraic problem from high school mathematics. The physical world of light and objects has been transformed into an expression of coefficients $a$, $b$, and $c$.</p>
                         <p>In algebra, the solution to a quadratic equation is given by the formula $t = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$. The discriminant ($b^2 - 4ac$) determines if the quadratic equation has no solution, exactly one solution, or two different solutions. Here, the logic flows back from algebra to geometry. The value of the discriminant—a purely algebraic property—is knitted back to the physical reality it re-presents. A negative discriminant is not just a mathematical dead-end (no real roots); it is the program's way of concluding that the ray has missed the sphere entirely. The iterable dialogue between the domains thus provides a definitive computational answer to our initial physical question.</p>
