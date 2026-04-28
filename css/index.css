@@ -134,7 +134,6 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
     flex-direction: column;
     gap: 1.25rem;
     margin-top: 0.5rem;
-    min-height: 150px;
 }
 
 .step {
@@ -457,40 +456,45 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
 
 .demo-layout {
     display: flex;
-    flex-direction: row;
-    gap: 2rem;
-    height: 100%;
+    flex-direction: column;
+    position: relative;
     width: 100%;
-    max-width: 1600px;
+    max-width: 680px;
     margin: 0 auto;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
 }
 
 .demo-left-column {
-    flex: 1;
-    max-width: 500px;
+    width: 100%;
+    z-index: 20;
     display: flex;
     flex-direction: column;
 }
 
 .demo-right-column {
-    flex: 2;
+    flex: 1;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 0;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 1rem;
-    padding: 1rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    background: transparent;
+    border: none;
+    padding: 2rem;
+    padding-top: 0; /* Reduced top padding as text-content is above */
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .text-content {
-    background: var(--glass-bg);
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 2.5rem 2rem 1rem 2rem; /* More top padding, less bottom */
+    box-shadow: none;
 }
 
 .text-content h1 {
@@ -540,7 +544,22 @@ button, select, .badge, .camera-info-overlay, .debug-select, .step-num {
     }
 
     .demo-left-column {
+        position: static;
         max-width: 100%;
+        padding: 1.5rem;
+        pointer-events: auto;
+    }
+
+    .text-content {
+        background: transparent;
+        backdrop-filter: none;
+        border: none;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .demo-right-column {
+        padding: 0 1.5rem 1.5rem 1.5rem;
     }
 
     .canvas-container,

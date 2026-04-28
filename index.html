@@ -88,7 +88,7 @@
     <main class="flex-1 w-full flex justify-center pb-32 pt-12 px-4 md:px-8">
         <div class="max-w-[1000px] w-full flex flex-col gap-8 relative">
 
-            <section class="w-full mb-16 flex flex-col gap-6 mt-4">
+            <section class="w-full mb-12 flex flex-col gap-6 mt-4">
                 <div class="mb-4">
                     <h1 class="font-serif font-newsreader text-[48px] font-semibold leading-[1.1] tracking-[-0.02em] text-stone-900 mb-4">Respecifying Ray Tracing</h1>
                     <div class="mb-8 font-sans text-[13px] font-medium leading-[1.2] tracking-[0.05em] text-[#722F37]">
@@ -122,39 +122,66 @@
                     </a>
                 </div>
             </section>
-            <div class="w-full h-px bg-stone-300 mb-16"></div>
 
             <header class="mb-section-gap max-w-[680px] mx-auto w-full text-center md:text-left mt-8">
                 <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-4">Computational Methods of Perspectival Geometry</h2>
-                <p class="font-body-reading text-[20px] text-[#6B6B6B] italic" style="font-family: 'Newsreader', serif;">A reassessment of Renaissance techniques for digital synthesis.</p>
+                <p class="font-body-reading text-[20px] text-[#6B6B6B] italic" style="font-family: 'Newsreader', serif;">A respecification of Renaissance techniques for digital synthesis.</p>
             </header>
 
             <article class="w-full flex flex-col items-center gap-16">
                 <!-- Intro Section -->
                 <section class="max-w-[680px] w-full flex flex-col items-center">
-                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6 mb-12" style="font-family: 'Newsreader', serif;">
-                        <p>The codification of perspective during the Renaissance established a mathematical framework that continues to undergird modern computer graphics. While linear perspective is often treated as a solved geometric abstraction, returning to its tactile origins reveals the computational logic embedded in early viewing apparatuses.</p>
-                        <p>Consider Albrecht Dürer's conceptualization of the picture plane. His woodcuts do not merely illustrate artistic practice; they present algorithms for visual synthesis. The intersection of sightlines with a projection plane is a direct analog to primary ray generation in recursive ray tracing architectures.</p>
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>The problem that computer graphics aims to solve is how to accurately project three-dimensional (3D) objects onto a two-dimensional (2D) screen. While several computational techniques address this challenge, ray tracing algorithms are particularly noteworthy because they not only solve this problem but also attempt to capture realistic lighting effects.</p>
+                        <p>Ray tracing and its variants belong to a family of algorithms used in rendering photorealistic scenes in animated movies and video games by simulating the underlying physics of light. By simplifying light to a geometric ray, it becomes computationally manageable, allowing computer scientists to develop algorithms that can virtually trace these rays as straight lines, determine which objects they hit on their paths, and calculate where to show shadows, reflections, and other lighting effects based upon that. These lighting effects are crucial for rendering the details of virtual scenes that help human observers perceive depth, dimension, colour, and other physical properties of nature in digitally rendered virtual objects, resulting in a kind of quantified, machine-elaborated chiaroscuro.</p>
+                        <p>As success depends on what ‘makes sense’ perceptually to a human observer, at times, instead of modelling what is physically accurate, computer scientists focus on what is visually appealing by incorporating both qualitative and quantitative factors into their work. In their quest for photorealism, computer scientists explicitly acknowledge and orient to the human observer in perceptual setups, defining “photorealistic rendering” as the task of generating images that are indistinguishable from a photograph or that evoke the same response from a human observer as looking at the actual scene. What ‘makes sense’ perceptually is not a fixed target but a constantly negotiated one.</p>
                     </div>
+                </section>
 
-                    <figure class="w-full mb-8">
+                
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Sportello - Dürer's Drawing Apparatus</h3>
+
+
+                
+                <div class="max-w-[680px] w-full flex flex-col items-center px-0 mb-12">
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>This problem of projection is not new. Building on the foundational contributions of Renaissance scholars to linear perspective and the stabilisation of chiaroscuro techniques in engineering and scientific practice, German Renaissance artist Albrecht Dürer became famous for setting out what was involved in the geometrical measurements for the perspective drawing of objects pictorially. To understand how such visual phenomena are translated into a computational problem, we must first look at the apparatus that made these perspectival rules tangible.</p>
+                        <p>In his 1525 book <em>A Course in the Art of Measurement with a Compass and Ruler</em>, Dürer provided formalised instructions for drawing as tutorial resources for aspiring art students.</p>
+                    </div>
+                </div>
+
+                <section class="max-w-[680px] w-full flex flex-col items-center px-0">
+                    <figure class="w-full mb-12">
                         <img src="images/durer_lute_woodcut.jpg" alt="Dürer's Woodcut" class="w-full h-auto object-cover rounded shadow-sm border border-[#E5E1D8]">
                         <figcaption class="mt-3 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2" style="font-family: 'Newsreader', serif;">
                             <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 1:</span><span><i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A Course in the Art of Measurement with a Compass and Ruler, 1525). Draftsman Drawing a Lute.</span>
                         </figcaption>
                     </figure>
                     <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
-                        <p>This image is a famous woodcut by the Renaissance artist Albrecht Dürer, titled <em>Draftsman Drawing a Lute</em> (1525). It illustrates a mechanical device designed to help artists create perfect, mathematically accurate perspective drawings of complex three-dimensional objects.</p>
-                        <p>The device works by physically mapping the "lines of sight" between an object and an observer's eye. Here is a breakdown of how the mechanism depicted in the image functions:</p>
+                        <p>He describes his method of perspectival geometry as follows:</p>
+                        <blockquote class="italic border-l-4 border-[#722F37]/40 pl-6 py-2 my-8 text-stone-600">
+                            “If you are in a large chamber, hammer a large needle with a wide eye into the wall. It will denote the near point of sight. Then, thread it with a strong thread, weighted with a piece of lead. Now place a table as far from the needle as you wish and place a vertical frame on it, parallel to the wall to which the needle is attached, but as high or low as you wish, and on whatever side you wish. This frame should have a door hinged to it which will serve as your tablet for painting. Now nail two threads to the top and middle of the frame. These should be as long, respectively, as the frame's width and length, and they should be left hanging. Next, prepare a long iron pointer with a needle's eye at its other end, and attach it to the long thread which leads through the needle that is attached to the wall. Hand this pointer to another person, while you attend to the threads which are attached to the frame. Now proceed as follows. Place a lute or another object to your liking as far from the frame as you wish, but so that it will not move while you are using it. Have your assistant then move the pointer from point to point on the lute, and as often as he rests in one place and stretches the long thread, move the two threads attached to the frame crosswise and in straight lines to confine the long thread. Then stick their ends with wax to the frame, and ask your assistant to relax the tension of the long thread. Next close the door of the frame and mark the spot where the threads cross on the tablet. After this, open the door again and continue with another point, moving from point to point until the entire lute has been scanned and its points have been transferred to the tablet. Then connect all the points on the tablet and you will see the result. You can use this method for drawing other things. I have drawn this device below.”
+                        </blockquote>
                     </div>
                 </section>
 
 
-    <section class="explanation-section">
-        <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
-                    <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">The Key Components</h2>
+    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
+        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                <div class="apparatus-preview-container">
+                    <canvas id="previewCanvas"></canvas>
+                    <div id="pill-1" class="apparatus-pill" data-tooltip="Pulley">1</div>
+                    <div id="pill-2" class="apparatus-pill" data-tooltip="Thread">2</div>
+                    <div id="pill-3" class="apparatus-pill" data-tooltip="Weight">3</div>
+                    <div id="pill-4" class="apparatus-pill" data-tooltip="Vertical Frame">4</div>
+                    <div id="pill-5" class="apparatus-pill" data-tooltip="Door/Tablet">5</div>
+                    <div id="pill-6" class="apparatus-pill" data-tooltip="Point of Interest">6</div>
+                    <div id="pill-7" class="apparatus-pill" data-tooltip="Pointer">7</div>
+                    <div id="pill-8" class="apparatus-pill" data-tooltip="Subject">8</div>
+                </div>
+
+                <div class="text-content !px-0 !pb-0">
                     <div class="instruction-steps" id="explanation-steps">
                         <div class="step active">
                             <span class="step-num font-serif">1</span>
@@ -195,31 +222,30 @@
                     </div>
                 </div>
             </div>
-
-            <div class="demo-right-column">
-                <div class="apparatus-preview-container">
-                    <canvas id="previewCanvas"></canvas>
-                    <div id="pill-1" class="apparatus-pill" data-tooltip="Pulley">1</div>
-                    <div id="pill-2" class="apparatus-pill" data-tooltip="Thread">2</div>
-                    <div id="pill-3" class="apparatus-pill" data-tooltip="Weight">3</div>
-                    <div id="pill-4" class="apparatus-pill" data-tooltip="Vertical Frame">4</div>
-                    <div id="pill-5" class="apparatus-pill" data-tooltip="Door/Tablet">5</div>
-                    <div id="pill-6" class="apparatus-pill" data-tooltip="Point of Interest">6</div>
-                    <div id="pill-7" class="apparatus-pill" data-tooltip="Pointer">7</div>
-                    <div id="pill-8" class="apparatus-pill" data-tooltip="Subject">8</div>
+                <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full" style="font-family: 'Newsreader', serif;">
+                    <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 2:</span>
+                    <span><i>Components of Dürer's Perspective Apparatus.</i></span>
                 </div>
-                <div class="mt-4 text-center">
-                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 2:</span>
-                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Components of Dürer's Perspective Apparatus.</span>
-                </div>
-            </div>
-        </div>
     </section>
-    <section class="demo-section walkthrough-section">
-        <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
-                    <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">Instructions for the Draughtsman</h2>
+
+    
+    <div class="max-w-[680px] mx-auto w-full px-0 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed">
+        <p>In this method, a draughtsman uses “a strong thread” hammered into the wall to create “the near point of sight” and places a vertical frame parallel to the wall. Then “a lute or other object to your liking” is placed on the opposite end of the table. The near point of sight is placed on parts of the lute, and strings are attached with hot wax to the frame to mark where the near point of sight passes through the frame. The points that the crossed strings denote are then marked on the “drawing tablet,” creating an accurate dotted outline for the lute.</p>
+    </div>
+
+    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
+        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                <div class="canvas-container">
+                    <canvas id="walkthroughCanvas"></canvas>
+                    <button id="walkthroughPrev" class="canvas-nav-btn prev bottom" aria-label="Previous Step">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <button id="walkthroughNext" class="canvas-nav-btn next bottom" aria-label="Next Step">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+
+                <div class="text-content !px-0 !pb-0">
                     <div class="instruction-steps" id="draughtsman-steps">
                         <div class="step active" data-step="1">
                             <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Step 1:</strong> Move the Iron Pointer to a point on the Subject and stretch the Long Thread.</p>
@@ -240,39 +266,20 @@
                     </div>
                 </div>
             </div>
-
-            <div class="demo-right-column">
-                <div class="canvas-container">
-                    <canvas id="walkthroughCanvas"></canvas>
-                    <button id="walkthroughPrev" class="canvas-nav-btn prev bottom" aria-label="Previous Step">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                    </button>
-                    <button id="walkthroughNext" class="canvas-nav-btn next bottom" aria-label="Next Step">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    </button>
+                <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full" style="font-family: 'Newsreader', serif;">
+                    <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 3:</span>
+                    <span><i>Step-by-step Walkthrough of the Drawing Process.</i></span>
                 </div>
-                <div class="mt-4 text-center">
-                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 3:</span>
-                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Step-by-step Walkthrough of the Drawing Process.</span>
-                </div>
-            </div>
-        </div>
     </section>
 
-    <section class="demo-section">
+    
+    <div class="max-w-[680px] mx-auto w-full px-0 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed">
+        <p>By connecting the dots on the tablet, a draughtsman can produce a perspective drawing of the object. Hofmann (1990) draws a parallel between Dürer’s method of perspective drawing and ray tracing in computer graphics by comparing the draughtsman’s thread with a light ray. Through that, he argues that those plotted dots on the “drawing tablet” are samples of the pictured object.</p>
+    </div>
 
-        <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
-                    <h1 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">Interactive Simulation</h1>
-                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-8">
-                        Click on any point on the subject to draw it on the tablet. Continue adding points to see the outline of your image emerge. You can also click the play button to animate the entire process.
-                    </p>
-                </div>
-            </div>
-
-            <div class="demo-right-column">
-                <div class="button-container">
+    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
+        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                <div class="button-container pb-4">
                     <div class="object-toggles">
                         <button class="btn-toggle active" data-target="lute">Lute</button>
                         <button class="btn-toggle" data-target="teapot">Teapot</button>
@@ -338,62 +345,85 @@
                         </select>
                     </div>
                 </div>
-                <div class="mt-4 text-center">
-                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 4:</span>
-                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Interactive 3D Simulation of Dürer's Apparatus.</span>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <section class="demo-section">
-        <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
-                    <h1 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">From Apparatus to Algorithm</h1>
-                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-8">
-                        Ray tracing replaces the physical components of Dürer's device with their computational counterparts. The wall needle becomes a virtual <strong>Camera</strong>, the wooden frame becomes a <strong>Digital Image Plane</strong> (a 16x16 pixel grid), and the lighting is simulated by light sources like this <strong>Bulb</strong>. This abstraction allows for the simulation of complex light interactions that were impossible with the physical model.
+
+                <div class="text-content !px-0 !pb-0">
+                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-0">
+                        Click on any point on the subject to draw it on the tablet. Continue adding points to see the outline of your image emerge. You can also click the play button to animate the entire process.
                     </p>
                 </div>
             </div>
-
-            <div class="demo-right-column">
-                <div class="canvas-container">
-                    <canvas id="rayTracingCanvas"></canvas>
+                <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full" style="font-family: 'Newsreader', serif;">
+                    <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 4:</span>
+                    <span><i>Interactive 3D Simulation of Dürer's Apparatus.</i></span>
                 </div>
-                <div class="mt-4 text-center">
-                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 5:</span>
-                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Computational Counterpart: Annotated View.</span>
-                </div>
-            </div>
-        </div>
     </section>
 
-    <section class="demo-section ray-tracing-walkthrough-section">
-        <div class="demo-layout">
-            <div class="demo-left-column">
-                <div class="text-content">
-                    <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-6">The Abstracted Synthesis</h2>
-                    <div class="instruction-steps" id="raytracing-steps">
-                        <div class="step active" data-step="1">
-                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Phase 1: The Sighting Ray</strong><br>A ray is cast from the camera lens through a pixel on the digital grid to find the nearest object.</p>
-                        </div>
-                        <div class="step" data-step="2">
-                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Phase 2: The Shadow Ray</strong><br>From the hit point, a second ray is cast towards the light source to determine visibility and shading.</p>
-                        </div>
-                        <div class="step" data-step="3">
-                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Phase 3: Pixel Synthesis</strong><br>The computer calculates the final color and "paints" the pixel on the 2D grid.</p>
-                        </div>
-                    </div>
-                    <div class="step-navigation">
-                        <button id="prevRaytracingBtn" class="nav-btn" disabled>Previous</button>
-                        <button id="nextRaytracingBtn" class="nav-btn">Next</button>
-                    </div>
+    
+    <div class="max-w-[680px] mx-auto w-full px-0 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed">
+        <p>The questions arise: how do we trace such threads (or rays) from the object to a computer screen? In what sense does it make sense to say that tracing rays is equivalent to “sampling the objects”? To understand the logical purpose such arguments play in practice, we must walk through how this physical geometry is methodically respecified.</p>
+    </div>
+
+    
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Respecifying Dürer for the Digital Screen</h3>
+
+
+    <div class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
+        <p>If we want to model Dürer’s instructions for drawing on a computer, the “objects”, the “thread”, the “grid”, and so on need to be programmed in a way that the computer can execute. Dürer showed us that for perspective drawing, we needed a “drawing tablet,” “a near point of sight,” “a strong thread,” and so on. His pointer can move freely over the object because the thread passes through the needle that is 'hammered into the wall'. That needle acts as the 'near point of sight'—the fixed point from which the perspective is being drawn.</p>
+    </div>
+
+    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
+        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                <div class="canvas-container !min-h-[350px]">
+                    <canvas id="rayTracingCanvas"></canvas>
+                </div>
+
+                <div class="text-content !px-0 !pb-0">
+                    <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed mt-0">
+                        Ray tracing replaces the physical components of Dürer's device with their computational counterparts. The wall needle becomes a virtual <strong>Camera</strong>, the wooden frame becomes a digital <strong>Image Plane</strong> (a 16x16 pixel grid), and the strong thread becomes a virtual <strong>Ray</strong>. The subject to be rendered is presented in front of the camera, on the other side of the image plane, as a 3D digital <strong>Object</strong> whose shape can be computationally manipulated. Finally, the lighting is simulated by abstract re-presentations of <strong>Light</strong> sources like this Bulb.
+                    </p>
                 </div>
             </div>
+                <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full" style="font-family: 'Newsreader', serif;">
+                    <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 5:</span>
+                    <span><i>Computational Counterpart: Annotated View.</i></span>
+                </div>
+    </section>
 
-            <div class="demo-right-column">
-                <div class="canvas-container">
+    
+    <div class="max-w-[680px] mx-auto w-full px-0 mt-12 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
+        <p>Similarly, in computer graphics, the ‘camera’ is a fixed point from which rays can be traced. The frame or hinged door becomes the "image plane"—acting as a window onto the scene. Just as the draughtsman scans the lute point by point through the grid of the frame, the ray tracing algorithm imagines our window onto the scene divided into smaller squares (pixels). The more squares we add, the greater number of rays we can trace from the camera to the scene. By tracing rays through all the pixels on the image plane and computing the colour of those pixels based on the geometric and material properties of the points these rays intersect in the scene, a 2D projection of the 3D scene can be rendered.</p>
+        <p>However, for ease of computation, these rays are traced in reverse order: from the camera to the object to the light, rather than the way light “travels” in physical scenes from light sources to objects to the camera. Since, in geometrical optics, light rays are treated as if they travel in straight lines, tracing them in reverse does not alter their paths. Moreover, in a physical scene, most of the light rays will never end up hitting the camera. Thus, by starting its path from the camera we can ensure it ends in a light, avoiding unnecessary computation of rays that do not contribute to the final image.</p>
+    </div>
+
+    
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">The Problem of Perspective: Rasterization vs. Ray Tracing</h3>
+
+
+    <div class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
+        <p>When we look through a window, we see the neighbouring buildings appear larger than the distant hills, even though we know the hills are significantly larger. This illustrates the problem of perspective. In computer graphics, scenes are drawn artificially based on the geometric and material properties of different objects present within the scene. They are drawn from a single perspective, where the image plane acts as a reference plane through which rays are traced.</p>
+        <p>Traditionally, computer scientists have solved this projection problem using a technique known as rasterization, where the 'Z axis' values of objects are compared to see which appears first. Although this method significantly reduces compute time, it is not physically accurate. What ray tracing does differently is that it traces rays from camera to the scene and calculates colours of pixels based on the way rays physically interact with the objects present within the scene. The algorithm determines the order of objects by drawing rays from the camera to check which surface this ray intersects with first. This surface could be on an object, a light source, or the camera itself.</p>
+    </div>
+
+
+    
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Shadows, Bounces, and Managing Constraints</h3>
+
+
+    <div class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
+        <p>Even if our ray hits a point on the surface of an object, it does not guarantee that it will be visible from the perspective of the camera. The point will only be visible if we can draw another imaginary line from it to the light source. If there is an obstruction between the point and the light source—whether it is another object or the geometry of the object itself—we will not be able to complete the path of our ray, and the point is considered to be in shadow.</p>
+        <p>To solve this, the algorithm uses a new tool that has no physical counterpart: the 'shadow ray'. This is not a simulation of a real phenomenon, but a computational probe. It is a question posed in the language of the algorithm itself: “Can a new ray, originating at this point of intersection, reach the light source without being blocked?”.</p>
+        <p>Furthermore, the colour of a point depends not only on whether it is visible from the light source directly but also on whether it is visible indirectly via reflections and ambient light. When a ray hits a surface, the algorithm computes the reflected direction and traces a new ray along this reflected direction.</p>
+        <p>However, as we have limited computing capacity, we need to define how many times we allow a ray to reflect within the scene. This practical constraint illustrates that theoretical ideals, such as an infinitely reflecting ray, have limits to their practical realisation.</p>
+        <p>In nature, a light ray's path is effectively infinite, bouncing between surfaces until its energy dissipates. A computer program, however, cannot simulate such infinitude. We will see in the later parts how practitioners make a theoretical issue like the "infinite details" of a physical phenomenon computationally tractable through different programming techniques, preventing infinite loops by bounding the number of times a ray can bounce. In this context, these programming decisions become the computational equivalent of a stop sign based on what would be considered 'enough'. It is a necessary compromise, an admission that the simulation is not the phenomenon itself, but a bounded, finite and practically purposeful inquiry into its behaviour.</p>
+    </div>
+
+    
+    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
+        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                <div class="canvas-container !min-h-[350px]">
                     <canvas id="rayTracingCanvasFinal"></canvas>
                     <button id="raytracingPrev" class="canvas-nav-btn prev bottom" aria-label="Previous Step">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -402,18 +432,48 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </button>
                 </div>
-                <div class="mt-4 text-center">
-                    <span class="text-[#722F37] font-bold text-sm mr-1 whitespace-nowrap" style="font-family: 'Newsreader', serif;">Fig. 6:</span>
-                    <span class="text-stone-600 text-sm italic" style="font-family: 'Newsreader', serif;">Computational Counterpart: The Recursive Path.</span>
+
+                <div class="text-content !px-0 !pb-0">
+                    <div class="instruction-steps" id="raytracing-steps">
+                        <div class="step active" data-step="1">
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Direct Illumination</strong><br>Once a ray hits a surface in the scene, the algorithm checks for ‘direct illumination’ by seeing if the point can be connected to a light source with a straight line. If there is no object between that point and the light source, the ray completes its path, and the corresponding pixel is painted.</p>
+                        </div>
+                        <div class="step" data-step="2">
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Indirect Illumination</strong><br>The colour of a point depends not only on whether it is visible from the light source directly but also on whether it is visible indirectly. For ‘indirect illumination,’ when a ray hits a surface, the algorithm computes the reflected direction and traces a new ray along this reflected direction. This process continues—tracing new rays each time it hits a surface—constructing a path of multiple bounces before it finally reaches the light source.</p>
+                        </div>
+                        <div class="step" data-step="3">
+                            <p class="font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed"><strong>Shadows</strong><br>Even if our ray hits a point on the surface of an object, it does not guarantee that it will be illuminated. To solve this, the algorithm uses a new tool that has no physical counterpart: the 'shadow ray'. This is a computational probe asking: “Can a new ray, originating at this point of intersection, reach the light source without being blocked?”. If there is an obstruction between the point and the light source—whether it is another object or the geometry of the object itself—we will not be able to complete the path of our ray. The point is considered to be in shadow, and the pixel is painted with a default shadow colour.</p>
+                        </div>
+                    </div>
+                    <div class="step-navigation">
+                        <button id="prevRaytracingBtn" class="nav-btn" disabled>Previous</button>
+                        <button id="nextRaytracingBtn" class="nav-btn">Next</button>
+                    </div>
                 </div>
             </div>
-        </div>
+                <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full" style="font-family: 'Newsreader', serif;">
+                    <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 6:</span>
+                    <span><i>Computational Counterpart: The Recursive Path.</i></span>
+                </div>
     </section>
 
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Conclusion: From Geometry to Photorealism</h3>
 
-    <section class="references-section">
-        <h2>References</h2>
-        <ol class="references-list">
+
+    <div class="max-w-[680px] mx-auto w-full px-0 mt-8 mb-24 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
+        <p>By slowing down the analysis to focus on these constitutive details, we make the work of respecification tangible. Dürer's physical apparatus—a historical, mechanical practice—is methodically respecified into a computational one. The “thread” became a “ray”, the “drawing frame” became an “image plane”, and the physical act of plotting points became the logic of "sampling". This translation demonstrates how visual phenomena are broken down into formal, instructable parts that a computer can execute.</p>
+        <p>Ultimately, the logic of tracing rays in reverse, the introduction of non-physical shadow rays, and the bounding of infinite bounces reveal the artful craft of managing practical constraints. However, projecting geometry onto a screen is only the foundational step. To truly trick the human eye, we must understand how light itself behaves.</p>
+        <p>In the next part, we will explore how disparate techniques from algebra, geometry, optics, statistics, and simulation modelling are woven together to render a physically accurate scene. More importantly, we will question what physical "accuracy" actually means in this computationally constrained environment, how such a thing can be measured, and how the pursuit of "photorealism" is ultimately a negotiated, pragmatic achievement rather than a perfect mirror of physical reality.</p>
+    </div>
+
+    
+    <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+    <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">References</h3>
+
+    <section class="references-section !border-t-0">
+        <div class="max-w-[680px] mx-auto w-full px-0">
+            <ol class="references-list">
             <li>
                 <a href="https://artsandculture.google.com/asset/the-draughtsman-of-the-lute/CQHQAZiHEhh0dQ?hl=en" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
                     The Draughtsman of the Lute - Google Arts & Culture
@@ -435,6 +495,7 @@
                 </a>
             </li>
         </ol>
+        </div>
     </section>
 
 

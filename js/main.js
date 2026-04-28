@@ -30,6 +30,7 @@ const createScene = function () {
     // Applied zoom level from canvas 3 to all canvases for mobile
     const defaultRadius = isMobile ? 54 : 45;
     camera = new BABYLON.ArcRotateCamera("camera", -Math.PI / 5, Math.PI / 2.5, defaultRadius, new BABYLON.Vector3(0, -5, -3.5), scene);
+    camera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
     camera.attachControl(canvas, true);
     camera.wheelPrecision = 50;
     camera.lowerRadiusLimit = 5;

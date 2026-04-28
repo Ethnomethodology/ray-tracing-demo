@@ -19,11 +19,11 @@
 
         // Camera for the scene view (not the physical camera model)
         const isMobile = window.innerWidth <= 900;
-        const defaultRadius = isMobile ? 54 : 45;
+        const defaultRadius = isMobile ? 36 : 28;
         const sceneCamera = new BABYLON.ArcRotateCamera(
             "sceneCamera", -Math.PI / 5, Math.PI / 2.3, defaultRadius,
-            new BABYLON.Vector3(0, 2.0, -2.0), scene
-        );
+            new BABYLON.Vector3(0, 4.0, -2.0), scene
+        ); sceneCamera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
         sceneCamera.attachControl(canvas, true);
 
         // --- 6. Annotations (GUI) ---
@@ -145,7 +145,7 @@
             const gridY = Math.round(iy / pixelSize + (resolution - 1) / 2);
 
             // --- 5. Visual Rays (Animated or Static) ---
-            const bulbPos = new BABYLON.Vector3(0, 15, -11);
+            const bulbPos = new BABYLON.Vector3(0, 8, -11);
             let rayLine = null;
             let lightRayLine = null;
 
@@ -180,7 +180,7 @@
 
                 // Shadow Ray (Sphere -> Bulb)
                 const toBulbDir = bulbPos.subtract(surfacePoint).normalize();
-                const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 2.2; // Stop at the bulb surface
+                const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 0.8; // Stop at the bulb surface
                 lightRayLine = BABYLON.MeshBuilder.CreateCylinder("lightRayLine", {
                     height: toBulbDist,
                     diameter: 0.05
@@ -223,8 +223,8 @@
             const g2X = Math.round(i2x / pixelSize + (resolution - 1) / 2);
             const g2Y = Math.round(i2y / pixelSize + (resolution - 1) / 2);
 
-            const cubePos = new BABYLON.Vector3(-10, 5, -13);
-            const cubeFace = new BABYLON.Vector3(-8.25, 3.95, -12.65); // Right face (facing the sphere)
+            const cubePos = new BABYLON.Vector3(-10, 2, -13);
+            const cubeFace = new BABYLON.Vector3(-8.25, 0.95, -12.65); // Right face (facing the sphere)
             
             const bluePaintedMat = new BABYLON.StandardMaterial("bluePaintedMat", scene);
             bluePaintedMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.8);
@@ -253,7 +253,7 @@
             const r2_2_arrow = arrowHead.clone("r2_2_arrow");
             r2_2_arrow.setEnabled(false);
 
-            const dist2_3 = BABYLON.Vector3.Distance(cubeFace, bulbPos) - 2.1;
+            const dist2_3 = BABYLON.Vector3.Distance(cubeFace, bulbPos) - 0.8;
             const dir2_3 = bulbPos.subtract(cubeFace).normalize();
             const r2_3 = BABYLON.MeshBuilder.CreateCylinder("r2_3", { height: dist2_3, diameter: 0.05 }, scene);
             r2_3.material = blackMat;
@@ -289,7 +289,7 @@
             r3_1_arrow.setEnabled(false);
 
             const toBulb3Dir = bulbPos.subtract(target3).normalize();
-            const toBulb3Dist = BABYLON.Vector3.Distance(target3, bulbPos) - 2.1;
+            const toBulb3Dist = BABYLON.Vector3.Distance(target3, bulbPos) - 0.8;
             
             const r3_2_dashed = BABYLON.MeshBuilder.CreateCylinder("r3_2_dashed", {
                 height: toBulb3Dist,
@@ -603,7 +603,7 @@
                     } else if (progress <= 1.2) {
                         const p2 = Math.min((progress - 0.6) / 0.6, 1.0);
                         const toBulbDir = bulbPos.subtract(surfacePoint).normalize();
-                        const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 2.2;
+                        const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 0.8;
                         const d2 = toBulbDist * p2;
                         const ep2 = surfacePoint.add(toBulbDir.scale(d2));
 
@@ -650,7 +650,7 @@
             // Add blue cube obstacle (only for the animated walkthrough)
             if (animateRay) {
                 const cube = BABYLON.MeshBuilder.CreateBox("obstacleCube", { size: 3.5 }, scene);
-                cube.position.set(-10, 5, -13);
+                cube.position.set(-10, 2, -13);
                 const cubeMat = new BABYLON.StandardMaterial("cubeMat", scene);
                 cubeMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.8); // Sober blue
                 cubeMat.specularColor = new BABYLON.Color3(0.2, 0.2, 0.2);
@@ -671,10 +671,10 @@
         }
 
         // --- 4. Light Source ---
-        const bulbPos = new BABYLON.Vector3(0, 15, -11);
+        const bulbPos = new BABYLON.Vector3(0, 8, -11);
         BABYLON.SceneLoader.ImportMeshAsync("", (window.assetBaseUrl || "") + "models/", "bulb.glb", scene).then((result) => {
             const bulbModel = result.meshes[0];
-            bulbModel.position.copyFrom(bulbPos);
+            bulbModel.position = new BABYLON.Vector3(0, 9.6, -11);
             bulbModel.scaling.setAll(0.3);
             bulbModel.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, Math.PI);
             

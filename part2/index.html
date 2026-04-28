@@ -18,7 +18,13 @@
     <!-- Babylon.js CDN -->
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-<style>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+
+    <style>
         .references-list a {
             position: relative;
             text-decoration: none;
@@ -28,8 +34,33 @@
             color: #4a1f24;
             background: rgba(114, 47, 55, 0.05);
         }
+        .placeholder-box {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #f0ede4;
+            border: 2px dashed #722F37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #722F37;
+            font-family: 'Newsreader', serif;
+            font-style: italic;
+            border-radius: 8px;
+            margin: 2rem 0;
+            padding: 2rem;
+            text-align: center;
+        }
+        /* KaTeX tweaks */
+        .katex-display {
+            margin: 2rem 0;
+            color: #722F37;
+        }
+        .katex {
+            font-size: 1.1em;
+        }
     </style>
 </head>
+
 <body class="bg-parchment-base text-ink-charcoal antialiased flex flex-col min-h-screen">
 
 
@@ -87,7 +118,7 @@
     <main class="flex-1 w-full flex justify-center pb-32 pt-12 px-4 md:px-8">
         <div class="max-w-[1000px] w-full flex flex-col gap-8 relative">
 
-            <section class="w-full mb-16 flex flex-col gap-6 mt-4">
+            <section class="w-full mb-12 flex flex-col gap-6 mt-4">
                 <div class="mb-4">
                     <h1 class="font-serif font-newsreader text-[48px] font-semibold leading-[1.1] tracking-[-0.02em] text-stone-900 mb-4">Respecifying Ray Tracing</h1>
                     <div class="mb-8 font-sans text-[13px] font-medium leading-[1.2] tracking-[0.05em] text-[#722F37]">
@@ -97,6 +128,7 @@
                         A three-part reassessment of Renaissance techniques for modern digital synthesis. This series bridges the gap between historical perspectival geometry and the contemporary ray tracing pipeline.
                     </p>
                 </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
                     <!-- Card 1 -->
                     <a href="../" style="view-transition-name: nav-card-1" class="nav-card bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
@@ -120,31 +152,155 @@
                     </a>
                 </div>
             </section>
-            <div class="w-full h-px bg-stone-300 mb-16"></div>
 
-            <header class="mb-section-gap max-w-[var(--reading-column)] mx-auto w-full text-center md:text-left mt-8">
-                <h2 class="font-headline-part text-headline-part text-ink-charcoal mb-4">Lights, Camera, Interaction</h2>
-                <p class="font-body-reading text-body-reading text-[#6B6B6B] italic">Explores the optical turn and the simulation of light behavior.</p>
+            <header class="mb-section-gap max-w-[680px] mx-auto w-full text-center md:text-left mt-8">
+                <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-4">Lights, Camera, Interaction</h2>
+                <p class="font-body-reading text-[20px] text-[#6B6B6B] italic" style="font-family: 'Newsreader', serif;">The Knitting Work of Photorealistic Computer Graphics</p>
             </header>
 
             <article class="w-full flex flex-col items-center gap-16">
                 <!-- Intro Section -->
                 <section class="max-w-[680px] w-full flex flex-col items-center">
-                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6 mb-12" style="font-family: 'Newsreader', serif;">
-                        <p>Placeholder content for Part 2 development.</p>
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>In Part 1, we explored how the physical, mechanical practice of Albrecht Dürer’s drawing apparatus was methodically respecified into a computational one. We saw how the “thread” became a “ray,” the “drawing frame” became an “image plane,” and the physical act of plotting points was abstracted into the logic of sampling a scene. However, while projecting geometry onto a screen is the foundational step, it leaves us with profound questions: how do we trace these abstract rays mathematically? And once an intersection is found, how do we determine the colour of that location to truly trick the human eye?</p>
+                        <p>In this section, we will delve into the mathematical and physical phenomena that underpin light transport. Ray tracing and its variants belong to a family of algorithms used in rendering photorealistic scenes by simulating the underlying physics of light. By simplifying light to a geometric ray, it becomes computationally manageable, allowing computer scientists to develop algorithms that can virtually trace these rays as straight lines, determine which objects they hit on their paths, and calculate where to show shadows, reflections, and other lighting effects based upon that. These lighting effects are crucial for rendering the details of virtual scenes that help human observers perceive depth, dimension, colour, and other physical properties of nature in digitally rendered virtual objects, resulting in a kind of quantified, machine-elaborated chiaroscuro.</p>
+                        <p>As success depends on what ‘makes sense’ perceptually to a human observer, at times, instead of modelling what is physically accurate, computer scientists focus on what is visually appealing by incorporating both qualitative and quantitative factors into their work. In their quest for photorealism, computer scientists explicitly acknowledge and orient to the human observer in perceptual setups, defining “photorealistic rendering” as “the task of generating images that are indistinguishable from those that a camera would capture in a photograph or ... that evoke the same response from a human observer as looking at the actual scene”. Understanding what “indistinguishable” means is a difficult problem because that metric always depends on a human perceiver. What ‘makes sense’ perceptually is not a fixed target but a constantly negotiated one, leading researchers to incorporate both qualitative and quantitative considerations in their modelling work. The guiding motivation is to create not just a physically plausible simulation, but one that 'feels' real.</p>
                     </div>
                 </section>
-    <section class="references-section">
-        <h2>References</h2>
-        <ol class="references-list">
-            <li>
-                <a href="#" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
-                    References to be added for Part 2.
-                </a>
-            </li>
-        </ol>
-    </section>
 
+                <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+                <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">The Algebraic Translation of Space</h3>
+
+                <section class="max-w-[680px] w-full flex flex-col items-center">
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>Before we can mathematically determine whether a ray hits an object, we must first establish the virtual space in which these entities exist. The problem of projection is not just about drawing lines; it is about "mathematicising" space itself so that a computer can process it.</p>
+                        
+                        <div class="placeholder-box">
+                            (Image Placeholder: A 3D interactive Cartesian grid showing a virtual camera, image plane, and scene objects)
+                        </div>
+
+                        <p>What we observe in a physical scene must be re-presented as a Cartesian plane, where every conceivable point possesses a unique $(x, y, z)$ coordinate that precisely locates it within this three-dimensional space. To make progress in any simulation work, a visual re-presentation must be translated into a formal, mathematical space. This is where the 'obviousness' of analytical geometry comes into play for a practitioner. A circle on a screen is not just a shape; it is immediately seen as a locus of points on a Cartesian plane, defined by coordinates and a radius.</p>
+                        <p>By re-presenting our camera, image plane, and objects within this coordinate system, we are actively knitting the informal 'world' of visual perception together with the formal 'model' of Galilean mathematics. Galileo's achievement lies in rendering observable properties of the world through mathematical descriptions. More specifically, Galilean physics presents the world around us as a mathematical field, akin to a Cartesian plane, where each point in that field can be determined by its coordinates. This move, which seems elementary, is the bedrock on which all subsequent computation is built. It makes the virtual world measurable, and therefore, analysable. A Cartesian system allows for precise calculation, but it is a thoroughgoing abstraction of the visual field. It provides the necessary structure to solve the mathematical problems of ray tracing.</p>
+                    </div>
+                </section>
+
+                <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+                <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Modelling Ray-Scene Interactions: The Knitting Work of Algebra and Geometry</h3>
+
+                <section class="max-w-[680px] w-full flex flex-col items-center">
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>When attempting to model the path of a ray on computers within this coordinate system, we face two immediate problems. The first is an algebraic problem: how to calculate if a ray intersects an object (such as a sphere) and at which point.</p>
+                        <p>To mathematically determine if a ray hits a sphere, we need algebraic formulations for both the ‘ray’ and the ‘sphere’. The ray ($R$) can be written in a parametric form, where the position of any point along the ray is a function of the parameter $t$:</p>
+                        $$R(t) = o + dt$$
+                        <p>In this equation, $d$ is a vector that has both direction and magnitude, and $o$ is the origin. At time $t = 0$, the ray is at the origin. The parametric form gives us a mathematical way to calculate points on the path of the ray.</p>
+                        <p>If we consider a sphere with radius $r$ centred at $C$, any point $P$ on the surface of the sphere satisfies the equation:</p>
+                        $$||P - C|| = r$$
+                        <p>This equation states that the distance from the centre ($C$) of the sphere to the point of interest ($P$) is equal to the radius of the sphere ($r$).</p>
+
+                        <div class="placeholder-box">
+                            (Image Placeholder: Diagram showing a vector ray intersecting a sphere, demonstrating the algebraic substitution)
+                        </div>
+
+                        <p>At this juncture, the knitting-work between physics, geometry, and algebra becomes explicit. We have two independent mathematical descriptions, one for a ray and one for a sphere. The physical question, “Does the ray hit the sphere?”, is translated into the algebraic question, “Is there a point in space that satisfies both of these equations simultaneously?”.</p>
+                        <p>By substituting the ray's equation into the sphere's equation ($||o + dt - C|| = r$) and performing the dot product, we arrive at a standard quadratic equation:</p>
+                        $$at^2 + bt + c = 0$$
+                        <p>where:</p>
+                        $$\begin{aligned}
+                        a &= d \cdot d \\
+                        b &= 2(m \cdot d) \\
+                        c &= (m \cdot m) - r^2
+                        \end{aligned}$$
+                        <p>(with $m$ representing the vector $o - C$).</p>
+                        <p>This is a moment of practical abstraction. The complex geometric problem of a line intersecting a 3D sphere has been successfully knitted into a simple, well-understood algebraic problem from high school mathematics. The physical world of light and objects has been transformed into an expression of coefficients $a$, $b$, and $c$.</p>
+                        <p>In algebra, the solution to a quadratic equation is given by the formula $t = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$. The discriminant ($b^2 - 4ac$) determines if the quadratic equation has no solution, exactly one solution, or two different solutions. Here, the logic flows back from algebra to geometry. The value of the discriminant—a purely algebraic property—is knitted back to the physical reality it re-presents. A negative discriminant is not just a mathematical dead-end (no real roots); it is the program's way of concluding that the ray has missed the sphere entirely. The iterable dialogue between the domains thus provides a definitive computational answer to our initial physical question.</p>
+                        <p>However, since a ray can intersect more than one sphere in the scene, it introduces the second problem, which is computational: how to determine which of the intersected spheres is closest to the origin of the ray. We need to solve these two problems for each pixel on the image plane, to determine which object would appear first when a ray is traced through that pixel. The algorithm answers the question, 'Which object does this ray hit first?' by methodically, and unintelligently, checking every single object in the scene, one by one. It compares the distances of each intersection point from the origin of the ray to determine which point is closest. This sequential search is the most direct translation of the visual question into computational logic.</p>
+                    </div>
+                </section>
+
+                <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+                <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">The Physics of Surfaces: Optics and Materiality</h3>
+
+                <section class="max-w-[680px] w-full flex flex-col items-center">
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>Once we find the precise mathematical point where a ray intersects the closest sphere, we must determine the colour of that location. The ray tracing algorithm determines the order of objects geometrically, but to achieve realism, it must model how light interacts with different material surfaces, resulting in optical phenomena such as reflection and refraction.</p>
+                        
+                        <div class="placeholder-box">
+                            (Image Placeholder: A diagram or animation of a ray hitting a surface, calculating the "normal" (perpendicular line), and splitting into reflection and refraction angles)
+                        </div>
+
+                        <p>For basic renderings, scientists often use empirical models like the Blinn-Phong reflection model, which approximates ambient, diffuse, and specular light. While these approximations compute colour quickly and efficiently, they are not physically accurate; they are modelled after empirical observations of how light interacts with different material surfaces. The practitioner makes a deliberate choice to deviate from a faithful simulation of physics. Instead of knitting the algorithm to the complex laws of light transport, they knit it to a simplified, empirical model designed for computational efficiency. However, to make the ray tracing algorithm applicable in contexts where physical accuracy is crucial, we must look beyond simple shader models and turn to the physical laws of optics.</p>
+                        <p>Consider the case of a perfect mirror. When a light ray hits a perfectly smooth, reflective surface, it bounces off in a predictable direction. In our coordinate system, the reflected direction ($R$), which is unknown, can be derived based on the known vectors: the direction of the incoming ray ($V$) and the surface normal on the intersected point ($N$). The normal is simply a vector perpendicular to the surface at the point of intersection. Using these vectors, we can determine the reflected direction using the following formula:</p>
+                        $$R = V - 2(V \cdot N)N$$
+                        <p>This exact mathematical translation allows the computer to seamlessly trace the ray's new path after bouncing off a mirrored surface.</p>
+                        <p>But what happens when the object is not a mirror, but a glass sphere or a body of water? Such transparent materials exhibit both reflection and refraction. A portion of the light bounces off the surface, while the rest transmits through the material, bending as it enters a medium of different density. In modern optics, this bending is governed by Snell's Law of Refraction:</p>
+                        $$n_1 \sin \theta_1 = n_2 \sin \theta_2$$
+                        <p>Where $n_1$ and $n_2$ are the indices of refraction for the two media (e.g., air and glass), and the angles denote how much the light ray bends relative to the surface normal. By encoding Snell's Law and reflection formulas, the computer can split a single incoming ray into a reflected ray and a refracted ray, recursively tracking both to accurately simulate the behaviour of light interacting with transparent materials.</p>
+                    </div>
+                </section>
+
+                <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+                <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">The Problem of Infinitude and the Rendering Equation</h3>
+
+                <section class="max-w-[680px] w-full flex flex-col items-center">
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>The physics described above works perfectly for a single perfect mirror or a smooth glass sphere. However, the real world is infinitely more messy. Rough surfaces scatter light in every direction. Light bounces infinitely, transferring energy from one surface to another, creating complex ambient illumination, colour bleeding, and caustics.</p>
+                        
+                        <div class="placeholder-box">
+                            (Image Placeholder: An illustration of a point on a surface with a hemisphere above it, showing an infinite number of light rays bouncing around a room to represent the Rendering Equation)
+                        </div>
+
+                        <p>To formally describe this complex interaction, James T. Kajiya published the "rendering equation" in his pioneering research on computer graphics in 1986:</p>
+                        $$L_o(p, \omega_o) = L_e(p, \omega_o) + \int_{S^2} f(p, \omega_o, \omega_i) L_i(p, \omega_i) |\cos \theta_i| d\omega_i$$
+                        <p>This equation captures the essence of how light travels through physical media. It states that the total light leaving a point ($L_o$) is the sum of the light emitted by that point ($L_e$) plus the light scattered towards the viewer from all other incoming directions over the hemisphere ($S^2$). The "integral" form of the equation, i.e., its depiction as an integration, mathematically re-presents these infinite possible paths a light ray could travel.</p>
+                        <p>Here lies the fundamental crisis of photorealism. The rendering equation is physically accurate, but it is an "uncomputable truth." Any source of light in any natural setting would generate infinite numbers of rays, bouncing on and off different surfaces while illuminating them. However, calculating the paths of every possible ray is practically impossible due to the limitation of the computing capacities of digital computers.</p>
+                        <p>This presents a branching problem. At each stage of the process, there are many possibilities determining the fate of the ray. It can scatter at one angle, change its velocity, be absorbed, or reflect. But the problem is to know what a succession and branching of perhaps hundreds of thousands or millions of rays will do. While we can write integral equations for the "expected values," solving them or even getting an approximative idea of the properties of the solution is an entirely different matter. If a computer attempted to solve the rendering equation analytically for a complex scene, evaluating all infinite combinations, the simulation would hang forever.</p>
+                    </div>
+                </section>
+
+                <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+                <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Taming Chance through Statistics</h3>
+
+                <section class="max-w-[680px] w-full flex flex-col items-center">
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>How do we solve the uncomputable? To make the problem tractable, we must swap exact physics for probability. We turn to a brute-force statistical technique known as Monte Carlo simulation.</p>
+                        
+                        <div class="placeholder-box">
+                            (Image Placeholder: A side-by-side visual: One image rendered with 1 random sample per pixel (extremely noisy/grainy) vs. an image rendered with 1000 samples per pixel (smooth and photorealistic), demonstrating Monte Carlo path tracing)
+                        </div>
+
+                        <p>The core concept of Monte Carlo methods originally developed by Stanislaw Ulam and John von Neumann at the Los Alamos National Laboratory to model the similarly intractable, branching paths of subatomic neutron diffusion is to tame chance. Determining a successful outcome by combinatorially analysing all the possible outcomes is a computationally intractable problem. As Ulam (1991) realised while playing solitaire during a period of illness, it is much more practical to get an idea of the probability of a successful outcome by experimenting with the process and merely noticing what proportion comes out successfully, rather than to try to compute all the combinatorial possibilities. The idea was to try out thousands of such possibilities and, at each stage, to select by chance, by means of a "random number" with suitable probability, the fate or kind of event, to follow it in a line, so to speak, instead of considering all branches. After examining the possible histories of only a few thousand, one will have a good sample and an approximate answer to the problem.</p>
+                        <p>In the context of computer graphics, this systematic and routine way of generating and following a random path is commonly referred to as the random walk algorithm. Instead of calculating the infinite hemisphere of light rays bouncing off a surface, the algorithm shoots a random ray. When it hits a rough surface, instead of splitting into infinite rays, it randomly chooses one direction to bounce, based on the statistical probabilities of the material's properties (its Bidirectional Reflectance Distribution Function, or BRDF). It follows this random walk until it hits a light source.</p>
+                        <p>By examining the possible histories of only a few thousand random rays per pixel, we obtain a good sample and an approximate answer to the integral equation. When we use only one random sample, the resulting image is wildly inaccurate and covered in static "noise." But according to the law of large numbers, if a certain chance experiment is repeated an unlimited number of times under exactly the same conditions, the fraction of times that a given event occurs will converge with probability 1 to a number that is equal to the probability that it occurs in a single repetition. If we repeat these random walks thousands of times for each pixel and average the results, the noise disappears, and the image converges toward a smooth, physically plausible result.</p>
+                        <p>This statistical respecification is the sociological crux of photorealism. Photorealism is not "true" physics; it is a statistical guess. We tame the chaos of infinite light using probability. The algorithm stops tracing rays not when the physics is "solved," but when the variance between samples drops low enough that the image "looks right" to human perception. As success depends on what ‘makes sense’ perceptually to a human observer, the pursuit of photorealism explicitly acknowledges the human observer in its perceptual setups. "Photorealistic rendering" is defined as the task of generating images that evoke the same response from a human observer as looking at the actual scene. What ‘makes sense’ perceptually is not a fixed target but a constantly negotiated one, bound by computational scarcity and the limits of the human eye.</p>
+                    </div>
+                </section>
+
+                <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+                <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Conclusion: The Accomplished Logic of Rendering</h3>
+
+                <section class="max-w-[680px] w-full flex flex-col items-center">
+                    <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                        <p>Through this section, we have disassembled the phenomenon of light transport to reveal the profound "knitting work" at its core. We have seen how the continuous, infinitely complex reality of physics is methodically respecified into a computationally tractable form. Space is translated into Cartesian grids; physical intersections are reduced to algebraic discriminants; the infinite wave of light is modelled as a geometric ray; and finally, the uncomputable rendering equation is bypassed by the probabilistic guesswork of Monte Carlo statistics.</p>
+                        <p>The "intelligence" or "realism" of a ray-traced image is not an autonomous, objective truth of the algorithm. It is the accumulated, practical achievement of practitioners navigating the trade-offs between mathematical elegance, computational feasibility, and human perception.</p>
+                        <p>Now that we understand the theoretical, mathematical, and statistical abstractions that make light transport computable, we must confront the final reality of this work. How do these abstract concepts become functioning, executable software? In Part 3: Implementing a Ray Tracer, we will move from the theoretical physics and statistical equations to the shop floor of the data scientist, exploring how these principles are translated into the precise, operational, and consequential domain of computer code.</p>
+                    </div>
+                </section>
+
+                <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+                <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">References</h3>
+
+                <section class="references-section !border-t-0">
+                    <div class="max-w-[680px] mx-auto w-full px-0">
+                        <ol class="references-list">
+
+                            <li>
+                                <a href="https://dl.acm.org/doi/10.1145/15922.15902" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
+                                    The Rendering Equation - James T. Kajiya (1986)
+                                </a>
+                            </li>
+                        </ol>
+                    </div>
+                </section>
 
             </article>
         </div>
@@ -172,8 +328,6 @@
         </div>
     </div>
 </footer>
-
-
 
 </body>
 </html>
