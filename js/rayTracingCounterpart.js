@@ -180,7 +180,7 @@
 
                 // Shadow Ray (Sphere -> Bulb)
                 const toBulbDir = bulbPos.subtract(surfacePoint).normalize();
-                const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 2.2; // Stop at the bulb surface
+                const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 0.8; // Stop at the bulb surface
                 lightRayLine = BABYLON.MeshBuilder.CreateCylinder("lightRayLine", {
                     height: toBulbDist,
                     diameter: 0.05
@@ -289,7 +289,7 @@
             r3_1_arrow.setEnabled(false);
 
             const toBulb3Dir = bulbPos.subtract(target3).normalize();
-            const toBulb3Dist = BABYLON.Vector3.Distance(target3, bulbPos) - 2.1;
+            const toBulb3Dist = BABYLON.Vector3.Distance(target3, bulbPos) - 0.8;
             
             const r3_2_dashed = BABYLON.MeshBuilder.CreateCylinder("r3_2_dashed", {
                 height: toBulb3Dist,
@@ -603,7 +603,7 @@
                     } else if (progress <= 1.2) {
                         const p2 = Math.min((progress - 0.6) / 0.6, 1.0);
                         const toBulbDir = bulbPos.subtract(surfacePoint).normalize();
-                        const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 2.2;
+                        const toBulbDist = BABYLON.Vector3.Distance(surfacePoint, bulbPos) - 0.8;
                         const d2 = toBulbDist * p2;
                         const ep2 = surfacePoint.add(toBulbDir.scale(d2));
 
@@ -674,7 +674,7 @@
         const bulbPos = new BABYLON.Vector3(0, 8, -11);
         BABYLON.SceneLoader.ImportMeshAsync("", (window.assetBaseUrl || "") + "models/", "bulb.glb", scene).then((result) => {
             const bulbModel = result.meshes[0];
-            bulbModel.position.copyFrom(bulbPos);
+            bulbModel.position = new BABYLON.Vector3(0, 9.6, -11);
             bulbModel.scaling.setAll(0.3);
             bulbModel.rotationQuaternion = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, Math.PI);
             
