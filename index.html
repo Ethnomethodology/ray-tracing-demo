@@ -603,20 +603,33 @@
                         class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
                         <p>If we want to model Dürer’s instructions for drawing on a computer screen, the “subject”, the
                             “thread”, the “frame”, and so on need to be programmed in a way that the computer can
-                            execute. Dürer showed us that for perspective drawing, we needed a “drawing tablet,” “a near
+                            execute. It is worth noting that if any parallel can be drawn between Dürer’s
+                            instructions for perspective drawing and ray tracing on a computer, it is because both
+                            follow the “method of perspectival geometry” (Yoon, 2017). To be more precise, ray
+                            tracing follows the principles of geometrical optics to solve the problem of perspective
+                            in computer graphics. Dürer showed us that for
+                            perspective drawing, we needed a “drawing tablet,” “a near
                             point of sight,” “a strong thread,” and so on. His pointer can move freely over the object
                             because the thread passes through the needle that is 'hammered into the wall'. That needle
                             acts as the 'near point of sight'—the fixed point from which the perspective is being drawn.
+                            In ray tracing, that needle becomes a virtual camera.
                         </p>
-                        <p>Ray tracing replaces the physical components of Dürer's device with their
-                            computational counterparts. The wall needle becomes a virtual
-                            <strong>Camera</strong>, the wooden frame becomes a digital <strong>Image
-                                Plane</strong> (a grid of pixels), and the strong thread becomes a virtual
-                            <strong>Ray</strong>. The subject to be rendered is presented in front of the
-                            camera, on the other side of the image plane, as a 3D digital
-                            <strong>Object</strong> whose shape can be computationally manipulated. Finally, the
-                            lighting is simulated by abstract re-presentations of <strong>Light</strong> sources
-                            like the Bulb in Fig. 5.
+                        <p>Similarly, to model Dürer’s instructions on a computer, the physical components of his
+                            apparatus need to be
+                            methodically respecified into their computational counterparts. This computational
+                            respecification is demonstrated in Fig. 5, where the "vertical frame"
+                            becomes the digital
+                            "image plane," acting as a window onto the scene. Just as the draughtsman scans the lute
+                            point by point through the grid of the frame, the ray tracing algorithm imagines our window
+                            onto the scene divided into smaller squares, or pixels. The "strong thread" is abstracted
+                            into a virtual ‘ray,’ while the subject to be rendered is re-presented on the other side of
+                            the image plane as a 3D digital object whose shape can be computationally manipulated.
+                            Finally, the physical lighting of the chamber is simulated by abstract re-presentations of
+                            light sources, such as the bulb in Fig. 5. The more squares we add to our digital grid, the
+                            greater the number of rays we can trace from the camera to the scene. By tracing these rays
+                            through all the pixels on the image plane and computing the colour of those pixels based on
+                            the geometric and material properties of the points they intersect, a 2D projection of the
+                            3D scene can be rendered.
                         </p>
                     </div>
 
@@ -639,22 +652,7 @@
 
                     <div
                         class="max-w-[680px] mx-auto w-full px-0 mt-12 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
-                        <p>To model Dürer’s instructions on a computer, the physical components of his apparatus are
-                            methodically respecified into their computational counterparts. The "needle" hammered into
-                            the wall, which denotes the "near point of sight," becomes a virtual ‘camera’—a fixed point
-                            from which rays can be traced. The vertical frame, or "hinged door," becomes the digital
-                            "image plane," acting as a window onto the scene. Just as the draughtsman scans the lute
-                            point by point through the grid of the frame, the ray tracing algorithm imagines our window
-                            onto the scene divided into smaller squares, or pixels. The "strong thread" is abstracted
-                            into a virtual ‘ray,’ while the subject to be rendered is re-presented on the other side of
-                            the image plane as a 3D digital object whose shape can be computationally manipulated.
-                            Finally, the physical lighting of the chamber is simulated by abstract re-presentations of
-                            light sources, such as the bulb in Fig. 5. The more squares we add to our digital grid, the
-                            greater the number of rays we can trace from the camera to the scene. By tracing these rays
-                            through all the pixels on the
-                            image plane and computing the colour of those pixels based on the geometric and material
-                            properties of the points they intersect, a 2D projection of the 3D scene can be rendered.
-                        </p>
+
                         <p>However, for ease of computation, these rays are traced in reverse order: from the camera to
                             the object to the light, rather than the way light “travels” in physical scenes from light
                             sources to objects to the camera. Since, in geometrical optics, light rays are treated as if
