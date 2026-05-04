@@ -18,11 +18,39 @@
     <!-- Babylon.js CDN -->
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
 <style>
+        .placeholder-box {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background-color: #f0ede4;
+            border: 2px dashed #722F37;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #722F37;
+            font-family: 'Newsreader', serif;
+            font-style: italic;
+            border-radius: 8px;
+            margin: 2rem 0;
+            padding: 2rem;
+            text-align: center;
+        }
+        /* KaTeX tweaks */
+        .katex-display {
+            margin: 2rem 0;
+            color: #722F37;
+        }
+        .katex {
+            font-size: 1.1em;
+        }
         .references-list a {
             position: relative;
             text-decoration: none;
-            color: #722F37; /* Use theme color */
+            color: #722F37; /* Use theme colour */
         }
         .references-list a:hover {
             color: #4a1f24;
@@ -108,7 +136,7 @@
                 <a href="../part2/" style="view-transition-name: nav-card-2" class="nav-card bg-white border border-stone-200 p-6 flex flex-col gap-4 hover:border-stone-300 transition-colors">
                     <span class="font-label-technical text-label-technical text-stone-400 uppercase">Part 2</span>
                     <h4 class="font-headline-part text-[21px] font-medium text-stone-500 leading-snug">Lights, Camera, Interaction</h4>
-                    <p class="font-body-reading text-[16px] text-stone-400 leading-relaxed">Explores the optical turn and the simulation of light behavior.</p>
+                    <p class="font-body-reading text-[16px] text-stone-400 leading-relaxed">Explores the optical turn and the simulation of light behaviour.</p>
                 </a>
                 <div style="view-transition-name: nav-card-3" class="nav-card active border-l-[4px] border-[#800020] bg-[#EAE5D9] p-6 flex flex-col gap-4">
                     <span class="font-label-technical text-label-technical font-bold text-[#800020] uppercase">Part 3</span>
@@ -119,6 +147,19 @@
         </section>
 
         <div class="w-full h-px bg-stone-300 mb-12"></div>
+
+        <header class="mb-section-gap max-w-[680px] mx-auto w-full text-center md:text-left mt-8">
+            <h2 class="font-serif font-newsreader text-[32px] font-medium leading-[1.2] text-ink-charcoal mb-4">Implementing a Ray Tracer</h2>
+        </header>
+
+        <article class="w-full flex flex-col items-center gap-16">
+            <!-- Intro Section -->
+            <section class="max-w-[680px] w-full flex flex-col items-center">
+                <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                    <p>In Part 2, we explored the mathematical skeleton of photorealism. We saw how the continuous, infinitely complex reality of physics is methodically respecified into a computationally tractable form: space is translated into Cartesian grids, physical intersections are reduced to algebraic discriminants, and the uncomputable rendering equation is bypassed by the probabilistic guesswork of Monte Carlo statistics. However, theoretical equations, no matter how elegant, do not render images on their own.</p>
+                    <p>To understand how these abstract concepts become functioning software, we must move from the realm of theory to the "shop floor" of computational practice. We must examine what the computer actually does. To do this, computer graphics researchers often rely on a classic synthetic testing ground known as the "Cornell Box." The Cornell Box is the "fruit fly" of computer graphics—a highly controlled, physically measurable environment designed specifically to test how well an algorithm simulates light bleeding, soft shadows, and reflections. It serves as an experimental laboratory where the theoretical physics of light transport meets the hard limits of computer hardware.</p>
+                </div>
+            </section>
 
         <!-- Demo Section (Stacked Card Layout) -->
         <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0">
@@ -158,22 +199,94 @@
                 </div>
         </section>
 
-        <section class="references-section">
-            <h2>References</h2>
-            <ol class="references-list">
-                <li>
-                    <a href="https://taichi-js.com/playground/cornell-box" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
-                        Taichi.js Cornell Box Playground
-                    </a>
-                </li>
-                <li>
-                    <a href="https://taichi-js.com/docs/articles/painless-webgpu-programming" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
-                        Painless WebGPU Programming with Taichi.js
-                    </a>
-                </li>
-            </ol>
+        <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+        <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">The Scene as Instructable Data</h3>
+
+        <section class="max-w-[680px] w-full flex flex-col items-center">
+            <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                <p>Before a ray can be traced, the physical world must be stripped of its essence and rebuilt as a highly curated list of parameters. How does the computer "see" the Cornell box? It does not see a room, a glass sphere, or a mirror. It sees data structures, arrays, vectors, and memory addresses.</p>
+                <p>In the practice of programming, a sphere is merely a centre point defined by coordinates ($X, Y, Z$) and a radius. The complex physical interaction of light passing through glass is reduced to a boolean flag (e.g., is_dielectric = true) and a refractive index (e.g., eta = 1.5). This is a foundational aspect of data science practice: competence is not just knowing the statistical concepts but being able to methodically apply them, to make them work in a specific context.</p>
+                <p>By encoding the scene this way, the physical environment becomes an "instructable matter". The reduction of reality into discrete data structures is a deliberate, pragmatic choice. The practitioner must decide which properties of a physical object are salient and how to re-present them efficiently for the algorithm that will follow. Everything outside these numerical bounds is rendered irrelevant, ceasing to exist for the purposes of the simulation.</p>
+            </div>
         </section>
 
+        <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+        <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">The Routine Work of the Machine</h3>
+
+        <section class="max-w-[680px] w-full flex flex-col items-center">
+            <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                <p>Once the scene is parameterized, the algorithm takes over. An algorithm is simply a step-by-step procedure that a computer can execute—the mechanization of Dürer’s assistant moving the pointer, but sped up billions of times.</p>
+                <p>At its core, a ray tracer operates on a relatively simple logic structure, often implemented as a "double for-loop." The computer is instructed to methodically scan the image plane, moving column by column (X) and row by row (Y). For every single pixel on the screen, it asks: "Shoot a ray into the scene. Did it hit anything? If so, what colour is it?"</p>
+                
+                <div class="placeholder-box">
+                    (Interactive Graphic Placeholder 2: Toggleable Pseudocode / Flowchart. A clean, visual logic flow showing: 1. Pick a pixel $\rightarrow$ 2. Shoot ray $\rightarrow$ 3. Calculate Intersection $\rightarrow$ 4. Compute Bounce based on Material $\rightarrow$ 5. Hit Light Source $\rightarrow$ 6. Return Colour.)
+                </div>
+
+                <p>This process is a blind, routine execution of rules. However, as we established in Part 2, tracing a ray's path until its energy fully dissipates would result in an infinite loop, hanging the computer forever. This brings us to the "Stop Signs" of code.</p>
+                <p>To make the simulation tractable, practitioners must intentionally "break" physics. They introduce arbitrary variables, such as a maximum depth limit, to prevent the algorithm from tracing infinite bounces. The algorithm might be instructed to stop tracking a ray after it has bounced five times, regardless of whether it has reached a light source. This parameter becomes the computational equivalent of a stop sign based on what would be considered 'enough'. Photorealism, therefore, relies on a carefully calibrated illusion: cutting the simulation short just before the human eye notices the missing ambient light.</p>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+        <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">The Pragmatics of Scarcity</h3>
+
+        <section class="max-w-[680px] w-full flex flex-col items-center">
+            <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                <p>Even with stop signs in place, the computational cost of tracing millions of rays, each bouncing multiple times, is astronomical. If a standard CPU were to trace these rays sequentially—one after the other—rendering a single high-resolution frame of the Cornell Box could take days or even years.</p>
+                <p>This introduces the pragmatics of computational scarcity. Time and processing power are limited resources on the shop floor. To achieve photorealism within a feasible timeframe, practitioners do not just write code; they must weave their algorithms into the specific hardware architecture of the machine. This is typically achieved through parallelization using Graphics Processing Units (GPUs) or specialized frameworks. Instead of calculating one pixel at a time, the scene is split up into thousands of tiny chunks, allowing the GPU's thousands of cores to trace multiple rays simultaneously.</p>
+                <p>The "knitting work" of rendering is not merely mathematical; it is deeply material. The realism of the final image is entirely bound by the economic and temporal budget of the hardware executing it.</p>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+        <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Physically Plausible vs. Physically Realistic</h3>
+
+        <section class="max-w-[680px] w-full flex flex-col items-center">
+            <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                <p>This reliance on pragmatism and optimization leads to a crucial distinction in computer graphics: the difference between a "physically plausible" image and a "physically realistic" one.</p>
+                <p>In standard ray tracing, such as the RGB (Red, Green, Blue) rendering we have discussed so far, the goal is often visual believability. RGB rendering approximates the visible light spectrum using just three colour channels. While this is sufficient to trick the human eye and produce stunning, photorealistic imagery for film and video games, it is not radiometrically correct.</p>
+                <p>By contrast, "predictive rendering" or spectral rendering attempts to simulate the actual wavelengths of light across the full electromagnetic spectrum. This method is vastly more computationally expensive but is required in critical domains such as architectural lighting design, automotive manufacturing, and defence, where researchers need to know exactly how a material will perform under specific real-world physical conditions.</p>
+                <p>Standard ray tracing deliberately opts for what is plausible rather than what is predictive. Strict physical accuracy is intentionally bypassed for computational efficiency. The choice of which model to use is a deliberate, pragmatic trade-off made by the practitioner based on the requirements of their specific domain.</p>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+        <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">Conclusion: The Endless Pursuit and the AI Illusion</h3>
+
+        <section class="max-w-[680px] w-full flex flex-col items-center">
+            <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6" style="font-family: 'Newsreader', serif;">
+                <div class="placeholder-box">
+                    (Interactive Graphic Placeholder 3: Side-by-Side Comparison. A slider comparing a noisy 4-SPP image next to an AI-denoised version of the same image, contrasting it with a "ground truth" 1000-SPP path-traced image.)
+                </div>
+                <p>What is "photorealism"? Through this three-part analysis, we have seen that it is not an objective mirror of reality. It is a negotiated achievement woven from geometry, statistics, hardware constraints, and human perception. In a Monte Carlo simulation, the computer does not know what a realistic image is; it simply averages random numbers until instructed to stop. It is the human observer who decides when the variance has dropped low enough, and the noise has cleared enough, that the image is "done."</p>
+                <p>The computer graphics community is engaged in an endless pursuit to resolve this "data impedance" gap—the insatiable desire for infinitely better, more complex images versus the strict limitations of computational power. Recently, this pursuit has led to a paradigm shift: Neural Rendering and AI Denoising.</p>
+                <p>Instead of tracing thousands of rays per pixel to achieve a smooth image—which requires immense computational time—modern rendering pipelines now trace only a handful of rays. This produces a heavily distorted, noisy image. Deep learning algorithms (AI) are then deployed to "guess" the missing pixels, filling in the gaps based on patterns learned from massive datasets of previously rendered images.</p>
+                <p>This AI intervention is massively popular in video games and entertainment because it is lightning-fast and visually plausible. However, it is fundamentally an illusion. The AI is not simulating light transport; it is painting over the noise. Because it is not physically accurate, AI denoising cannot currently be trusted in critical domains like medical imaging, autonomous vehicle training, or predictive defence simulations where the physical truth of a shadow or reflection is a matter of safety, not just aesthetics.</p>
+                <p>This returns us to our ultimate question: What is real, and how do we decide? If an artificial intelligence can generate an image that is entirely indistinguishable to the human eye, yet devoid of the actual physical mathematics of light transport, "photorealism" is finally revealed for what it truly is. It is not a metric of physics. It is a metric of human psychology.</p>
+            </div>
+        </section>
+
+        <div class="w-full h-px bg-[#722F37]/20 my-12"></div>
+        <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-10 px-0 max-w-[680px] mx-auto w-full">References</h3>
+
+        <section class="references-section !border-t-0">
+            <div class="max-w-[680px] mx-auto w-full px-0">
+                <ol class="references-list">
+                    <li>
+                        <a href="https://taichi-js.com/playground/cornell-box" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
+                            Taichi.js Cornell Box Playground
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://taichi-js.com/docs/articles/painless-webgpu-programming" target="_blank" rel="noopener noreferrer" class="hover:bg-stone-100 transition-colors">
+                            Painless WebGPU Programming with Taichi.js
+                        </a>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        </article>
         </div>
     </main>
 </div>
