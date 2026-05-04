@@ -600,7 +600,7 @@
 
 
                     <div
-                        class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
+                        class="max-w-[680px] mx-auto w-full px-0 mb-12 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
                         <p>If we want to model Dürer’s instructions for drawing on a computer screen, the “subject”, the
                             “thread”, the “frame”, and so on need to be programmed in a way that the computer can
                             execute. It is worth noting that if any parallel can be drawn between Dürer’s
@@ -614,7 +614,25 @@
                             acts as the 'near point of sight'—the fixed point from which the perspective is being drawn.
                             In ray tracing, that needle becomes a virtual camera.
                         </p>
-                        <p>Similarly, to model Dürer’s instructions on a computer, the physical components of his
+                    </div>
+
+                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
+                        <div
+                            class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                            <div class="canvas-container !min-h-[350px]">
+                                <canvas id="rayTracingCanvas"></canvas>
+                            </div>
+                        </div>
+                        <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
+                            style="font-family: 'Newsreader', serif;">
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 5:</span>
+                            <span><i>Computational Counterpart: Annotated View.</i></span>
+                        </div>
+                    </section>
+
+                    <div
+                        class="max-w-[680px] mx-auto w-full px-0 mb-16 font-serif font-newsreader text-[20px] text-stone-600 leading-relaxed space-y-6">
+                        <p>Similarly, to model Dürer’s instructions on a computer, the other physical components of his
                             apparatus need to be
                             methodically respecified into their computational counterparts. This computational
                             respecification is demonstrated in Fig. 5, where the "vertical frame"
@@ -632,22 +650,6 @@
                             3D scene can be rendered.
                         </p>
                     </div>
-
-                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
-                        <div
-                            class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
-                            <div class="canvas-container !min-h-[350px]">
-                                <canvas id="rayTracingCanvas"></canvas>
-                            </div>
-
-
-                        </div>
-                        <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
-                            style="font-family: 'Newsreader', serif;">
-                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 5:</span>
-                            <span><i>Computational Counterpart: Annotated View.</i></span>
-                        </div>
-                    </section>
 
 
                     <div
