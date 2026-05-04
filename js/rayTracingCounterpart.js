@@ -17,6 +17,10 @@
         const scene = new BABYLON.Scene(engine);
         scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
 
+        const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+        hemiLight.intensity = 0.7;
+        hemiLight.groundColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+
         // Camera for the scene view (not the physical camera model)
         const isMobile = window.innerWidth <= 900;
         const defaultRadius = isMobile ? 36 : 28;
@@ -108,6 +112,24 @@
             cameraModel.position.copyFrom(cameraPos);
             cameraModel.scaling.setAll(0.8);
             
+            const camBodyMat = new BABYLON.StandardMaterial("camBodyMat", scene);
+            camBodyMat.diffuseColor = new BABYLON.Color3(0.35, 0.35, 0.35); // Charcoal grey
+            camBodyMat.specularColor = new BABYLON.Color3(0.4, 0.4, 0.4);
+            camBodyMat.specularPower = 32;
+
+            const lensMat = new BABYLON.StandardMaterial("camLensMat", scene);
+            lensMat.diffuseColor = new BABYLON.Color3(0.2, 0.4, 0.8);
+            lensMat.specularColor = new BABYLON.Color3(1, 1, 1);
+            lensMat.alpha = 0.6;
+
+            result.meshes.forEach(m => {
+                if (m.name.toLowerCase().includes("lens") || m.name.toLowerCase().includes("glass") || m.name.toLowerCase().includes("optics")) {
+                    m.material = lensMat;
+                } else if (m.material) {
+                    m.material = camBodyMat;
+                }
+            });
+
             cameraModel.lookAt(spherePos);
 
             const boundingInfo = cameraModel.getHierarchyBoundingVectors();
