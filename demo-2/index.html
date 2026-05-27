@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 2 - Custom Direct Illumination</title>
+    <meta name="description"
+        content="A 3D demonstration of custom direct illumination ray tracing built with Babylon.js.">
+    <script>window.assetBaseUrl = "../";</script>
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="stylesheet" href="../css/index.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="../tailwind-config.js"></script>
+    <!-- Babylon.js CDN -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <style>
+        .references-list a {
+            position: relative;
+            text-decoration: none;
+            color: #722F37;
+        }
+
+        .references-list a:hover {
+            color: #4a1f24;
+            background: rgba(114, 47, 55, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-parchment-base text-ink-charcoal antialiased flex flex-col min-h-screen">
+
+    <div class="flex flex-1 flex-col w-full items-center">
+        <main class="flex-1 w-full flex justify-center pb-32 pt-12 px-4 md:px-8">
+            <div class="max-w-[1000px] w-full flex flex-col gap-8 relative">
+
+                <header class="mb-section-gap max-w-[680px] mx-auto w-full text-center md:text-left mt-8">
+                    <h1 class="font-serif font-newsreader text-[48px] font-semibold leading-[1.1] tracking-[-0.02em] text-stone-900 mb-4">
+                        Demo 2
+                    </h1>
+                </header>
+
+                <article class="w-full flex flex-col items-center gap-16">
+                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
+                        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                            <div class="canvas-container !min-h-[350px] relative">
+                                <canvas id="rayTracingCanvasFinal"></canvas>
+                            </div>
+                        </div>
+                    </section>
+                </article>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Script that handles the custom animation -->
+    <script src="../js/demo2Animation.js"></script>
+
+</body>
+
+</html>
