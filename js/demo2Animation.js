@@ -675,6 +675,79 @@
         refractArrowHead.lookAt(surfacePoint.add(refractDir.scale(refractLength)));
         refractArrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
 
+        // --- 8. Dynamic annotation pill positioning ---
+        scene.onAfterRenderObservable.add(() => {
+            const w    = engine.getRenderWidth();
+            const h    = engine.getRenderHeight();
+            const vp   = sceneCamera.viewport.toGlobal(w, h);
+            const tf   = scene.getTransformMatrix();
+            const rect = canvas.getBoundingClientRect();
+
+            const reflectMid = surfacePoint.add(reflectDir.scale(reflectLength * 0.5));
+            const refractMid = surfacePoint.add(refractDir.scale(refractLength * 0.5));
+
+            const annotations = [
+                { id: "split-pill-1", world: reflectMid.add(new BABYLON.Vector3(1.2, 0.2, 0)) }, // next to reflection ray
+                { id: "split-pill-2", world: refractMid.add(new BABYLON.Vector3(1.2, -0.2, 0)) }  // next to refraction ray
+            ];
+
+            annotations.forEach(({ id, world }) => {
+                const s    = BABYLON.Vector3.Project(world, BABYLON.Matrix.Identity(), tf, vp);
+                const pill = document.getElementById(id);
+                if (!pill) return;
+                pill.style.left       = (s.x / w) * rect.width  + "px";
+                pill.style.top        = (s.y / h) * rect.height + "px";
+                pill.style.visibility = (s.z > 0 && s.z < 1) ? "visible" : "hidden";
+            });
+        });
+
+        // --- 9. Pill click interaction logic & Drawer Component ---
+        const splitPills = [1, 2].map(i => document.getElementById(`split-pill-${i}`));
+        
+        const pillDescriptions3 = {
+            1: {
+                title: "Reflection Ray",
+                desc: "<p>When a ray of light hits a reflective surface like glass, a portion of the light bounces back. The direction of the <strong>Reflection Ray</strong> is determined by the angle of incidence relative to the surface normal.</p><p>In a recursive ray tracer, this ray is cast back into the scene to calculate reflections of other objects, creating mirror-like effects.</p>"
+            },
+            2: {
+                title: "Refraction Ray",
+                desc: "<p>When light passes from one medium to another (e.g., from air into a glass sphere), it changes speed and bends. This is the <strong>Refraction Ray</strong>.</p><p>Its direction is determined by Snell's Law and the refractive indices of the media. By tracing this ray through the interior of the glass sphere, we calculate the bending of light and transparency.</p>"
+            }
+        };
+
+        const drawer = document.getElementById("infoDrawer");
+        const drawerNum = document.getElementById("drawerNum");
+        const drawerTitle = document.getElementById("drawerTitle");
+        const drawerContent = document.getElementById("drawerContent");
+
+        function openDrawer3(index) {
+            const data = pillDescriptions3[index];
+            if (!data) return;
+
+            drawerNum.textContent = index;
+            drawerTitle.textContent = data.title;
+            drawerContent.innerHTML = data.desc;
+
+            // Open drawer UI
+            drawer.classList.remove("translate-x-full");
+
+            // Deactivate all pills first
+            document.querySelectorAll('.apparatus-pill').forEach(p => p.classList.remove('active'));
+
+            // Update active pill state
+            if (splitPills[index - 1]) {
+                splitPills[index - 1].classList.add('active');
+            }
+        }
+
+        splitPills.forEach((pill, index) => {
+            if (pill) {
+                pill.addEventListener('click', () => {
+                    openDrawer3(index + 1);
+                });
+            }
+        });
+
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
     }
