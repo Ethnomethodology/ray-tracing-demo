@@ -166,15 +166,67 @@
                     </section>
 
                     <!-- Parametric Ray Equation Description -->
-                    <section class="max-w-[680px] w-full mx-auto px-0 my-8">
+                    <section class="max-w-[680px] w-full mx-auto px-0 mt-8 mb-2">
                         <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-4" style="font-family: 'Newsreader', serif;">
                             <p>The ray ($R$) can be written in a parametric form, i.e., the position of any point along the ray can be defined as a function of the parameter $t$:</p>
                             $$R(t) = o + dt$$
                             <p>In the above equation, $d$ is a vector that has both direction and magnitude. To check if this equation satisfies our assumptions, we can replace $t$ with $0$, and only $o$ will be left on the right-hand side. This means at the beginning when we have not started our countdown, the ray is at the origin. Similarly, after unit time, the ray would reach $o + d$, and so on. Therefore, the parametric form gives us a mathematical way to calculate points on the path of the ray.</p>
+                            <p>If we want to check if a ray hits a sphere, the sphere needs to be written in algebraic form as well. If we consider a sphere with radius $r$ to be centred at $C$, then any point $P$ on the surface of the sphere will satisfy the following equation:</p>
+                            <div class="-mb-10">
+                                $$||P - C|| = r$$
+                            </div>
                         </div>
                     </section>
 
-                    <!-- Figure 3: Ray-Sphere Intersection Cases -->
+                    <!-- Figure 3: Sphere Geometry Diagram -->
+                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 -mt-6 mb-4">
+                        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6 items-center">
+                            <svg viewBox="0 0 320 220" width="100%" class="max-w-[300px] mx-auto overflow-visible">
+                                <defs>
+                                    <radialGradient id="glassSphereGradient2" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="rgba(255, 255, 255, 0.05)" />
+                                        <stop offset="85%" stop-color="rgba(255, 255, 255, 0.2)" />
+                                        <stop offset="95%" stop-color="rgba(255, 255, 255, 0.95)" />
+                                        <stop offset="100%" stop-color="rgba(220, 220, 220, 0.8)" />
+                                    </radialGradient>
+                                    <radialGradient id="shadowGradient2" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="rgba(0,0,0,0.06)" />
+                                        <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+                                    </radialGradient>
+                                    <marker id="arrow2" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#1A1A1A" />
+                                    </marker>
+                                </defs>
+
+                                <!-- Shadow under sphere -->
+                                <ellipse cx="130" cy="198" rx="60" ry="8" fill="url(#shadowGradient2)" />
+
+                                <!-- Sphere (Glass) -->
+                                <circle cx="130" cy="110" r="75" fill="url(#glassSphereGradient2)" stroke="rgba(0, 0, 0, 0.15)" stroke-width="1.5" />
+
+                                <!-- Radius vector line -->
+                                <line x1="130" y1="110" x2="201" y2="110" stroke="#1A1A1A" stroke-width="2" marker-end="url(#arrow2)" />
+
+                                <!-- Center dot -->
+                                <circle cx="130" cy="110" r="3.5" fill="#1A1A1A" />
+
+                                <!-- Point P on the surface -->
+                                <circle cx="205" cy="110" r="4" fill="#EF4444" stroke="#FFFFFF" stroke-width="1" />
+
+                                <!-- Labels -->
+                                <text x="130" y="132" text-anchor="middle" font-family="var(--font-main)" font-size="20" font-weight="bold" fill="#1A1A1A">C</text>
+                                <text x="215" y="116" text-anchor="start" font-family="var(--font-main)" font-size="20" fill="#1A1A1A">P</text>
+                                <text x="168" y="95" text-anchor="middle" font-family="var(--font-main)" font-style="italic" font-size="20" fill="#1A1A1A">r</text>
+                            </svg>
+                        </div>
+                        <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
+                            style="font-family: 'Newsreader', serif;">
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 3:</span>
+                            <span><i>Sphere Geometry: A sphere centered at <i>C</i> with radius <i>r</i>. Any point <i>P</i> on its surface satisfies the relation $||P - C|| = r$.</i></span>
+                        </div>
+                    </section>
+
+                    <!-- Figure 4: Ray-Sphere Intersection Cases -->
                     <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-4">
                         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
                             <div class="canvas-container !min-h-[350px] relative">
@@ -186,12 +238,12 @@
                         </div>
                         <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
                             style="font-family: 'Newsreader', serif;">
-                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 3:</span>
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 4:</span>
                             <span><i>Intersection Cases: 1. Miss (above), 2. Tangent (single touch), 3. Secant (double hit).</i></span>
                         </div>
                     </section>
 
-                    <!-- Figure 4: Animated direct illumination check -->
+                    <!-- Figure 5: Animated direct illumination check -->
                     <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
                         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
                             <div class="canvas-container !min-h-[350px] relative">
@@ -214,7 +266,7 @@
                         </div>
                         <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
                             style="font-family: 'Newsreader', serif;">
-                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 4:</span>
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 5:</span>
                             <span><i>Animated Scene: Full Direct Illumination check (Camera &rarr; Sphere &rarr; Light).</i></span>
                         </div>
                     </section>
