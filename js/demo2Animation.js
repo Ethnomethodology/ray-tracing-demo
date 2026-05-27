@@ -624,6 +624,57 @@
         arrowHead.lookAt(spherePos);
         arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
 
+        // --- 6. Reflection Ray ---
+        const reflectDir = new BABYLON.Vector3(0, 0.85, 0.5).normalize();
+        const reflectLength = 4.5;
+        const reflectRayLine = BABYLON.MeshBuilder.CreateCylinder("staticReflectRayLine3", {
+            height: reflectLength,
+            diameter: 0.05
+        }, scene);
+        reflectRayLine.material = blackMat;
+        reflectRayLine.position = surfacePoint.add(reflectDir.scale(reflectLength / 2));
+        reflectRayLine.lookAt(surfacePoint.add(reflectDir));
+        reflectRayLine.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+        // Reflection Arrowhead
+        const reflectArrowHead = BABYLON.MeshBuilder.CreateCylinder("staticReflectArrowHead3", {
+            diameterTop: 0,
+            diameterBottom: 0.4,
+            height: arrowHeight,
+            tessellation: 12
+        }, scene);
+        reflectArrowHead.material = blackMat;
+        reflectArrowHead.position = surfacePoint.add(reflectDir.scale(reflectLength - arrowHeight / 2));
+        reflectArrowHead.lookAt(surfacePoint.add(reflectDir.scale(reflectLength)));
+        reflectArrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+        // --- 7. Refraction Ray ---
+        const refractDir = new BABYLON.Vector3(0, -0.65, -0.76).normalize();
+        const normalOut = surfacePoint.subtract(spherePos);
+        const maxInteriorDistance = -2 * BABYLON.Vector3.Dot(normalOut, refractDir);
+        const refractLength = maxInteriorDistance - 0.25;
+
+        const refractRayLine = BABYLON.MeshBuilder.CreateCylinder("staticRefractRayLine3", {
+            height: refractLength,
+            diameter: 0.05
+        }, scene);
+        refractRayLine.material = blackMat;
+        refractRayLine.position = surfacePoint.add(refractDir.scale(refractLength / 2));
+        refractRayLine.lookAt(surfacePoint.add(refractDir));
+        refractRayLine.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+        // Refraction Arrowhead
+        const refractArrowHead = BABYLON.MeshBuilder.CreateCylinder("staticRefractArrowHead3", {
+            diameterTop: 0,
+            diameterBottom: 0.4,
+            height: arrowHeight,
+            tessellation: 12
+        }, scene);
+        refractArrowHead.material = blackMat;
+        refractArrowHead.position = surfacePoint.add(refractDir.scale(refractLength - arrowHeight / 2));
+        refractArrowHead.lookAt(surfacePoint.add(refractDir.scale(refractLength)));
+        refractArrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
+
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
     }
