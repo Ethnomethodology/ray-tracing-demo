@@ -22,12 +22,12 @@
     scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("https://playground.babylonjs.com/textures/environment.dds", scene);
     scene.environmentIntensity = 0.8;
 
-    const isMobile = window.innerWidth <= 900;
-    const defaultRadius = isMobile ? 36 : 28;
     const sceneCamera = new BABYLON.ArcRotateCamera(
-        "sceneCamera", -Math.PI / 5, Math.PI / 2.3, defaultRadius,
+        "sceneCamera", -Math.PI / 5, Math.PI / 2.3, 28,
         new BABYLON.Vector3(0, 4.0, -2.0), scene
     ); 
+    sceneCamera.setPosition(new BABYLON.Vector3(22.65, 3.1, -18.45));
+    sceneCamera.beta = 1.6;
     sceneCamera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
     sceneCamera.attachControl(canvas, true);
 
@@ -191,6 +191,19 @@
     }
 
     scene.onBeforeRenderObservable.add(() => {
+        // --- Update Camera Info ---
+        if (showCameraParams && sceneCamera) {
+            const camInfo = document.getElementById("cameraInfo");
+            if (camInfo) {
+                const pos = sceneCamera.position;
+                camInfo.textContent = `CAMERA PARAMETERS
+Position: [${pos.x.toFixed(2)}, ${pos.y.toFixed(2)}, ${pos.z.toFixed(2)}]
+Alpha:    ${sceneCamera.alpha.toFixed(2)}
+Beta:     ${sceneCamera.beta.toFixed(2)}
+Zoom:     ${sceneCamera.radius.toFixed(2)}`;
+            }
+        }
+
         progress += 0.008; 
         
         if (progress > 1.8) {
@@ -244,6 +257,21 @@
             }
         }
     });
+
+    let showCameraParams = false;
+    const cameraParamsBtn = document.getElementById("cameraParamsBtn");
+    if (cameraParamsBtn) {
+        cameraParamsBtn.addEventListener("click", (e) => {
+            showCameraParams = !showCameraParams;
+            const btn = e.target.closest('#cameraParamsBtn');
+            if (showCameraParams) {
+                btn.classList.add("bg-stone-300"); // Visual active state for tailwind btn
+            } else {
+                btn.classList.remove("bg-stone-300");
+            }
+            document.getElementById("cameraInfo").style.display = showCameraParams ? "block" : "none";
+        });
+    }
 
     engine.runRenderLoop(() => scene.render());
     window.addEventListener("resize", () => engine.resize());
