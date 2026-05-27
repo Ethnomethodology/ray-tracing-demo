@@ -179,16 +179,16 @@
         
         const pillDescriptions = {
             1: {
-                title: "Camera Model",
+                title: "Camera",
                 desc: "<p>The virtual <strong>Camera</strong> represents the eye or sensor position. In this scene, it is modeled as a single point in space (at coordinates <code>[0.0, 8.0, 14.0]</code>).</p><p>Unlike traditional rasterization engines that process geometry from a camera frustum, a ray tracer starts by casting rays outwards from this single point through each pixel on the image plane.</p>"
             },
             2: {
-                title: "Image Plane / Pixel Grid",
+                title: "Image Plane",
                 desc: "<p>The <strong>Image Plane</strong> is a virtual grid of pixels (represented here as a 16x16 frame). It is placed in front of the camera point.</p><p>For each pixel in this grid, the renderer determines the color by calculating the path of light passing through the pixel center. A higher resolution grid results in a sharper, higher quality rendered output.</p>"
             },
             3: {
-                title: "Primary Ray",
-                desc: "<p>A <strong>Primary Ray</strong> (or Camera Ray) is cast from the camera origin through a specific cell on the image plane into the 3D scene.</p><p>The algorithm calculates the ray's mathematical equation and checks for intersections with all geometric objects in the scene. The closest intersection point defines what the camera 'sees' through that pixel.</p>"
+                title: "Ray",
+                desc: "<p>A <strong>Ray</strong> (specifically, a primary camera ray) is cast from the camera origin through a specific cell on the image plane into the 3D scene.</p><p>The algorithm calculates the ray's mathematical equation and checks for intersections with all geometric objects in the scene. The closest intersection point defines what the camera 'sees' through that pixel.</p>"
             },
             4: {
                 title: "Glass Sphere",
