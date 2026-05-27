@@ -7,8 +7,9 @@
  * - Light is a square
  */
 (function () {
-    // Initialize both scenes
+    // Initialize all three scenes
     initStaticScene();
+    initIntersectionScene();
     initAnimatedScene();
 
     function initStaticScene() {
@@ -247,6 +248,199 @@
 
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
+    }
+
+    function initIntersectionScene() {
+        const canvas = document.getElementById("rayTracingCanvasIntersection");
+        if (!canvas) return;
+
+        const engine = new BABYLON.Engine(canvas, true, { alpha: true });
+        engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+        const scene = new BABYLON.Scene(engine);
+        scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
+        const hemiLight = new BABYLON.HemisphericLight("intHemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+        hemiLight.intensity = 0.6;
+        hemiLight.groundColor = new BABYLON.Color3(0.15, 0.15, 0.15);
+
+        const sceneCamera = new BABYLON.ArcRotateCamera(
+            "intCamera", -Math.PI / 2, Math.PI / 2, 22,
+            new BABYLON.Vector3(0, 0.5, 0), scene
+        );
+        sceneCamera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+        sceneCamera.attachControl(canvas, true);
+
+        // Configure Orthographic projection to keep sections perfectly equally spaced regardless of screen width/aspect ratio
+        sceneCamera.mode = BABYLON.Camera.ORTHOGRAPHIC_CAMERA;
+        const updateOrtho = () => {
+            const aspect = (engine.getRenderWidth() / (engine.getRenderHeight() || 1)) || 1.6;
+            sceneCamera.orthoLeft = -15.0;
+            sceneCamera.orthoRight = 15.0;
+            sceneCamera.orthoTop = 15.0 / aspect;
+            sceneCamera.orthoBottom = -15.0 / aspect;
+        };
+        updateOrtho();
+
+        // --- 1. Three Spheres Side by Side (Diameter 4.0, same as Fig. 1) ---
+        const pos1 = new BABYLON.Vector3(-10.0, 0, 0);
+        const pos2 = new BABYLON.Vector3(0, 0, 0);
+        const pos3 = new BABYLON.Vector3(10.0, 0, 0);
+
+        const sphere1 = BABYLON.MeshBuilder.CreateSphere("intSphere1", { diameter: 4.0, segments: 32 }, scene);
+        sphere1.position.copyFrom(pos1);
+
+        const sphere2 = BABYLON.MeshBuilder.CreateSphere("intSphere2", { diameter: 4.0, segments: 32 }, scene);
+        sphere2.position.copyFrom(pos2);
+
+        const sphere3 = BABYLON.MeshBuilder.CreateSphere("intSphere3", { diameter: 4.0, segments: 32 }, scene);
+        sphere3.position.copyFrom(pos3);
+
+        // Glass material with Fresnel outline
+        const glassMat = new BABYLON.StandardMaterial("intGlassMat", scene);
+        glassMat.disableLighting = true;
+        glassMat.emissiveColor = new BABYLON.Color3(0.95, 0.95, 0.95);
+        glassMat.alpha = 0.05;
+
+        const fresnel = new BABYLON.FresnelParameters();
+        fresnel.isEnabled = true;
+        fresnel.bias = 0.1;
+        fresnel.power = 2.0;
+        fresnel.leftColor = BABYLON.Color3.White();
+        fresnel.rightColor = BABYLON.Color3.Black();
+        glassMat.opacityFresnelParameters = fresnel;
+
+        sphere1.material = glassMat;
+        sphere2.material = glassMat;
+        sphere3.material = glassMat;
+
+        // --- 1.5. Separator Lines between cases ---
+        const sepColor = new BABYLON.Color3(0.72, 0.69, 0.63); // Warm parchment-toned gray
+        
+        const sep1 = BABYLON.MeshBuilder.CreateDashedLines("sep1", {
+            points: [new BABYLON.Vector3(-5.0, -4.0, 0), new BABYLON.Vector3(-5.0, 4.0, 0)],
+            dashSize: 0.25,
+            gapSize: 0.15
+        }, scene);
+        sep1.color = sepColor;
+
+        const sep2 = BABYLON.MeshBuilder.CreateDashedLines("sep2", {
+            points: [new BABYLON.Vector3(5.0, -4.0, 0), new BABYLON.Vector3(5.0, 4.0, 0)],
+            dashSize: 0.25,
+            gapSize: 0.15
+        }, scene);
+        sep2.color = sepColor;
+
+        // --- 2. Ray Materials ---
+        const rayMat = new BABYLON.StandardMaterial("intRayMat", scene);
+        rayMat.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+        rayMat.emissiveColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+
+        const hitDotMat = new BABYLON.StandardMaterial("intHitDotMat", scene);
+        hitDotMat.diffuseColor = new BABYLON.Color3(0.95, 0.25, 0.25);
+        hitDotMat.emissiveColor = new BABYLON.Color3(0.95, 0.25, 0.25);
+
+        // --- 3. Ray 1 (Misses above Sphere 1, Y = 2.6) ---
+        const ray1 = BABYLON.MeshBuilder.CreateCylinder("intRay1", { height: 1, diameter: 0.08 }, scene);
+        ray1.material = rayMat;
+        ray1.rotation.z = Math.PI / 2;
+
+        const arrow1 = BABYLON.MeshBuilder.CreateCylinder("intArrow1", { diameterTop: 0, diameterBottom: 0.5, height: 0.8 }, scene);
+        arrow1.material = rayMat;
+        arrow1.rotation.z = Math.PI / 2;
+
+        // --- 4. Ray 2 (Tangent to Sphere 2, Y = 2.0) ---
+        const ray2 = BABYLON.MeshBuilder.CreateCylinder("intRay2", { height: 1, diameter: 0.08 }, scene);
+        ray2.material = rayMat;
+        ray2.rotation.z = Math.PI / 2;
+
+        const arrow2 = BABYLON.MeshBuilder.CreateCylinder("intArrow2", { diameterTop: 0, diameterBottom: 0.5, height: 0.8 }, scene);
+        arrow2.material = rayMat;
+        arrow2.rotation.z = Math.PI / 2;
+
+        const dotTangent = BABYLON.MeshBuilder.CreateSphere("intDotTangent", { diameter: 0.3 }, scene);
+        dotTangent.position.set(0, 2.0, 0);
+        dotTangent.material = hitDotMat;
+        dotTangent.setEnabled(false);
+
+        // --- 5. Ray 3 (Secant cutting through Sphere 3, Y = 0.8) ---
+        const ray3 = BABYLON.MeshBuilder.CreateCylinder("intRay3", { height: 1, diameter: 0.08 }, scene);
+        ray3.material = rayMat;
+        ray3.rotation.z = Math.PI / 2;
+
+        const arrow3 = BABYLON.MeshBuilder.CreateCylinder("intArrow3", { diameterTop: 0, diameterBottom: 0.5, height: 0.8 }, scene);
+        arrow3.material = rayMat;
+        arrow3.rotation.z = Math.PI / 2;
+
+        const dotEntry = BABYLON.MeshBuilder.CreateSphere("intDotEntry", { diameter: 0.3 }, scene);
+        dotEntry.position.set(11.833, 0.8, 0); // first hit on the right
+        dotEntry.material = hitDotMat;
+        dotEntry.setEnabled(false);
+
+        const dotExit = BABYLON.MeshBuilder.CreateSphere("intDotExit", { diameter: 0.3 }, scene);
+        dotExit.position.set(8.167, 0.8, 0); // second hit on the left
+        dotExit.material = hitDotMat;
+        dotExit.setEnabled(false);
+
+        // --- 6. Animation Logic ---
+        let progress = 0;
+
+        scene.onBeforeRenderObservable.add(() => {
+            progress += 0.007;
+            if (progress > 1.25) {
+                progress = 0;
+            }
+
+            const p = Math.min(progress / 1.0, 1.0);
+            const length = p * 8.0;
+
+            // Update Ray 1 (starts at X = -6.0, Y = 2.6, grows leftwards)
+            ray1.scaling.y = Math.max(0.001, length);
+            ray1.position.set(-6.0 - length / 2, 2.6, 0);
+            arrow1.position.set(-6.0 - length, 2.6, 0);
+
+            // Update Ray 2 (starts at X = 4.0, Y = 2.0, grows leftwards)
+            ray2.scaling.y = Math.max(0.001, length);
+            ray2.position.set(4.0 - length / 2, 2.0, 0);
+            arrow2.position.set(4.0 - length, 2.0, 0);
+            dotTangent.setEnabled(p >= 0.5);
+
+            // Update Ray 3 (starts at X = 14.0, Y = 0.8, grows leftwards)
+            ray3.scaling.y = Math.max(0.001, length);
+            ray3.position.set(14.0 - length / 2, 0.8, 0);
+            arrow3.position.set(14.0 - length, 0.8, 0);
+            dotEntry.setEnabled(p >= 0.27);
+            dotExit.setEnabled(p >= 0.73);
+        });
+
+        // --- 7. Dynamic label positioning ---
+        scene.onAfterRenderObservable.add(() => {
+            const w    = engine.getRenderWidth();
+            const h    = engine.getRenderHeight();
+            const vp   = sceneCamera.viewport.toGlobal(w, h);
+            const tf   = scene.getTransformMatrix();
+            const rect = canvas.getBoundingClientRect();
+
+            const labels = [
+                { id: "int-label-1", world: new BABYLON.Vector3(-10.0, -3.2, 0) }, // under sphere 1
+                { id: "int-label-2", world: new BABYLON.Vector3(0.0, -3.2, 0) },   // under sphere 2
+                { id: "int-label-3", world: new BABYLON.Vector3(10.0, -3.2, 0) }   // under sphere 3
+            ];
+
+            labels.forEach(({ id, world }) => {
+                const s    = BABYLON.Vector3.Project(world, BABYLON.Matrix.Identity(), tf, vp);
+                const elem = document.getElementById(id);
+                if (!elem) return;
+                elem.style.left       = (s.x / w) * rect.width  + "px";
+                elem.style.top        = (s.y / h) * rect.height + "px";
+                elem.style.visibility = (s.z > 0 && s.z < 1) ? "visible" : "hidden";
+            });
+        });
+
+        engine.runRenderLoop(() => scene.render());
+        window.addEventListener("resize", () => {
+            engine.resize();
+            updateOrtho();
+        });
     }
 
     function initAnimatedScene() {

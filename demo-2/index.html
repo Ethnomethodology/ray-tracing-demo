@@ -35,6 +35,37 @@
             color: #4a1f24;
             background: rgba(114, 47, 55, 0.05);
         }
+
+        #rayTracingCanvasIntersection {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            outline: none;
+            touch-action: none;
+        }
+
+        .intersection-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-main);
+            font-size: 15px;
+            color: var(--text-color);
+            text-align: center;
+            pointer-events: none;
+            user-select: none;
+            white-space: nowrap;
+            background: rgba(244, 241, 234, 0.85); /* Matches --glass-bg with transparency */
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            z-index: 50;
+            visibility: hidden;
+        }
     </style>
 </head>
 
@@ -70,7 +101,75 @@
                         </div>
                     </section>
 
-                    <!-- Figure 2: Animated direct illumination check -->
+                    <!-- Figure 2: Ray-Sphere Intersection Diagram -->
+                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-4">
+                        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6 items-center">
+                            <svg viewBox="0 0 500 220" width="100%" class="max-w-[450px] mx-auto overflow-visible">
+                                <defs>
+                                    <radialGradient id="glassSphereGradient" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="rgba(255, 255, 255, 0.05)" />
+                                        <stop offset="85%" stop-color="rgba(255, 255, 255, 0.2)" />
+                                        <stop offset="95%" stop-color="rgba(255, 255, 255, 0.95)" />
+                                        <stop offset="100%" stop-color="rgba(220, 220, 220, 0.8)" />
+                                    </radialGradient>
+                                    <radialGradient id="shadowGradient" cx="50%" cy="50%" r="50%">
+                                        <stop offset="0%" stop-color="rgba(0,0,0,0.06)" />
+                                        <stop offset="100%" stop-color="rgba(0,0,0,0)" />
+                                    </radialGradient>
+                                    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                        <path d="M 0 0 L 10 5 L 0 10 z" fill="#1A1A1A" />
+                                    </marker>
+                                </defs>
+
+                                <!-- Shadow under sphere -->
+                                <ellipse cx="280" cy="198" rx="42" ry="7" fill="url(#shadowGradient)" />
+
+                                <!-- Sphere (Glass) -->
+                                <circle cx="280" cy="140" r="50" fill="url(#glassSphereGradient)" stroke="rgba(0, 0, 0, 0.15)" stroke-width="1.5" />
+
+                                <!-- Ray line (drawing from right to left) -->
+                                <line x1="420" y1="118" x2="100" y2="54" stroke="#1A1A1A" stroke-width="2" marker-end="url(#arrow)" />
+
+                                <!-- Labels -->
+                                <!-- Origin O -->
+                                <text x="430" y="123" text-anchor="start" font-family="var(--font-main)" font-size="17" fill="#1A1A1A">O</text>
+                                <text x="420" y="145" text-anchor="middle" font-family="var(--font-main)" font-size="15" fill="#6B6B6B">t = 0</text>
+
+                                <!-- Tangent point P -->
+                                <circle cx="280" cy="90" r="4" fill="#EF4444" stroke="#FFFFFF" stroke-width="1" />
+                                <text x="280" y="112" text-anchor="middle" font-family="var(--font-main)" font-size="17" font-weight="bold" fill="#1A1A1A">P</text>
+                                <text x="280" y="75" text-anchor="middle" font-family="var(--font-main)" font-size="15" fill="#1A1A1A">t = t₁</text>
+
+                                <!-- Square bracket for distance d -->
+                                <path d="M 421 85 L 420 79 L 280 51 L 281 57" fill="none" stroke="#2563EB" stroke-width="1.5" />
+                                <text x="350" y="52" text-anchor="middle" font-family="var(--font-main)" font-style="italic" font-size="18" fill="#2563EB" font-weight="500">d</text>
+                            </svg>
+                        </div>
+                        <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
+                            style="font-family: 'Newsreader', serif;">
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 2:</span>
+                            <span><i>Ray-Sphere Intersection: A ray originating at origin <i>O</i> (where <i>t</i> = 0) travels along a direction, intersecting the sphere at point <i>P</i> (where <i>t</i> = <i>t</i><sub>1</sub>) at distance <i>d</i>.</i></span>
+                        </div>
+                    </section>
+
+                    <!-- Figure 3: Ray-Sphere Intersection Cases -->
+                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-4">
+                        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                            <div class="canvas-container !min-h-[350px] relative">
+                                <canvas id="rayTracingCanvasIntersection"></canvas>
+                                <div id="int-label-1" class="intersection-label">No intersections (𝛥 &lt; 0)</div>
+                                <div id="int-label-2" class="intersection-label">One intersection (𝛥 = 0)</div>
+                                <div id="int-label-3" class="intersection-label">Two intersections (𝛥 &gt; 0)</div>
+                            </div>
+                        </div>
+                        <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
+                            style="font-family: 'Newsreader', serif;">
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 3:</span>
+                            <span><i>Intersection Cases: 1. Miss (above), 2. Tangent (single touch), 3. Secant (double hit).</i></span>
+                        </div>
+                    </section>
+
+                    <!-- Figure 4: Animated direct illumination check -->
                     <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
                         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
                             <div class="canvas-container !min-h-[350px] relative">
@@ -93,7 +192,7 @@
                         </div>
                         <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
                             style="font-family: 'Newsreader', serif;">
-                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 2:</span>
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 4:</span>
                             <span><i>Animated Scene: Full Direct Illumination check (Camera &rarr; Sphere &rarr; Light).</i></span>
                         </div>
                     </section>
