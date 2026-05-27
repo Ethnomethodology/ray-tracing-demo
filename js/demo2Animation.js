@@ -146,6 +146,105 @@
         arrowHead.lookAt(spherePos);
         arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
 
+        // --- 6. Dynamic annotation pill positioning ---
+        scene.onAfterRenderObservable.add(() => {
+            const w    = engine.getRenderWidth();
+            const h    = engine.getRenderHeight();
+            const vp   = sceneCamera.viewport.toGlobal(w, h);
+            const tf   = scene.getTransformMatrix();
+            const rect = canvas.getBoundingClientRect();
+
+            const rayPoint = cameraPos.add(surfacePoint.subtract(cameraPos).scale(0.78));
+
+            const annotations = [
+                { id: "static-pill-1", world: cameraPos.add(new BABYLON.Vector3(1.5, 0.5, 0)) }, // next to camera
+                { id: "static-pill-2", world: new BABYLON.Vector3(0, 6.7, 2.25) },              // on top of screen (moved up)
+                { id: "static-pill-3", world: rayPoint.add(new BABYLON.Vector3(0, 1.2, 0)) },    // on top of ray (moved left along ray)
+                { id: "static-pill-4", world: new BABYLON.Vector3(0, 0.0, -11) },              // on top of sphere
+                { id: "static-pill-5", world: lightPos.add(new BABYLON.Vector3(2.5, 0.5, 0)) }   // next to light
+            ];
+
+            annotations.forEach(({ id, world }) => {
+                const s    = BABYLON.Vector3.Project(world, BABYLON.Matrix.Identity(), tf, vp);
+                const pill = document.getElementById(id);
+                if (!pill) return;
+                pill.style.left       = (s.x / w) * rect.width  + "px";
+                pill.style.top        = (s.y / h) * rect.height + "px";
+                pill.style.visibility = (s.z > 0 && s.z < 1) ? "visible" : "hidden";
+            });
+        });
+
+        // --- 7. Pill click interaction logic & Drawer Component ---
+        const staticPills = [1, 2, 3, 4, 5].map(i => document.getElementById(`static-pill-${i}`));
+        
+        const pillDescriptions = {
+            1: {
+                title: "Camera Model",
+                desc: "<p>The virtual <strong>Camera</strong> represents the eye or sensor position. In this scene, it is modeled as a single point in space (at coordinates <code>[0.0, 8.0, 14.0]</code>).</p><p>Unlike traditional rasterization engines that process geometry from a camera frustum, a ray tracer starts by casting rays outwards from this single point through each pixel on the image plane.</p>"
+            },
+            2: {
+                title: "Image Plane / Pixel Grid",
+                desc: "<p>The <strong>Image Plane</strong> is a virtual grid of pixels (represented here as a 16x16 frame). It is placed in front of the camera point.</p><p>For each pixel in this grid, the renderer determines the color by calculating the path of light passing through the pixel center. A higher resolution grid results in a sharper, higher quality rendered output.</p>"
+            },
+            3: {
+                title: "Primary Ray",
+                desc: "<p>A <strong>Primary Ray</strong> (or Camera Ray) is cast from the camera origin through a specific cell on the image plane into the 3D scene.</p><p>The algorithm calculates the ray's mathematical equation and checks for intersections with all geometric objects in the scene. The closest intersection point defines what the camera 'sees' through that pixel.</p>"
+            },
+            4: {
+                title: "Glass Sphere",
+                desc: "<p>The subject of our scene is a <strong>Glass Sphere</strong>. In a ray tracer, spheres are represented mathematically, allowing for perfect, infinitely smooth intersection calculations.</p><p>Here, the sphere uses a custom unlit Fresnel material, making the edges visible as white borders while the center remains transparent to represent thin glass.</p>"
+            },
+            5: {
+                title: "Light Source",
+                desc: "<p>The <strong>Light Source</strong> is a flat, square emitting surface. When a primary ray hits an object, the renderer casts a secondary 'shadow ray' from the hit point to the light source.</p><p>If the path to the light is clear, the point is illuminated. If another object blocks the path, the point is in shadow. The triangulated borders show the grid lines of the square light.</p>"
+            }
+        };
+
+        const drawer = document.getElementById("infoDrawer");
+        const drawerNum = document.getElementById("drawerNum");
+        const drawerTitle = document.getElementById("drawerTitle");
+        const drawerContent = document.getElementById("drawerContent");
+        const closeBtn = document.getElementById("closeDrawerBtn");
+
+        function openDrawer(index) {
+            const data = pillDescriptions[index];
+            if (!data) return;
+
+            drawerNum.textContent = index;
+            drawerTitle.textContent = data.title;
+            drawerContent.innerHTML = data.desc;
+
+            // Open drawer UI
+            drawer.classList.remove("translate-x-full");
+
+            // Update active pill state
+            staticPills.forEach((p, i) => {
+                if (p) {
+                    if (i === index - 1) p.classList.add('active');
+                    else p.classList.remove('active');
+                }
+            });
+        }
+
+        function closeDrawer() {
+            drawer.classList.add("translate-x-full");
+
+            // Deactivate all pills upon closing the drawer
+            staticPills.forEach(p => {
+                if (p) p.classList.remove('active');
+            });
+        }
+
+        staticPills.forEach((pill, index) => {
+            if (pill) {
+                pill.addEventListener('click', () => {
+                    openDrawer(index + 1);
+                });
+            }
+        });
+
+        if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
     }

@@ -56,6 +56,11 @@
                         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
                             <div class="canvas-container !min-h-[350px] relative">
                                 <canvas id="rayTracingCanvas"></canvas>
+                                <div id="static-pill-1" class="apparatus-pill" data-tooltip="Camera">1</div>
+                                <div id="static-pill-2" class="apparatus-pill" data-tooltip="Image Plane">2</div>
+                                <div id="static-pill-3" class="apparatus-pill" data-tooltip="Primary Ray">3</div>
+                                <div id="static-pill-4" class="apparatus-pill" data-tooltip="Glass Sphere">4</div>
+                                <div id="static-pill-5" class="apparatus-pill" data-tooltip="Light Source">5</div>
                             </div>
                         </div>
                         <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
@@ -96,6 +101,25 @@
 
             </div>
         </main>
+    </div>
+
+    <!-- Sliding Drawer Component -->
+    <div id="infoDrawer" class="fixed top-0 right-0 h-screen w-full sm:w-[400px] bg-white/95 backdrop-blur-md shadow-2xl border-l border-[#E5E1D8] translate-x-full transition-transform duration-300 ease-out z-[1000] flex flex-col">
+        <div class="flex justify-between items-center p-6 border-b border-[#E5E1D8]">
+            <span id="drawerNum" class="font-serif font-newsreader text-[32px] text-[#722F37] font-semibold leading-none">1</span>
+            <button id="closeDrawerBtn" class="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-500 hover:text-stone-800" aria-label="Close details">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
+            <h2 id="drawerTitle" class="font-serif font-newsreader text-[24px] font-bold text-stone-900">Camera</h2>
+            <div id="drawerContent" class="font-serif font-newsreader text-[18px] text-stone-600 leading-relaxed space-y-4">
+                <!-- Description injected here -->
+            </div>
+        </div>
     </div>
 
     <!-- Script that handles the custom animation -->
