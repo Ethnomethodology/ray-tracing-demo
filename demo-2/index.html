@@ -226,6 +226,40 @@
                         </div>
                     </section>
 
+                    <!-- Mathematical Derivation Section -->
+                    <section class="max-w-[680px] w-full mx-auto px-0 my-8">
+                        <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-4" style="font-family: 'Newsreader', serif;">
+                            <p>As we have already established using the ray’s parametric form $R(t)$, we can determine at what point the ray will be after time $t$. So, if we assume that after time $t$ the ray hits the sphere at point $P$, then we can substitute $P$ in the above equation with $R(t)$. After this substitution, the equation is:</p>
+                            <div class="my-2">
+                                $$||R(t) - C|| = r$$
+                                $$\iff$$
+                                $$||o + dt - C|| = r$$
+                            </div>
+                            <p>For further simplification, we can substitute $o - C$ with a vector $m$:</p>
+                            $$||m + dt|| = r$$
+                            <p>The magnitude of a vector can be obtained by calculating the square root of the dot product of the vector with itself:</p>
+                            $$\sqrt{(m + dt) \cdot (m + dt)} = r$$
+                            <p>To remove the square root, we can square both sides of the equation:</p>
+                            $$(m + dt) \cdot (m + dt) = r^2$$
+                            <p>Next, if we perform the dot product, the equation will look like:</p>
+                            <div class="my-2">
+                                $$(d \cdot d)t^2 + 2(m \cdot d)t + (m \cdot m) = r^2$$
+                                $$\iff$$
+                                $$(d \cdot d)t^2 + 2(m \cdot d)t + (m \cdot m) - r^2 = 0$$
+                            </div>
+                            <p>Once we simplify the equation to the final format, we can see it is in the form of a quadratic equation $at^2 + bt + c = 0$, where:</p>
+                            <div class="my-2">
+                                $$a = d \cdot d$$
+                                $$b = 2(m \cdot d)$$
+                                $$c = (m \cdot m) - r^2$$
+                            </div>
+                            <p>In algebra, the solution to a quadratic equation is given by the following formula:</p>
+                            $$t = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$$
+                            <p>The result of the above mathematical derivation is a standard quadratic equation. This is a moment of practical abstraction. The complex geometric problem of a line intersecting a 3D sphere has been successfully knitted into a simple, well-understood algebraic problem from high school mathematics. The physical world of light and objects has been transformed into an expression of coefficients $a$, $b$, and $c$.</p>
+                            <p>In the above formula, $b^2 - 4ac$ is the discriminant ($\Delta$) part, and based on its value, the quadratic equation can have either no solution, exactly one solution, or two different solutions. See the figures below for these three possibilities in the context of a ray-sphere intersection:</p>
+                        </div>
+                    </section>
+
                     <!-- Figure 4: Ray-Sphere Intersection Cases -->
                     <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-4">
                         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
