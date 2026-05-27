@@ -7,10 +7,11 @@
  * - Light is a square
  */
 (function () {
-    // Initialize all four scenes
+    // Initialize all five scenes
     initStaticScene();
     initIntersectionScene();
     initStaticScene2();
+    initStaticScene3();
     initAnimatedScene();
 
     function initStaticScene() {
@@ -483,6 +484,145 @@
                 });
             }
         });
+
+        engine.runRenderLoop(() => scene.render());
+        window.addEventListener("resize", () => engine.resize());
+    }
+
+    function initStaticScene3() {
+        const canvas = document.getElementById("rayTracingCanvasStatic3");
+        if (!canvas) return;
+
+        const engine = new BABYLON.Engine(canvas, true, { alpha: true });
+        engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+        const scene = new BABYLON.Scene(engine);
+        scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
+        const hemiLight = new BABYLON.HemisphericLight("staticHemiLight3", new BABYLON.Vector3(0, 1, 0), scene);
+        hemiLight.intensity = 0.5;
+        hemiLight.groundColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+
+        const sceneCamera = new BABYLON.ArcRotateCamera(
+            "staticSceneCamera3", -Math.PI / 5, Math.PI / 2.3, 28,
+            new BABYLON.Vector3(0, 4.0, -2.0), scene
+        ); 
+        sceneCamera.setPosition(new BABYLON.Vector3(22.65, 3.1, -18.45));
+        sceneCamera.beta = 1.6;
+        sceneCamera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+        sceneCamera.attachControl(canvas, true);
+
+        const cameraPos = new BABYLON.Vector3(0, 8, 14);
+        const spherePos = new BABYLON.Vector3(0, -3.0, -11);
+        const lightPos = new BABYLON.Vector3(0, 9.6, -11);
+
+        // --- 1. Camera Point ---
+        const cameraPoint = BABYLON.MeshBuilder.CreateSphere("staticCameraPoint3", { diameter: 0.5 }, scene);
+        cameraPoint.position.copyFrom(cameraPos);
+        const camMat = new BABYLON.StandardMaterial("staticCamMat3", scene);
+        camMat.diffuseColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        camMat.emissiveColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        cameraPoint.material = camMat;
+
+        // --- 2. Image Plane ---
+        const gridSize = 10;
+        const resolution = 16;
+        const pixelSize = gridSize / resolution;
+        
+        const cellMaterial = new BABYLON.StandardMaterial("staticCellMaterial3", scene);
+        cellMaterial.diffuseColor = new BABYLON.Color3(0.9, 0.9, 0.9);
+        cellMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+        cellMaterial.alpha = 0;
+        
+        const frameGroup = new BABYLON.TransformNode("staticFrameGroup3", scene);
+        for (let x = 0; x < resolution; x++) {
+            for (let y = 0; y < resolution; y++) {
+                const cell = BABYLON.MeshBuilder.CreatePlane(`staticCell3_${x}_${y}`, { 
+                    size: pixelSize,
+                    sideOrientation: BABYLON.Mesh.DOUBLESIDE
+                }, scene);
+                cell.parent = frameGroup;
+                cell.position.x = (x - (resolution - 1) / 2) * pixelSize;
+                cell.position.y = (y - (resolution - 1) / 2) * pixelSize;
+                cell.position.z = 0;
+                cell.material = cellMaterial;
+                cell.enableEdgesRendering();
+                cell.edgesWidth = 4.0;
+                cell.edgesColor = new BABYLON.Color4(0.2, 0.4, 1.0, 1.0);
+            }
+        }
+        frameGroup.position.set(0, 0, 2.25); 
+
+        // --- 3. Glass Sphere ---
+        const glassSphere = BABYLON.MeshBuilder.CreateSphere("staticGlassSphere3", { diameter: 4.0, segments: 32 }, scene);
+        glassSphere.position.copyFrom(spherePos);
+        
+        const glassMat = new BABYLON.StandardMaterial("staticGlassMat3", scene);
+        glassMat.disableLighting = true; 
+        glassMat.emissiveColor = new BABYLON.Color3(0.95, 0.95, 0.95); 
+        glassMat.alpha = 0.05; 
+
+        // Use Fresnel parameters to create glass-like edges
+        const fresnel = new BABYLON.FresnelParameters();
+        fresnel.isEnabled = true;
+        fresnel.bias = 0.1;
+        fresnel.power = 2.0;
+        fresnel.leftColor = BABYLON.Color3.White();  
+        fresnel.rightColor = BABYLON.Color3.Black(); 
+        glassMat.opacityFresnelParameters = fresnel;
+
+        glassSphere.material = glassMat;
+
+        // --- 4. Square Light Source ---
+        const lightSquare = BABYLON.MeshBuilder.CreatePlane("staticLightSquare3", { size: 3.0 }, scene);
+        lightSquare.position.copyFrom(lightPos);
+        lightSquare.rotation.x = Math.PI / 2; 
+        
+        const lightMat = new BABYLON.StandardMaterial("staticLightMat3", scene);
+        lightMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        lightMat.disableLighting = true; 
+        lightSquare.material = lightMat;
+
+        // Show triangulated borders
+        lightSquare.enableEdgesRendering();
+        lightSquare.edgesWidth = 4.0;
+        lightSquare.edgesColor = new BABYLON.Color4(0.2, 0.2, 0.2, 1);
+        
+        const pointLight = new BABYLON.PointLight("staticPointLight3", lightPos, scene);
+        pointLight.intensity = 1.0;
+        pointLight.diffuse = new BABYLON.Color3(1, 1, 1);
+
+        // --- 5. Ray Paths (Static Camera Ray Only) ---
+        const lensOrigin = cameraPoint.position;
+        const direction = spherePos.subtract(lensOrigin).normalize();
+        const surfacePoint = spherePos.subtract(direction.scale(2.0)); 
+        const totalDistance = BABYLON.Vector3.Distance(lensOrigin, surfacePoint);
+
+        const blackMat = new BABYLON.StandardMaterial("staticBlackMat3", scene);
+        blackMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        blackMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        // First ray cylinder
+        const rayLine = BABYLON.MeshBuilder.CreateCylinder("staticRayLine3", {
+            height: totalDistance,
+            diameter: 0.05
+        }, scene);
+        rayLine.material = blackMat;
+        rayLine.position = lensOrigin.add(direction.scale(totalDistance / 2));
+        rayLine.lookAt(surfacePoint);
+        rayLine.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+        // Arrowhead pointing at the sphere
+        const arrowHeight = 0.6;
+        const arrowHead = BABYLON.MeshBuilder.CreateCylinder("staticArrowHead3", {
+            diameterTop: 0,
+            diameterBottom: 0.4,
+            height: arrowHeight,
+            tessellation: 12
+        }, scene);
+        arrowHead.material = blackMat;
+        arrowHead.position = surfacePoint.subtract(direction.scale(arrowHeight / 2));
+        arrowHead.lookAt(spherePos);
+        arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
 
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());

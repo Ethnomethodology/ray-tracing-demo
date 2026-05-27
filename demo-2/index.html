@@ -41,7 +41,8 @@
         }
 
         #rayTracingCanvasIntersection,
-        #rayTracingCanvasStatic2 {
+        #rayTracingCanvasStatic2,
+        #rayTracingCanvasStatic3 {
             position: absolute;
             top: 0;
             left: 0;
@@ -294,7 +295,21 @@
                         </div>
                     </section>
 
-                    <!-- Figure 6: Animated direct illumination check -->
+                    <!-- Figure 6: Static camera ray hitting sphere (no annotations, no shadow ray) -->
+                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-4">
+                        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                            <div class="canvas-container !min-h-[350px] relative">
+                                <canvas id="rayTracingCanvasStatic3"></canvas>
+                            </div>
+                        </div>
+                        <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
+                            style="font-family: 'Newsreader', serif;">
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 6:</span>
+                            <span><i>Static Scene (No Annotations): Camera Ray hitting the glass sphere.</i></span>
+                        </div>
+                    </section>
+
+                    <!-- Figure 7: Animated direct illumination check -->
                     <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
                         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
                             <div class="canvas-container !min-h-[350px] relative">
@@ -317,7 +332,7 @@
                         </div>
                         <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
                             style="font-family: 'Newsreader', serif;">
-                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 6:</span>
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 7:</span>
                             <span><i>Animated Scene: Full Direct Illumination check (Camera &rarr; Sphere &rarr; Light).</i></span>
                         </div>
                     </section>
