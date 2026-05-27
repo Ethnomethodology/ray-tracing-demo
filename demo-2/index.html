@@ -24,6 +24,10 @@
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
     <style>
         .references-list a {
             position: relative;
@@ -65,6 +69,15 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             z-index: 50;
             visibility: hidden;
+        }
+
+        /* KaTeX tweaks */
+        .katex-display {
+            margin: 2rem 0;
+            color: #722F37;
+        }
+        .katex {
+            font-size: 1.1em;
         }
     </style>
 </head>
@@ -149,6 +162,14 @@
                             style="font-family: 'Newsreader', serif;">
                             <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 2:</span>
                             <span><i>Ray-Sphere Intersection: A ray originating at origin <i>O</i> (where <i>t</i> = 0) travels along a direction, intersecting the sphere at point <i>P</i> (where <i>t</i> = <i>t</i><sub>1</sub>) at distance <i>d</i>.</i></span>
+                        </div>
+                    </section>
+
+                    <!-- Parametric Ray Equation Description -->
+                    <section class="max-w-[680px] w-full mx-auto px-0 my-8">
+                        <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-4" style="font-family: 'Newsreader', serif;">
+                            <p>The ray ($R$) can be written in a parametric form, i.e., the position of any point along the ray can be defined as a function of the parameter $t$:</p>
+                            $$R(t) = o + dt$$
                         </div>
                     </section>
 
