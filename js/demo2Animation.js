@@ -219,22 +219,18 @@
             // Open drawer UI
             drawer.classList.remove("translate-x-full");
 
+            // Deactivate all pills first
+            document.querySelectorAll('.apparatus-pill').forEach(p => p.classList.remove('active'));
+
             // Update active pill state
-            staticPills.forEach((p, i) => {
-                if (p) {
-                    if (i === index - 1) p.classList.add('active');
-                    else p.classList.remove('active');
-                }
-            });
+            if (staticPills[index - 1]) {
+                staticPills[index - 1].classList.add('active');
+            }
         }
 
         function closeDrawer() {
             drawer.classList.add("translate-x-full");
-
-            // Deactivate all pills upon closing the drawer
-            staticPills.forEach(p => {
-                if (p) p.classList.remove('active');
-            });
+            document.querySelectorAll('.apparatus-pill').forEach(p => p.classList.remove('active'));
         }
 
         staticPills.forEach((pill, index) => {
@@ -385,6 +381,108 @@
         arrowHead.position = surfacePoint.subtract(direction.scale(arrowHeight / 2));
         arrowHead.lookAt(spherePos);
         arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+        // --- 6. Black dot on the square light's surface & Shadow Ray ---
+        const lightDot = BABYLON.MeshBuilder.CreateSphere("staticLightDot2", { diameter: 0.3 }, scene);
+        lightDot.position.copyFrom(lightPos);
+        lightDot.material = blackMat;
+
+        const shadowOrigin = surfacePoint;
+        const shadowTarget = lightPos;
+        const shadowDirection = shadowTarget.subtract(shadowOrigin).normalize();
+        const shadowDistance = BABYLON.Vector3.Distance(shadowOrigin, shadowTarget);
+
+        const shadowRayLine = BABYLON.MeshBuilder.CreateCylinder("staticShadowRayLine2", {
+            height: shadowDistance,
+            diameter: 0.05
+        }, scene);
+        shadowRayLine.material = blackMat;
+        shadowRayLine.position = shadowOrigin.add(shadowDirection.scale(shadowDistance / 2));
+        shadowRayLine.lookAt(shadowTarget);
+        shadowRayLine.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+        const shadowArrowHead = BABYLON.MeshBuilder.CreateCylinder("staticShadowArrowHead2", {
+            diameterTop: 0,
+            diameterBottom: 0.4,
+            height: arrowHeight,
+            tessellation: 12
+        }, scene);
+        shadowArrowHead.material = blackMat;
+        shadowArrowHead.position = shadowTarget.subtract(shadowDirection.scale(arrowHeight / 2));
+        shadowArrowHead.lookAt(shadowTarget);
+        shadowArrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+        // --- 7. Dynamic annotation pill positioning ---
+        scene.onAfterRenderObservable.add(() => {
+            const w    = engine.getRenderWidth();
+            const h    = engine.getRenderHeight();
+            const vp   = sceneCamera.viewport.toGlobal(w, h);
+            const tf   = scene.getTransformMatrix();
+            const rect = canvas.getBoundingClientRect();
+
+            const shadowMid = shadowOrigin.add(shadowDirection.scale(shadowDistance * 0.45));
+
+            const annotations = [
+                { id: "shadow-pill-1", world: lightPos.add(new BABYLON.Vector3(2.0, 0.5, 0)) }, // next to light dot
+                { id: "shadow-pill-2", world: shadowMid.add(new BABYLON.Vector3(1.2, 0.2, 0)) }   // next to shadow ray
+            ];
+
+            annotations.forEach(({ id, world }) => {
+                const s    = BABYLON.Vector3.Project(world, BABYLON.Matrix.Identity(), tf, vp);
+                const pill = document.getElementById(id);
+                if (!pill) return;
+                pill.style.left       = (s.x / w) * rect.width  + "px";
+                pill.style.top        = (s.y / h) * rect.height + "px";
+                pill.style.visibility = (s.z > 0 && s.z < 1) ? "visible" : "hidden";
+            });
+        });
+
+        // --- 8. Pill click interaction logic & Drawer Component ---
+        const shadowPills = [1, 2].map(i => document.getElementById(`shadow-pill-${i}`));
+        
+        const pillDescriptions2 = {
+            1: {
+                title: "Light Sample",
+                desc: "<p>To calculate shadows and illumination, a ray tracer samples the light source. Here, the <strong>Light Sample</strong> is represented by the black dot on the square light's surface.</p><p>By casting a secondary ray from the surface intersection point to this specific light coordinate, the engine verifies if the path is clear or blocked by obstacles.</p>"
+            },
+            2: {
+                title: "Shadow Ray",
+                desc: "<p>A <strong>Shadow Ray</strong> is a secondary ray cast from the intersection point on the object's surface towards the light sample point.</p><p>If this ray reaches the light source without colliding with any blocking geometry, the point is lit. If a collision is detected along the path, the point lies in shadow. This mathematical check is the foundation of realistic direct illumination rendering.</p>"
+            }
+        };
+
+        const drawer = document.getElementById("infoDrawer");
+        const drawerNum = document.getElementById("drawerNum");
+        const drawerTitle = document.getElementById("drawerTitle");
+        const drawerContent = document.getElementById("drawerContent");
+
+        function openDrawer2(index) {
+            const data = pillDescriptions2[index];
+            if (!data) return;
+
+            drawerNum.textContent = index;
+            drawerTitle.textContent = data.title;
+            drawerContent.innerHTML = data.desc;
+
+            // Open drawer UI
+            drawer.classList.remove("translate-x-full");
+
+            // Deactivate all pills first
+            document.querySelectorAll('.apparatus-pill').forEach(p => p.classList.remove('active'));
+
+            // Update active pill state
+            if (shadowPills[index - 1]) {
+                shadowPills[index - 1].classList.add('active');
+            }
+        }
+
+        shadowPills.forEach((pill, index) => {
+            if (pill) {
+                pill.addEventListener('click', () => {
+                    openDrawer2(index + 1);
+                });
+            }
+        });
 
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
