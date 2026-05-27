@@ -19,8 +19,7 @@
     hemiLight.intensity = 0.5;
     hemiLight.groundColor = new BABYLON.Color3(0.1, 0.1, 0.1);
 
-    scene.environmentTexture = BABYLON.CubeTexture.CreateFromPrefilteredData("https://playground.babylonjs.com/textures/environment.dds", scene);
-    scene.environmentIntensity = 0.8;
+    // (Removed environment texture to avoid city reflections)
 
     const sceneCamera = new BABYLON.ArcRotateCamera(
         "sceneCamera", -Math.PI / 5, Math.PI / 2.3, 28,
@@ -81,15 +80,20 @@
     const glassSphere = BABYLON.MeshBuilder.CreateSphere("glassSphere", { diameter: 4.0, segments: 32 }, scene);
     glassSphere.position.copyFrom(spherePos);
     
-    const glassMat = new BABYLON.PBRMaterial("glassMat", scene);
-    glassMat.alpha = 0.5;
-    glassMat.microSurface = 1.0; 
-    glassMat.reflectivityColor = new BABYLON.Color3(0.2, 0.2, 0.2);
-    glassMat.albedoColor = new BABYLON.Color3(0.85, 0.9, 1.0);
-    glassMat.environmentIntensity = 1.0;
-    glassMat.subSurface.isRefractionEnabled = true;
-    glassMat.subSurface.indexOfRefraction = 1.52;
-    glassMat.subSurface.tintColor = new BABYLON.Color3(0.8, 0.9, 1.0);
+    const glassMat = new BABYLON.StandardMaterial("glassMat", scene);
+    glassMat.disableLighting = true; // Turn off Babylon's light shading entirely
+    glassMat.emissiveColor = new BABYLON.Color3(0.95, 0.95, 0.95); // Off-white color
+    glassMat.alpha = 0.05; // Center is highly transparent
+
+    // Use Fresnel so the edges are visible but the center is clear (like thin glass)
+    const fresnel = new BABYLON.FresnelParameters();
+    fresnel.isEnabled = true;
+    fresnel.bias = 0.1;
+    fresnel.power = 2.0;
+    fresnel.leftColor = BABYLON.Color3.White();  // Edges are opaque
+    fresnel.rightColor = BABYLON.Color3.Black(); // Center is transparent
+    glassMat.opacityFresnelParameters = fresnel;
+
     glassSphere.material = glassMat;
 
     // --- 4. Square Light Source ---
