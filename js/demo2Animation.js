@@ -1478,8 +1478,9 @@
         rayLine2.rotate(BABYLON.Axis.X, Math.PI / 2);
         rayLine2.setEnabled(false);
 
-        const toLightDir2 = lightPos.subtract(surfacePoint2).normalize();
-        const toLightDist2 = BABYLON.Vector3.Distance(surfacePoint2, lightPos);
+        const lightPos2 = lightPos.add(new BABYLON.Vector3(1.0, 0, 0.8));
+        const toLightDir2 = lightPos2.subtract(surfacePoint2).normalize();
+        const toLightDist2 = BABYLON.Vector3.Distance(surfacePoint2, lightPos2);
 
         const lightRayLine2 = BABYLON.MeshBuilder.CreateCylinder("lightRayLine2", {
             height: toLightDist2,
@@ -1487,7 +1488,7 @@
         }, scene);
         lightRayLine2.material = burgundyMat;
         lightRayLine2.position = surfacePoint2.add(toLightDir2.scale(toLightDist2 / 2));
-        lightRayLine2.lookAt(lightPos);
+        lightRayLine2.lookAt(lightPos2);
         lightRayLine2.rotate(BABYLON.Axis.X, Math.PI / 2);
         lightRayLine2.setEnabled(false);
 
@@ -1645,7 +1646,7 @@ Zoom:     ${sceneCamera.radius.toFixed(2)}`;
                 
                 lightArrowHead2.setEnabled(p2 > 0.01);
                 lightArrowHead2.position = ep2_2.subtract(toLightDir2.scale(arrowHeight / 2));
-                lightArrowHead2.lookAt(lightPos);
+                lightArrowHead2.lookAt(lightPos2);
                 lightArrowHead2.rotate(BABYLON.Axis.X, Math.PI / 2);
 
                 if (cell2) cell2.material = highlightCellMat2;
