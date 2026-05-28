@@ -1388,10 +1388,43 @@
         const gridX = Math.round(ix / pixelSize + (resolution - 1) / 2);
         const gridY = Math.round(iy / pixelSize + (resolution - 1) / 2);
 
+        // Define Ray 2 (hitting sphere at a different position and going through a different pixel)
+        const normal2 = new BABYLON.Vector3(-1.8, 0.5, 0.8).normalize();
+        const surfacePoint2 = spherePos.add(normal2.scale(2.0));
+        const direction2 = surfacePoint2.subtract(lensOrigin).normalize();
+        const totalDistance2 = BABYLON.Vector3.Distance(lensOrigin, surfacePoint2);
+        
+        const tPlane2 = (2.25 - lensOrigin.z) / direction2.z;
+        const ix2 = lensOrigin.x + direction2.x * tPlane2;
+        const iy2 = lensOrigin.y + direction2.y * tPlane2;
+        const gridX2 = Math.round(ix2 / pixelSize + (resolution - 1) / 2);
+        const gridY2 = Math.round(iy2 / pixelSize + (resolution - 1) / 2);
+
+        // Materials for Rays and active grid cells
         const blackMat = new BABYLON.StandardMaterial("blackMat", scene);
         blackMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
         blackMat.specularColor = new BABYLON.Color3(0, 0, 0);
 
+        const burgundyMat = new BABYLON.StandardMaterial("burgundyMat", scene);
+        burgundyMat.diffuseColor = new BABYLON.Color3(0.45, 0.18, 0.22);
+        burgundyMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+        burgundyMat.emissiveColor = new BABYLON.Color3(0.23, 0.09, 0.11);
+
+        const highlightCellMat1 = new BABYLON.StandardMaterial("highlightCellMat1", scene);
+        highlightCellMat1.diffuseColor = new BABYLON.Color3(0.2, 0.4, 1.0);
+        highlightCellMat1.emissiveColor = new BABYLON.Color3(0.2, 0.4, 1.0);
+        highlightCellMat1.alpha = 0.4;
+
+        const highlightCellMat2 = new BABYLON.StandardMaterial("highlightCellMat2", scene);
+        highlightCellMat2.diffuseColor = new BABYLON.Color3(0.72, 0.18, 0.22);
+        highlightCellMat2.emissiveColor = new BABYLON.Color3(0.72, 0.18, 0.22);
+        highlightCellMat2.alpha = 0.4;
+
+        // Retrieve corresponding cell meshes for highlighting
+        const cell1 = scene.getMeshByName(`cell_${gridX}_${gridY}`);
+        const cell2 = scene.getMeshByName(`cell_${gridX2}_${gridY2}`);
+
+        // --- Ray 1 Meshes ---
         const rayLine = BABYLON.MeshBuilder.CreateCylinder("rayLine", {
             height: totalDistance,
             diameter: 0.05
@@ -1434,6 +1467,48 @@
         lightArrowHead.material = blackMat;
         lightArrowHead.setEnabled(false);
 
+        // --- Ray 2 Meshes (Burgundy Ray) ---
+        const rayLine2 = BABYLON.MeshBuilder.CreateCylinder("rayLine2", {
+            height: totalDistance2,
+            diameter: 0.05
+        }, scene);
+        rayLine2.material = burgundyMat;
+        rayLine2.position = lensOrigin.add(direction2.scale(totalDistance2 / 2));
+        rayLine2.lookAt(surfacePoint2);
+        rayLine2.rotate(BABYLON.Axis.X, Math.PI / 2);
+        rayLine2.setEnabled(false);
+
+        const toLightDir2 = lightPos.subtract(surfacePoint2).normalize();
+        const toLightDist2 = BABYLON.Vector3.Distance(surfacePoint2, lightPos);
+
+        const lightRayLine2 = BABYLON.MeshBuilder.CreateCylinder("lightRayLine2", {
+            height: toLightDist2,
+            diameter: 0.05
+        }, scene);
+        lightRayLine2.material = burgundyMat;
+        lightRayLine2.position = surfacePoint2.add(toLightDir2.scale(toLightDist2 / 2));
+        lightRayLine2.lookAt(lightPos);
+        lightRayLine2.rotate(BABYLON.Axis.X, Math.PI / 2);
+        lightRayLine2.setEnabled(false);
+
+        const arrowHead2 = BABYLON.MeshBuilder.CreateCylinder("arrowHead2", {
+            diameterTop: 0,
+            diameterBottom: 0.4,
+            height: arrowHeight,
+            tessellation: 12
+        }, scene);
+        arrowHead2.material = burgundyMat;
+        arrowHead2.setEnabled(false);
+
+        const lightArrowHead2 = BABYLON.MeshBuilder.CreateCylinder("lightArrowHead2", {
+            diameterTop: 0,
+            diameterBottom: 0.4,
+            height: arrowHeight,
+            tessellation: 12
+        }, scene);
+        lightArrowHead2.material = burgundyMat;
+        lightArrowHead2.setEnabled(false);
+
         // --- 6. Animation Logic ---
         let progress = 0;
         function resetAnimation() {
@@ -1442,6 +1517,14 @@
             lightRayLine.setEnabled(false);
             arrowHead.setEnabled(false);
             lightArrowHead.setEnabled(false);
+
+            rayLine2.setEnabled(false);
+            lightRayLine2.setEnabled(false);
+            arrowHead2.setEnabled(false);
+            lightArrowHead2.setEnabled(false);
+
+            if (cell1) cell1.material = cellMaterial;
+            if (cell2) cell2.material = cellMaterial;
         }
 
         scene.onBeforeRenderObservable.add(() => {
@@ -1467,6 +1550,8 @@ Zoom:     ${sceneCamera.radius.toFixed(2)}`;
 
             if (progress <= 0.6) {
                 const p1 = Math.min(progress / 0.6, 1.0);
+                
+                // Ray 1 Animation
                 const d1 = totalDistance * p1;
                 const ep1 = lensOrigin.add(direction.scale(d1));
                 
@@ -1478,11 +1563,46 @@ Zoom:     ${sceneCamera.radius.toFixed(2)}`;
                 arrowHead.position = ep1.subtract(direction.scale(arrowHeight / 2));
                 arrowHead.lookAt(spherePos);
                 arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                const pPlaneThreshold1 = (14.0 - 2.25) / (14.0 - surfacePoint.z);
+                if (cell1) {
+                    if (p1 >= pPlaneThreshold1) {
+                        cell1.material = highlightCellMat1;
+                    } else {
+                        cell1.material = cellMaterial;
+                    }
+                }
+                
+                // Ray 2 Animation
+                const d2_1 = totalDistance2 * p1;
+                const ep2_1 = lensOrigin.add(direction2.scale(d2_1));
+                
+                rayLine2.setEnabled(p1 > 0.01);
+                rayLine2.scaling.y = p1;
+                rayLine2.position = lensOrigin.add(direction2.scale(d2_1 / 2));
+                
+                arrowHead2.setEnabled(p1 > 0.01);
+                arrowHead2.position = ep2_1.subtract(direction2.scale(arrowHeight / 2));
+                arrowHead2.lookAt(spherePos);
+                arrowHead2.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                const pPlaneThreshold2 = (14.0 - 2.25) / (14.0 - surfacePoint2.z);
+                if (cell2) {
+                    if (p1 >= pPlaneThreshold2) {
+                        cell2.material = highlightCellMat2;
+                    } else {
+                        cell2.material = cellMaterial;
+                    }
+                }
                 
                 lightRayLine.setEnabled(false);
                 lightArrowHead.setEnabled(false);
+                lightRayLine2.setEnabled(false);
+                lightArrowHead2.setEnabled(false);
             } else if (progress <= 1.2) {
                 const p2 = Math.min((progress - 0.6) / 0.6, 1.0);
+                
+                // Ray 1 Animation (Secondary)
                 const d2 = toLightDist * p2;
                 const ep2 = surfacePoint.add(toLightDir.scale(d2));
 
@@ -1503,6 +1623,32 @@ Zoom:     ${sceneCamera.radius.toFixed(2)}`;
                 lightArrowHead.position = ep2.subtract(toLightDir.scale(arrowHeight / 2));
                 lightArrowHead.lookAt(lightPos);
                 lightArrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                if (cell1) cell1.material = highlightCellMat1;
+
+                // Ray 2 Animation (Secondary)
+                const d2_2 = toLightDist2 * p2;
+                const ep2_2 = surfacePoint2.add(toLightDir2.scale(d2_2));
+
+                rayLine2.setEnabled(true);
+                rayLine2.scaling.y = 1.0;
+                rayLine2.position = lensOrigin.add(direction2.scale(totalDistance2 / 2));
+                
+                arrowHead2.setEnabled(true);
+                arrowHead2.position = surfacePoint2.subtract(direction2.scale(arrowHeight / 2));
+                arrowHead2.lookAt(spherePos);
+                arrowHead2.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                lightRayLine2.setEnabled(p2 > 0.01);
+                lightRayLine2.scaling.y = p2;
+                lightRayLine2.position = surfacePoint2.add(toLightDir2.scale(d2_2 / 2));
+                
+                lightArrowHead2.setEnabled(p2 > 0.01);
+                lightArrowHead2.position = ep2_2.subtract(toLightDir2.scale(arrowHeight / 2));
+                lightArrowHead2.lookAt(lightPos);
+                lightArrowHead2.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                if (cell2) cell2.material = highlightCellMat2;
             }
         });
 
