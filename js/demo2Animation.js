@@ -7,11 +7,12 @@
  * - Light is a square
  */
 (function () {
-    // Initialize all five scenes
+    // Initialize all six scenes
     initStaticScene();
     initIntersectionScene();
     initStaticScene2();
     initStaticScene3();
+    initStaticScene4();
     initAnimatedScene();
 
     function initStaticScene() {
@@ -761,6 +762,118 @@
                 });
             }
         });
+
+        engine.runRenderLoop(() => scene.render());
+        window.addEventListener("resize", () => engine.resize());
+    }
+
+    function initStaticScene4() {
+        const canvas = document.getElementById("rayTracingCanvasStatic4");
+        if (!canvas) return;
+
+        const engine = new BABYLON.Engine(canvas, true, { alpha: true });
+        engine.setHardwareScalingLevel(1 / window.devicePixelRatio);
+        const scene = new BABYLON.Scene(engine);
+        scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+
+        // Hemispheric ambient light for soft fills
+        const hemiLight = new BABYLON.HemisphericLight("cornellHemiLight", new BABYLON.Vector3(0, 1, 0), scene);
+        hemiLight.intensity = 0.35;
+        hemiLight.diffuse = new BABYLON.Color3(0.9, 0.9, 0.9);
+        hemiLight.groundColor = new BABYLON.Color3(0.2, 0.2, 0.2);
+
+        // Point light representing the ceiling light source
+        const pointLight = new BABYLON.PointLight("cornellPointLight", new BABYLON.Vector3(0, 4.0, 0), scene);
+        pointLight.intensity = 0.8;
+        pointLight.diffuse = new BABYLON.Color3(1, 1, 1);
+
+        // Camera facing straight into the front opening of the box
+        const sceneCamera = new BABYLON.ArcRotateCamera(
+            "cornellCamera", -Math.PI / 2, Math.PI / 2, 16.5,
+            new BABYLON.Vector3(0, 0, 0), scene
+        );
+        sceneCamera.inputs.removeByType("ArcRotateCameraMouseWheelInput");
+        sceneCamera.attachControl(canvas, true);
+
+        // Materials
+        const redMat = new BABYLON.StandardMaterial("cornellRed", scene);
+        redMat.diffuseColor = new BABYLON.Color3(0.8, 0.05, 0.05); // Cornell Red
+        redMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        const greenMat = new BABYLON.StandardMaterial("cornellGreen", scene);
+        greenMat.diffuseColor = new BABYLON.Color3(0.05, 0.6, 0.05); // Cornell Green
+        greenMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        const whiteMat = new BABYLON.StandardMaterial("cornellWhite", scene);
+        whiteMat.diffuseColor = new BABYLON.Color3(0.85, 0.85, 0.85); // Cornell White
+        whiteMat.specularColor = new BABYLON.Color3(0, 0, 0);
+
+        const lightMat = new BABYLON.StandardMaterial("cornellLight", scene);
+        lightMat.emissiveColor = new BABYLON.Color3(1, 1, 1);
+        lightMat.diffuseColor = new BABYLON.Color3(1, 1, 1);
+        lightMat.disableLighting = true;
+        lightMat.backFaceCulling = false;
+
+        // Build box walls (width 10, height 10, depth 10)
+        // Floor
+        const floor = BABYLON.MeshBuilder.CreatePlane("cornellFloor", { size: 10, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+        floor.position.set(0, -5, 0);
+        floor.rotation.x = Math.PI / 2;
+        floor.material = whiteMat;
+
+        // Ceiling
+        const ceiling = BABYLON.MeshBuilder.CreatePlane("cornellCeiling", { size: 10, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+        ceiling.position.set(0, 5, 0);
+        ceiling.rotation.x = -Math.PI / 2;
+        ceiling.material = whiteMat;
+
+        // Left Wall (Red)
+        const leftWall = BABYLON.MeshBuilder.CreatePlane("cornellLeftWall", { size: 10, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+        leftWall.position.set(-5, 0, 0);
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.material = redMat;
+
+        // Right Wall (Green)
+        const rightWall = BABYLON.MeshBuilder.CreatePlane("cornellRightWall", { size: 10, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+        rightWall.position.set(5, 0, 0);
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.material = greenMat;
+
+        // Back Wall (White)
+        const backWall = BABYLON.MeshBuilder.CreatePlane("cornellBackWall", { size: 10, sideOrientation: BABYLON.Mesh.DOUBLESIDE }, scene);
+        backWall.position.set(0, 0, 5);
+        backWall.rotation.y = Math.PI;
+        backWall.material = whiteMat;
+
+        // Ceiling Light Source (Emissive Square Plane)
+        const lightSquare = BABYLON.MeshBuilder.CreatePlane("cornellLightSquare", { size: 3 }, scene);
+        lightSquare.position.set(0, 4.95, 0);
+        lightSquare.rotation.x = -Math.PI / 2;
+        lightSquare.material = lightMat;
+
+        // Show borders of the light square
+        lightSquare.enableEdgesRendering();
+        lightSquare.edgesWidth = 4.0;
+        lightSquare.edgesColor = new BABYLON.Color4(0.2, 0.2, 0.2, 1);
+        // Reflective Sphere
+        const sphere = BABYLON.MeshBuilder.CreateSphere("cornellSphere", { diameter: 3.5, segments: 32 }, scene);
+        sphere.position.set(-0.5, -3.25, 0.5);
+
+        // Transparent glass sphere material (matching Fig. 1)
+        const sphereMat = new BABYLON.StandardMaterial("cornellSphereMat", scene);
+        sphereMat.disableLighting = true;
+        sphereMat.emissiveColor = new BABYLON.Color3(0.95, 0.95, 0.95);
+        sphereMat.alpha = 0.05;
+
+        const fresnel = new BABYLON.FresnelParameters();
+        fresnel.isEnabled = true;
+        fresnel.bias = 0.1;
+        fresnel.power = 2.0;
+        fresnel.leftColor = BABYLON.Color3.White();
+        fresnel.rightColor = BABYLON.Color3.Black();
+        sphereMat.opacityFresnelParameters = fresnel;
+
+        sphere.material = sphereMat;
 
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
