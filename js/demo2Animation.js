@@ -875,6 +875,207 @@
 
         sphere.material = sphereMat;
 
+        // --- 5. Ray Paths (Primary, Reflection, Refraction) ---
+        const blackMat = new BABYLON.StandardMaterial("cornellBlackMat", scene);
+        blackMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+        blackMat.specularColor = new BABYLON.Color3(0, 0, 0);
+        blackMat.disableLighting = true;
+
+        // Helper function to create an animated ray (cylinder and arrowhead)
+        function createAnimRay(name, start, end, material, diameter = 0.05, arrowDiameter = 0.4, arrowHeight = 0.6) {
+            const direction = end.subtract(start);
+            const distance = direction.length();
+            const dirNormalized = direction.normalize();
+
+            // Cylinder (initially scaled to 1 height)
+            const cylinder = BABYLON.MeshBuilder.CreateCylinder(name + "_line", {
+                height: 1,
+                diameter: diameter
+            }, scene);
+            cylinder.material = material;
+            cylinder.setEnabled(false);
+
+            // Arrowhead
+            const arrow = BABYLON.MeshBuilder.CreateCylinder(name + "_arrow", {
+                diameterTop: 0,
+                diameterBottom: arrowDiameter,
+                height: arrowHeight,
+                tessellation: 12
+            }, scene);
+            arrow.material = material;
+            arrow.setEnabled(false);
+
+            return {
+                start,
+                end,
+                direction: dirNormalized,
+                totalDistance: distance,
+                arrowHeight,
+                cylinder,
+                arrow,
+                update: function (p) {
+                    if (p <= 0) {
+                        this.cylinder.setEnabled(false);
+                        this.arrow.setEnabled(false);
+                        return;
+                    }
+                    
+                    const currentDist = p * this.totalDistance;
+                    
+                    if (currentDist <= this.arrowHeight) {
+                        this.cylinder.setEnabled(false);
+                        this.arrow.setEnabled(true);
+                        this.arrow.position = this.start.add(this.direction.scale(currentDist - this.arrowHeight / 2));
+                        this.arrow.lookAt(this.start.add(this.direction.scale(currentDist)));
+                        this.arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+                    } else {
+                        this.cylinder.setEnabled(true);
+                        this.arrow.setEnabled(true);
+                        
+                        const cylinderLength = currentDist - this.arrowHeight;
+                        this.cylinder.scaling.y = cylinderLength;
+                        this.cylinder.position = this.start.add(this.direction.scale(cylinderLength / 2));
+                        this.cylinder.lookAt(this.start.add(this.direction.scale(cylinderLength)));
+                        this.cylinder.rotate(BABYLON.Axis.X, Math.PI / 2);
+
+                        this.arrow.position = this.start.add(this.direction.scale(currentDist - this.arrowHeight / 2));
+                        this.arrow.lookAt(this.start.add(this.direction.scale(currentDist)));
+                        this.arrow.rotate(BABYLON.Axis.X, Math.PI / 2);
+                    }
+                }
+            };
+        }
+
+        // Helper function to create an animated interior ray (cylinder only, no arrowhead)
+        function createAnimInsideRay(name, start, end, material, diameter = 0.05) {
+            const direction = end.subtract(start);
+            const distance = direction.length();
+            const dirNormalized = direction.normalize();
+
+            const cylinder = BABYLON.MeshBuilder.CreateCylinder(name + "_line", {
+                height: 1,
+                diameter: diameter
+            }, scene);
+            cylinder.material = material;
+            cylinder.setEnabled(false);
+
+            return {
+                start,
+                end,
+                direction: dirNormalized,
+                totalDistance: distance,
+                cylinder,
+                update: function (p) {
+                    if (p <= 0) {
+                        this.cylinder.setEnabled(false);
+                        return;
+                    }
+                    this.cylinder.setEnabled(true);
+                    
+                    const cylinderLength = p * this.totalDistance;
+                    this.cylinder.scaling.y = cylinderLength;
+                    this.cylinder.position = this.start.add(this.direction.scale(cylinderLength / 2));
+                    this.cylinder.lookAt(this.start.add(this.direction.scale(cylinderLength)));
+                    this.cylinder.rotate(BABYLON.Axis.X, Math.PI / 2);
+                }
+            };
+        }
+
+        // Define path coordinates
+        const O = new BABYLON.Vector3(0.0, 1.0, -10.0);             // Ray origin outside box
+        const P1 = new BABYLON.Vector3(0.3, -2.0, -0.5);            // Hits sphere surface
+        const P_refl_wall = new BABYLON.Vector3(-5.0, -1.0, 1.5);    // Hits Left Wall (Red)
+        const P_light_refl = new BABYLON.Vector3(-0.5, 4.95, 0.0);   // Reflection hits Light Source
+        
+        const P2 = new BABYLON.Vector3(-1.3, -4.6, 1.3);            // Exits opposite surface of sphere
+        const P_floor = new BABYLON.Vector3(-1.6, -5.0, 1.5);        // Hits Floor
+        const P_refr_wall = new BABYLON.Vector3(5.0, -2.0, 3.5);     // Hits Right Wall (Green)
+        const P_light_refr = new BABYLON.Vector3(0.5, 4.95, 0.0);    // Refraction hits Light Source
+
+        // Instantiate animated rays
+        const rays = {
+            primary: createAnimRay("primaryRay", O, P1, blackMat),
+            refl1: createAnimRay("reflRay1", P1, P_refl_wall, blackMat),
+            refl2: createAnimRay("reflRay2", P_refl_wall, P_light_refl, blackMat),
+            refr1: createAnimInsideRay("refrRay1", P1, P2, blackMat),
+            refr2: createAnimRay("refrRay2", P2, P_floor, blackMat, 0.05, 0.35, 0.5),
+            refr3: createAnimRay("refrRay3", P_floor, P_refr_wall, blackMat),
+            refr4: createAnimRay("refrRay4", P_refr_wall, P_light_refr, blackMat)
+        };
+
+        let progress = 0;
+        scene.onBeforeRenderObservable.add(() => {
+            progress += 0.005;
+            if (progress > 1.2) {
+                progress = 0;
+            }
+
+            // 1. Primary Ray: 0.00 to 0.25
+            let pPrim = 0;
+            if (progress >= 0 && progress < 0.25) {
+                pPrim = progress / 0.25;
+            } else if (progress >= 0.25) {
+                pPrim = 1.0;
+            }
+            rays.primary.update(pPrim);
+
+            // 2. Reflection Path:
+            // segment 1: 0.25 to 0.60
+            let pRef1 = 0;
+            if (progress >= 0.25 && progress < 0.60) {
+                pRef1 = (progress - 0.25) / 0.35;
+            } else if (progress >= 0.60) {
+                pRef1 = 1.0;
+            }
+            rays.refl1.update(pRef1);
+
+            // segment 2: 0.60 to 0.95
+            let pRef2 = 0;
+            if (progress >= 0.60 && progress < 0.95) {
+                pRef2 = (progress - 0.60) / 0.35;
+            } else if (progress >= 0.95) {
+                pRef2 = 1.0;
+            }
+            rays.refl2.update(pRef2);
+
+            // 3. Refraction Path:
+            // segment 1 (inside): 0.25 to 0.45
+            let pRefr1 = 0;
+            if (progress >= 0.25 && progress < 0.45) {
+                pRefr1 = (progress - 0.25) / 0.20;
+            } else if (progress >= 0.45) {
+                pRefr1 = 1.0;
+            }
+            rays.refr1.update(pRefr1);
+
+            // segment 2 (exit to floor): 0.45 to 0.55
+            let pRefr2 = 0;
+            if (progress >= 0.45 && progress < 0.55) {
+                pRefr2 = (progress - 0.45) / 0.10;
+            } else if (progress >= 0.55) {
+                pRefr2 = 1.0;
+            }
+            rays.refr2.update(pRefr2);
+
+            // segment 3 (floor to wall): 0.55 to 0.75
+            let pRefr3 = 0;
+            if (progress >= 0.55 && progress < 0.75) {
+                pRefr3 = (progress - 0.55) / 0.20;
+            } else if (progress >= 0.75) {
+                pRefr3 = 1.0;
+            }
+            rays.refr3.update(pRefr3);
+
+            // segment 4 (wall to light): 0.75 to 0.95
+            let pRefr4 = 0;
+            if (progress >= 0.75 && progress < 0.95) {
+                pRefr4 = (progress - 0.75) / 0.20;
+            } else if (progress >= 0.95) {
+                pRefr4 = 1.0;
+            }
+            rays.refr4.update(pRefr4);
+        });
+
         engine.runRenderLoop(() => scene.render());
         window.addEventListener("resize", () => engine.resize());
     }

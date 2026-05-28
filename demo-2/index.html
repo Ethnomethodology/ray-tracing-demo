@@ -322,11 +322,99 @@
                         <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
                             style="font-family: 'Newsreader', serif;">
                             <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 7:</span>
-                            <span><i>Static Scene (Cornell Box): A classic Cornell Box configuration containing a transparent glass sphere inside.</i></span>
+                            <span><i>Animated Scene (Cornell Box): Camera ray dynamically entering the box, hitting the glass sphere, and splitting into two paths that grow in sequence: a reflection path (bouncing off the left red wall to the light) and a refraction path (traversing the sphere, hitting the floor and right green wall, then reaching the light).</i></span>
                         </div>
                     </section>
 
-                    <!-- Figure 8: Animated direct illumination check -->
+                    <!-- Figure 8: Hemispherical Light Integration -->
+                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-4">
+                        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6 items-center">
+                            <svg viewBox="0 0 500 260" width="100%" class="max-w-[450px] mx-auto overflow-visible">
+                                <defs>
+                                    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#1A1A1A" />
+                                    </marker>
+                                    <marker id="orange-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#F97316" />
+                                    </marker>
+                                    <marker id="blue-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+                                        <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#3B82F6" />
+                                    </marker>
+                                    <g id="sun">
+                                        <circle cx="0" cy="0" r="7" fill="none" stroke="#1A1A1A" stroke-width="1.2" />
+                                        <!-- 8 radial rays -->
+                                        <line x1="0" y1="-10" x2="0" y2="-14" stroke="#1A1A1A" stroke-width="1.2" />
+                                        <line x1="0" y1="10" x2="0" y2="14" stroke="#1A1A1A" stroke-width="1.2" />
+                                        <line x1="-10" y1="0" x2="-14" y2="0" stroke="#1A1A1A" stroke-width="1.2" />
+                                        <line x1="10" y1="0" x2="14" y2="0" stroke="#1A1A1A" stroke-width="1.2" />
+                                        <!-- diagonal rays -->
+                                        <line x1="-7" y1="-7" x2="-10" y2="-10" stroke="#1A1A1A" stroke-width="1.2" />
+                                        <line x1="7" y1="-7" x2="10" y2="-10" stroke="#1A1A1A" stroke-width="1.2" />
+                                        <line x1="-7" y1="7" x2="-10" y2="10" stroke="#1A1A1A" stroke-width="1.2" />
+                                        <line x1="7" y1="7" x2="10" y2="10" stroke="#1A1A1A" stroke-width="1.2" />
+                                    </g>
+                                </defs>
+
+                                <!-- Bottom Surface Line -->
+                                <line x1="50" y1="220" x2="450" y2="220" stroke="#1A1A1A" stroke-width="2" />
+
+                                <!-- Solid Hemisphere Arc -->
+                                <path d="M 100 220 A 150 150 0 0 1 400 220" fill="none" stroke="#1A1A1A" stroke-width="1.5" />
+
+                                <!-- Scattered/Sampled Orange Rays -->
+                                <!-- 15 degrees -->
+                                <line x1="250" y1="220" x2="390" y2="182.5" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 30 degrees -->
+                                <line x1="250" y1="220" x2="375.6" y2="147.5" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 45 degrees -->
+                                <line x1="250" y1="220" x2="352.5" y2="117.5" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 60 degrees -->
+                                <line x1="250" y1="220" x2="322.5" y2="94.4" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 75 degrees -->
+                                <line x1="250" y1="220" x2="287.5" y2="80.0" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 105 degrees -->
+                                <line x1="250" y1="220" x2="212.5" y2="80.0" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 120 degrees -->
+                                <line x1="250" y1="220" x2="177.5" y2="94.4" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 135 degrees -->
+                                <line x1="250" y1="220" x2="147.5" y2="117.5" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 150 degrees -->
+                                <line x1="250" y1="220" x2="124.4" y2="147.5" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+                                <!-- 165 degrees -->
+                                <line x1="250" y1="220" x2="110.0" y2="182.5" stroke="#F97316" stroke-width="1.5" marker-end="url(#orange-arrow)" />
+
+                                <!-- Normal vector n (black) -->
+                                <line x1="250" y1="220" x2="250" y2="70" stroke="#1A1A1A" stroke-width="2.5" marker-end="url(#arrow)" />
+                                <text x="250" y="55" text-anchor="middle" font-family="var(--font-main)" font-size="18" font-weight="bold" fill="#1A1A1A">n</text>
+
+                                <!-- Incident vector w_i (blue) -->
+                                <line x1="250" y1="220" x2="369" y2="120" stroke="#3B82F6" stroke-width="2.5" marker-end="url(#blue-arrow)" />
+                                <text x="375" y="115" text-anchor="start" font-family="var(--font-main)" font-size="18" font-weight="bold" fill="#3B82F6">&omega;<tspan baseline-shift="sub" font-size="13">i</tspan></text>
+
+                                <!-- Dashed angle arc theta -->
+                                <path d="M 250 160 A 60 60 0 0 1 296 181.4" fill="none" stroke="#1A1A1A" stroke-dasharray="3 3" stroke-width="1.5" />
+                                <text x="278" y="152" text-anchor="middle" font-family="var(--font-main)" font-style="italic" font-size="19" fill="#1A1A1A">&theta;</text>
+
+                                <!-- Point p at bottom center -->
+                                <circle cx="250" cy="220" r="4.5" fill="#722F37" />
+                                <text x="250" y="245" text-anchor="middle" font-family="var(--font-main)" font-size="18" fill="#1A1A1A">p</text>
+
+                                <!-- Small Sun Icons around hemisphere -->
+                                <use href="#sun" x="47" y="166" />
+                                <use href="#sun" x="101" y="72" />
+                                <use href="#sun" x="250" y="10" />
+                                <use href="#sun" x="411" y="85" />
+                                <use href="#sun" x="453" y="166" />
+                            </svg>
+                        </div>
+                        <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
+                            style="font-family: 'Newsreader', serif;">
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 8:</span>
+                            <span><i>Hemispherical Light Integration: Integration of incoming light from direction &omega;<sub>i</sub> with surface normal n at point p. Incident rays from multiple directions (suns) are integrated over the entire hemisphere.</i></span>
+                        </div>
+                    </section>
+
+                    <!-- Figure 9: Animated direct illumination check -->
                     <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
                         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
                             <div class="canvas-container !min-h-[350px] relative">
@@ -349,7 +437,7 @@
                         </div>
                         <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
                             style="font-family: 'Newsreader', serif;">
-                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 8:</span>
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 9:</span>
                             <span><i>Animated Scene: Full Direct Illumination check (Camera &rarr; Sphere &rarr; Light).</i></span>
                         </div>
                     </section>
