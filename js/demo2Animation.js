@@ -624,6 +624,15 @@
         arrowHead.lookAt(spherePos);
         arrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
 
+        // Red intersection point dot
+        const redMat = new BABYLON.StandardMaterial("staticRedMat3", scene);
+        redMat.diffuseColor = new BABYLON.Color3(0.95, 0.25, 0.25);
+        redMat.emissiveColor = new BABYLON.Color3(0.95, 0.25, 0.25);
+
+        const intersectionPoint = BABYLON.MeshBuilder.CreateSphere("staticIntersectionPoint3", { diameter: 0.3 }, scene);
+        intersectionPoint.position.copyFrom(surfacePoint);
+        intersectionPoint.material = redMat;
+
         // --- 6. Reflection Ray ---
         const reflectDir = new BABYLON.Vector3(0, 0.85, 0.5).normalize();
         const reflectLength = 4.5;
@@ -688,7 +697,8 @@
 
             const annotations = [
                 { id: "split-pill-1", world: reflectMid.add(new BABYLON.Vector3(-1.2, 0.2, -0.75)) }, // next to reflection ray
-                { id: "split-pill-2", world: refractMid.add(new BABYLON.Vector3(1.7, -0.2, 0.75)) }  // next to refraction ray
+                { id: "split-pill-2", world: refractMid.add(new BABYLON.Vector3(1.2, -0.7, 0.2)) }, // next to refraction ray
+                { id: "split-pill-3", world: surfacePoint.add(new BABYLON.Vector3(1.2, -0.6, 0.5)) }  // next to intersection point
             ];
 
             annotations.forEach(({ id, world }) => {
@@ -702,7 +712,7 @@
         });
 
         // --- 9. Pill click interaction logic & Drawer Component ---
-        const splitPills = [1, 2].map(i => document.getElementById(`split-pill-${i}`));
+        const splitPills = [1, 2, 3].map(i => document.getElementById(`split-pill-${i}`));
         
         const pillDescriptions3 = {
             1: {
@@ -712,6 +722,10 @@
             2: {
                 title: "Refraction Ray",
                 desc: "<p>When light passes from one medium to another (e.g., from air into a glass sphere), it changes speed and bends. This is the <strong>Refraction Ray</strong>.</p><p>Its direction is determined by Snell's Law and the refractive indices of the media. By tracing this ray through the interior of the glass sphere, we calculate the bending of light and transparency.</p>"
+            },
+            3: {
+                title: "Intersection Point",
+                desc: "<p>The <strong>Intersection Point</strong> is the exact location in 3D space where the primary camera ray hits the surface of the glass sphere.</p><p>Finding this point requires solving the quadratic equation of the ray-sphere intersection. It acts as the starting origin for any secondary rays, such as reflection and refraction rays.</p>"
             }
         };
 
