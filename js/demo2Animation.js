@@ -687,8 +687,8 @@
             const refractMid = surfacePoint.add(refractDir.scale(refractLength * 0.5));
 
             const annotations = [
-                { id: "split-pill-1", world: reflectMid.add(new BABYLON.Vector3(1.2, 0.2, 0)) }, // next to reflection ray
-                { id: "split-pill-2", world: refractMid.add(new BABYLON.Vector3(1.2, -0.2, 0)) }  // next to refraction ray
+                { id: "split-pill-1", world: reflectMid.add(new BABYLON.Vector3(-1.2, 0.2, -0.75)) }, // next to reflection ray
+                { id: "split-pill-2", world: refractMid.add(new BABYLON.Vector3(1.7, -0.2, 0.75)) }  // next to refraction ray
             ];
 
             annotations.forEach(({ id, world }) => {
