@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo 3 - Custom Direct Illumination Animation</title>
+    <meta name="description"
+        content="A 3D demonstration of custom direct illumination ray tracing built with Babylon.js.">
+    <script>window.assetBaseUrl = "../";</script>
+    <link rel="icon" type="image/png" href="../favicon.png">
+    <link rel="stylesheet" href="../css/index.css">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="../tailwind-config.js"></script>
+    <!-- Babylon.js CDN -->
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+    <script src="https://cdn.babylonjs.com/gui/babylon.gui.min.js"></script>
+    <!-- KaTeX -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '$', right: '$', display: false}]});"></script>
+</head>
+
+<body class="bg-parchment-base text-ink-charcoal antialiased flex flex-col min-h-screen">
+
+    <div class="flex flex-1 flex-col w-full items-center">
+        <main class="flex-1 w-full flex justify-center pb-32 pt-12 px-4 md:px-8">
+            <div class="max-w-[1000px] w-full flex flex-col gap-8 relative">
+
+                <header class="mb-section-gap max-w-[680px] mx-auto w-full text-center md:text-left mt-8">
+                    <h1 class="font-serif font-newsreader text-[48px] font-semibold leading-[1.1] tracking-[-0.02em] text-stone-900 mb-4">
+                        Demo 3
+                    </h1>
+                </header>
+
+                <article class="w-full flex flex-col items-center gap-16">
+                    <!-- Figure 9: Animated direct illumination check -->
+                    <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
+                        <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6">
+                            <div class="canvas-container !min-h-[350px] relative">
+                                <canvas id="rayTracingCanvasFinal"></canvas>
+                                <div id="cameraInfo" class="camera-info-overlay" style="display: none;"></div>
+
+                                <div class="action-buttons-overlay absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none">
+                                    <div class="button-group center-actions bg-white/80 p-2 rounded-lg shadow-sm pointer-events-auto">
+                                        <button id="cameraParamsBtn" class="btn-icon mx-1 p-2 bg-stone-100 hover:bg-stone-200 rounded text-stone-700" title="Show Camera Parameters">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                                stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 inline-block">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
+                            style="font-family: 'Newsreader', serif;">
+                            <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 9:</span>
+                            <span><i>Animated Scene: Full Direct Illumination check (Camera &rarr; Sphere &rarr; Light).</i></span>
+                        </div>
+                    </section>
+                </article>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Sliding Drawer Component (Included in case of errors/side-effects, though unused directly here) -->
+    <div id="infoDrawer" class="fixed top-0 right-0 h-screen w-full sm:w-[400px] bg-white/95 backdrop-blur-md shadow-2xl border-l border-[#E5E1D8] translate-x-full transition-transform duration-300 ease-out z-[1000] flex flex-col">
+        <div class="flex justify-between items-center p-6 border-b border-[#E5E1D8]">
+            <div class="flex items-baseline gap-2">
+                <span id="drawerNum" class="font-serif font-newsreader text-[32px] text-[#722F37] font-semibold leading-none">1</span>
+                <span class="font-serif font-newsreader text-[24px] text-stone-400 font-medium leading-none">.</span>
+                <span id="drawerTitle" class="font-serif font-newsreader text-[24px] font-bold text-stone-900 leading-none">Camera</span>
+            </div>
+            <button id="closeDrawerBtn" class="p-2 hover:bg-stone-100 rounded-full transition-colors text-stone-500 hover:text-stone-800" aria-label="Close details">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-8 flex flex-col gap-6">
+            <div id="drawerContent" class="font-serif font-newsreader text-[18px] text-stone-600 leading-relaxed space-y-4">
+                <!-- Description injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Script that handles the custom animation -->
+    <script src="../js/demo2Animation.js?v=2"></script>
+
+</body>
+
+</html>

@@ -1317,10 +1317,6 @@
         cellMaterial.emissiveColor = new BABYLON.Color3(0.2, 0.2, 0.2);
         cellMaterial.alpha = 0;
         
-        const paintedMat = new BABYLON.StandardMaterial("paintedMat", scene);
-        paintedMat.diffuseColor = new BABYLON.Color3(0.5, 0.9, 0.5); 
-        paintedMat.emissiveColor = new BABYLON.Color3(0.4, 0.7, 0.4); 
-        paintedMat.backFaceCulling = false;
 
         const frameGroup = new BABYLON.TransformNode("frameGroup", scene);
         for (let x = 0; x < resolution; x++) {
@@ -1440,22 +1436,12 @@
 
         // --- 6. Animation Logic ---
         let progress = 0;
-        let pixelPainted = false;
-
         function resetAnimation() {
             progress = 0;
-            pixelPainted = false;
             rayLine.setEnabled(false);
             lightRayLine.setEnabled(false);
             arrowHead.setEnabled(false);
             lightArrowHead.setEnabled(false);
-            
-            for (let x = 0; x < resolution; x++) {
-                for (let y = 0; y < resolution; y++) {
-                    const cell = scene.getMeshByName(`cell_${x}_${y}`);
-                    if (cell) cell.material = cellMaterial;
-                }
-            }
         }
 
         scene.onBeforeRenderObservable.add(() => {
@@ -1517,12 +1503,6 @@ Zoom:     ${sceneCamera.radius.toFixed(2)}`;
                 lightArrowHead.position = ep2.subtract(toLightDir.scale(arrowHeight / 2));
                 lightArrowHead.lookAt(lightPos);
                 lightArrowHead.rotate(BABYLON.Axis.X, Math.PI / 2);
-            } else if (progress > 1.2 && !pixelPainted) {
-                const cell = scene.getMeshByName(`cell_${gridX}_${gridY}`);
-                if (cell) {
-                    cell.material = paintedMat;
-                    pixelPainted = true;
-                }
             }
         });
 
