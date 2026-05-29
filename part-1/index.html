@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Part 1 Demo - Dürer's Perspective Apparatus</title>
+    <title>Part 1 - Dürer's Perspective Apparatus</title>
     <meta name="description"
         content="A 3D demonstration of Albrecht Dürer's perspective drawing apparatus built with Babylon.js.">
     <script>window.assetBaseUrl = "../";</script>
@@ -47,24 +47,65 @@
 
                 <header class="mb-section-gap max-w-[680px] mx-auto w-full text-center md:text-left mt-8">
                     <h1 class="font-serif font-newsreader text-[48px] font-semibold leading-[1.1] tracking-[-0.02em] text-stone-900 mb-4">
-                        Part 1 Demo
+                        Part 1
                     </h1>
                 </header>
 
                 <article class="w-full flex flex-col items-center gap-16">
-                    <section class="max-w-[680px] w-full flex flex-col items-center px-0">
-                        <figure class="w-full mt-4 mb-12">
+                    <!-- Sportello Section -->
+                    <section class="max-w-[680px] w-full mx-auto px-0">
+                        <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-8">
+                            Sportello - Dürer's Drawing Apparatus
+                        </h3>
+                        <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6"
+                            style="font-family: 'Newsreader', serif;">
+                            <ul class="list-disc pl-6 space-y-3 marker:text-[#722F37]">
+                                <li>The problem that computer graphics aims to solve is how to accurately project three-dimensional (3D) objects onto a two-dimensional (2D) screen.</li>
+                                <li>While several computational techniques address this challenge, ray tracing algorithms are particularly noteworthy because they not only solve this problem but also attempt to capture realistic lighting effects.</li>
+                                <li>This problem of projection is not new, and Hofmann (1990), for instance, explores its depiction in German Renaissance artist Albrecht Dürer’s drawings.</li>
+                            </ul>
+                            <p>The woodcut illustration below is taken from Dürer's book <em>Underweysung der Messung mit dem Zirckel und Richtscheyt</em> (<em>A Course in the Art of Measurement with a Compass and Ruler</em>, 1525), which is a collection of formalised instructions for drawing that he wrote as tutorial resources for aspiring art students.</p>
+                        </div>
+
+                        <figure class="w-full my-8">
                             <img src="../images/durer_lute_woodcut.jpg" alt="Dürer's Woodcut"
                                 class="w-full h-auto object-cover rounded shadow-sm border border-[#E5E1D8]">
                             <figcaption
                                 class="mt-3 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2"
                                 style="font-family: 'Newsreader', serif;">
                                 <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig.
-                                    1:</span><span><i>Underweysung der Messung mit dem Zirckel und Richtscheyt</i> (A
-                                    Course in the Art of Measurement with a Compass and Ruler, 1525). Draftsman Drawing
-                                    a Lute.</span>
+                                    1:</span><span><i>The Draughtsman of the Lute (Albrecht Dürer, 1525)</i></span>
                             </figcaption>
                         </figure>
+
+                        <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-6"
+                            style="font-family: 'Newsreader', serif;">
+                            <p>Dürer described his method of perspective drawing as follows:</p>
+                            <blockquote class="italic border-l-4 border-[#722F37]/40 pl-6 py-2 my-8 text-stone-600">
+                                “If you are in a large chamber, hammer a large needle with a wide eye into the wall. It
+                                will denote the near point of sight. Then, thread it with a strong thread, weighted with
+                                a piece of lead. Now place a table as far from the needle as you wish and place a
+                                vertical frame on it, parallel to the wall to which the needle is attached, but as high
+                                or low as you wish, and on whatever side you wish. This frame should have a door hinged
+                                to it which will serve as your tablet for painting. Now nail two threads to the top and
+                                middle of the frame. These should be as long, respectively, as the frame's width and
+                                length, and they should be left hanging. Next, prepare a long iron pointer with a
+                                needle's eye at its other end, and attach it to the long thread which leads through the
+                                needle that is attached to the wall. Hand this pointer to another person, while you
+                                attend to the threads which are attached to the frame. Now proceed as follows. Place a
+                                lute or another object to your liking as far from the frame as you wish, but so that it
+                                will not move while you are using it. Have your assistant then move the pointer from
+                                point to point on the lute, and as often as he rests in one place and stretches the long
+                                thread, move the two threads attached to the frame crosswise and in straight lines to
+                                confine the long thread. Then stick their ends with wax to the frame, and ask your
+                                assistant to relax the tension of the long thread. Next close the door of the frame and
+                                mark the spot where the threads cross on the tablet. After this, open the door again and
+                                continue with another point, moving from point to point until the entire lute has been
+                                scanned and its points have been transferred to the tablet. Then connect all the points
+                                on the tablet and you will see the result. You can use this method for drawing other
+                                things. I have drawn this device below.”
+                            </blockquote>
+                        </div>
                     </section>
 
                     <section class="max-w-[680px] w-full mx-auto flex flex-col items-center px-0 mb-12">
@@ -408,7 +449,7 @@
                         <div class="mt-4 font-marginalia-text text-[15px] text-[#6B6B6B] flex items-start gap-2 max-w-[680px] mx-auto w-full"
                             style="font-family: 'Newsreader', serif;">
                             <span class="text-[#722F37] font-bold mr-1 whitespace-nowrap shrink-0">Fig. 6:</span>
-                            <span><i>Computational Counterpart: The Recursive Path.</i></span>
+                            <span><i>Computational Counterpart of Dürer's Perspective Apparatus.</i></span>
                         </div>
                     </section>
                 </article>
