@@ -246,6 +246,16 @@
             drawerTitle.textContent = data.title;
             drawerContent.innerHTML = data.desc;
 
+            // Render math equations using KaTeX if available
+            if (window.renderMathInElement) {
+                window.renderMathInElement(drawerContent, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+
             // Open drawer UI
             drawer.classList.remove("translate-x-full");
 
@@ -593,6 +603,16 @@
             drawerTitle.textContent = data.title;
             drawerContent.innerHTML = data.desc;
 
+            // Render math equations using KaTeX if available
+            if (window.renderMathInElement) {
+                window.renderMathInElement(drawerContent, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
+
             // Open drawer UI
             drawer.classList.remove("translate-x-full");
 
@@ -853,7 +873,7 @@
             },
             3: {
                 title: "Intersection Point",
-                desc: "<p>The <strong>Intersection Point</strong> is the exact location in 3D space where the primary camera ray hits the surface of the glass sphere.</p><p>Finding this point requires solving the quadratic equation of the ray-sphere intersection. It acts as the starting origin for any secondary rays, such as reflection and refraction rays.</p>"
+                desc: `<p>The <strong>Intersection Point</strong> is the exact location in 3D space where the primary camera ray hits the surface of the glass sphere.</p><p>Finding this point requires solving the quadratic equation of the ray-sphere intersection. It acts as the starting origin for any secondary rays, such as reflection and refraction rays.</p><p class="mt-4">When light gets transported from one medium to the other, the sines of the angle of incidence and the angle of refraction remain in constant proportion. This law is commonly known as Snell’s law, named after the Dutch astronomer and mathematician Willebrord Snell. Mathematically, this is expressed as: $$n_1 \\sin \\theta_1 = n_2 \\sin \\theta_2$$</p><p class="mt-4">The path tracing algorithm uses the Fresnel equation to calculate the Reflectance Coefficient $R$, which depends on the angle of incidence and the IoRs (Index of Refraction) of the media involved. The reflectance coefficient $R$ gives the probability that a light ray will be reflected from the boundary between two media, whereas $1-R$ gives the probability that the ray will be refracted.</p><p class="mt-4">In practice, deriving these probabilities using Fresnel’s equation is computationally expensive, thus, I used Schlick’s approximation to estimate the Fresnel reflectance using the following equation: $$R(\\theta) = R_0 + (1 - R_0)(1 - \\cos \\theta)^5$$ Here $R_0$ can be calculated based on the physical measurements of IoR values to yield: $$R_0 = \\left(\\frac{n_1 - n_2}{n_1 + n_2}\\right)^2$$</p><p class="mt-4">In terms of how the model works, the algorithm uses a random number generator to produce a number between $0$ and $1$. If this random number is less than the approximated Fresnel’s reflectance $R(\\theta)$ then the algorithm traces the ray along the reflected direction, whereas if this random number is greater than $R(\\theta)$, then it traces the ray along the refracted direction. For example, consider a situation where the Fresnel equation calculates $R(\\theta) = 0.6$. If the generated random number is $0.4$, which is less than $0.6$, the algorithm will choose the reflection path. On the other hand, if the random number is $0.7$, which is greater than $0.6$, the algorithm will choose the refraction path.</p>`
             }
         };
 
@@ -869,6 +889,16 @@
             drawerNum.textContent = index;
             drawerTitle.textContent = data.title;
             drawerContent.innerHTML = data.desc;
+
+            // Render math equations using KaTeX if available
+            if (window.renderMathInElement) {
+                window.renderMathInElement(drawerContent, {
+                    delimiters: [
+                        {left: '$$', right: '$$', display: true},
+                        {left: '$', right: '$', display: false}
+                    ]
+                });
+            }
 
             // Open drawer UI
             drawer.classList.remove("translate-x-full");
