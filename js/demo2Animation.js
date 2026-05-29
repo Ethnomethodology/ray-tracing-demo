@@ -198,37 +198,37 @@
                 title: "Glass Sphere",
                 desc: `<p>Any natural scene is far more complicated than the abstract scene presented in Part 1. In nature we find objects with complex geometries, and formalising such shapes in geometric terms is quite a complicated task.</p>
 <p>For rendering these shapes, computer scientists break them down into elementary ideal shapes, such as points, lines, planes, triangles, spheres, or cubes.</p>
-<pre class='bg-stone-900 text-stone-100 p-4 rounded-md font-mono text-[14px] mt-4 overflow-x-auto leading-normal'><code># Sphere geometry (dielectric)
-AttributeBegin
-    NamedMaterial "Glass"
-    Transform [ 1 0 0 0 0 1 0 0 0 0 1 0 0.3 0.3 0 1 ]
-    Shape "sphere"
-        "float radius" [ 0.3 ]
-AttributeEnd
+<pre class='bg-[#0d1117] text-[#c9d1d9] p-4 rounded-md font-mono text-[13px] mt-4 overflow-x-auto leading-normal border border-stone-800 shadow-inner'><code><span class="text-[#8b949e]"># Sphere geometry (dielectric)</span>
+<span class="text-[#ff7b72]">AttributeBegin</span>
+    <span class="text-[#ff7b72]">NamedMaterial</span> <span class="text-[#a5d6ff]">"Glass"</span>
+    <span class="text-[#ff7b72]">Transform</span> [ <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0.3</span> <span class="text-[#79c0ff]">0.3</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> ]
+    <span class="text-[#ff7b72]">Shape</span> <span class="text-[#a5d6ff]">"sphere"</span>
+        <span class="text-[#ffa657]">"float radius"</span> [ <span class="text-[#79c0ff]">0.3</span> ]
+<span class="text-[#ff7b72]">AttributeEnd</span>
 
-# Sphere geometry (conductor)
-AttributeBegin
-    NamedMaterial "Mirror"
-    Transform [ 1 0 0 0 0 1 0 0 0 0 1 0 -0.3 0.3 0 1 ]
-    Shape "sphere"
-        "float radius" [ 0.3 ]
-AttributeEnd</code></pre>`
+<span class="text-[#8b949e]"># Sphere geometry (conductor)</span>
+<span class="text-[#ff7b72]">AttributeBegin</span>
+    <span class="text-[#ff7b72]">NamedMaterial</span> <span class="text-[#a5d6ff]">"Mirror"</span>
+    <span class="text-[#ff7b72]">Transform</span> [ <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">0</span> -<span class="text-[#79c0ff]">0.3</span> <span class="text-[#79c0ff]">0.3</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> ]
+    <span class="text-[#ff7b72]">Shape</span> <span class="text-[#a5d6ff]">"sphere"</span>
+        <span class="text-[#ffa657]">"float radius"</span> [ <span class="text-[#79c0ff]">0.3</span> ]
+<span class="text-[#ff7b72]">AttributeEnd</span></code></pre>`
             },
             5: {
                 title: "Area Light Source",
                 desc: `<p>An 'area light source' is a mathematical model of a light emitter defined by a physical geometric shape that radiates light from its surface, which naturally produces soft shadows and realistic, smooth shading.</p>
-<pre class='bg-stone-900 text-stone-100 p-4 rounded-md font-mono text-[14px] mt-4 overflow-x-auto leading-normal'><code>AttributeBegin
-    AreaLightSource "diffuse"
-        "rgb L" [ 17 12 4 ]
-    NamedMaterial "Light"
-    Shape "trianglemesh"
-        "point2 uv" [ 0 0 1 0 1 1 0 1 
+<pre class='bg-[#0d1117] text-[#c9d1d9] p-4 rounded-md font-mono text-[13px] mt-4 overflow-x-auto leading-normal border border-stone-800 shadow-inner'><code><span class="text-[#ff7b72]">AttributeBegin</span>
+    <span class="text-[#ff7b72]">AreaLightSource</span> <span class="text-[#a5d6ff]">"diffuse"</span>
+        <span class="text-[#ffa657]">"rgb L"</span> [ <span class="text-[#79c0ff]">17</span> <span class="text-[#79c0ff]">12</span> <span class="text-[#79c0ff]">4</span> ]
+    <span class="text-[#ff7b72]">NamedMaterial</span> <span class="text-[#a5d6ff]">"Light"</span>
+    <span class="text-[#ff7b72]">Shape</span> <span class="text-[#a5d6ff]">"trianglemesh"</span>
+        <span class="text-[#ffa657]">"point2 uv"</span> [ <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> 
             ]
-        "normal N" [ -8.74228e-8 -1 1.86006e-7 -8.74228e-8 -1 1.86006e-7 -8.74228e-8 
-                     -1 1.86006e-7 -8.74228e-8 -1 1.86006e-7 ]
-        "point3 P" [ -0.24 1.98 -0.22 0.23 1.98 -0.22 0.23 1.98 0.16 -0.24 1.98 0.16 ]
-        "integer indices" [ 0 1 2 0 2 3 ]
-AttributeEnd</code></pre>`
+        <span class="text-[#ffa657]">"normal N"</span> [ -<span class="text-[#79c0ff]">8.74228e-8</span> -<span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">1.86006e-7</span> -<span class="text-[#79c0ff]">8.74228e-8</span> -<span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">1.86006e-7</span> -<span class="text-[#79c0ff]">8.74228e-8</span> 
+                     -<span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">1.86006e-7</span> -<span class="text-[#79c0ff]">8.74228e-8</span> -<span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">1.86006e-7</span> ]
+        <span class="text-[#ffa657]">"point3 P"</span> [ -<span class="text-[#79c0ff]">0.24</span> <span class="text-[#79c0ff]">1.98</span> -<span class="text-[#79c0ff]">0.22</span> <span class="text-[#79c0ff]">0.23</span> <span class="text-[#79c0ff]">1.98</span> -<span class="text-[#79c0ff]">0.22</span> <span class="text-[#79c0ff]">0.23</span> <span class="text-[#79c0ff]">1.98</span> <span class="text-[#79c0ff]">0.16</span> -<span class="text-[#79c0ff]">0.24</span> <span class="text-[#79c0ff]">1.98</span> <span class="text-[#79c0ff]">0.16</span> ]
+        <span class="text-[#ffa657]">"integer indices"</span> [ <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">1</span> <span class="text-[#79c0ff]">2</span> <span class="text-[#79c0ff]">0</span> <span class="text-[#79c0ff]">2</span> <span class="text-[#79c0ff]">3</span> ]
+<span class="text-[#ff7b72]">AttributeEnd</span></code></pre>`
             }
         };
 
@@ -473,11 +473,110 @@ AttributeEnd</code></pre>`
         const pillDescriptions2 = {
             1: {
                 title: "Light Sample",
-                desc: "<p>To calculate shadows and illumination, a ray tracer samples the light source. Here, the <strong>Light Sample</strong> is represented by the black dot on the square light's surface.</p><p>By casting a secondary ray from the surface intersection point to this specific light coordinate, the algorithm verifies if the path is clear or blocked by obstacles.</p>"
+                desc: `<p>To calculate shadows and illumination, a ray tracer samples the light source. Here, the <strong>Light Sample</strong> is represented by the black dot on the square light's surface.</p><p>By casting a secondary ray from the surface intersection point to this specific light coordinate, the algorithm verifies if the path is clear or blocked by obstacles.</p>
+<pre class='bg-[#0d1117] text-[#c9d1d9] p-4 rounded-md font-mono text-[13px] mt-4 overflow-x-auto leading-normal border border-stone-800 shadow-inner'><code><span class="text-[#d2a8ff]">@ti.dataclass</span>
+<span class="text-[#ff7b72]">class</span> <span class="text-[#ffa657]">DiffuseAreaLight</span>:
+    <span class="text-[#8b949e]">"""
+    Represents a diffuse area light source defined over a shape.
+    Provides methods to evaluate light emission, sample incident illumination, and compute PDFs.
+    """</span>
+    shape_idx: <span class="text-[#ffa657]">ti.i32</span>
+    Le: <span class="text-[#ffa657]">vec3</span>
+    two_sided: <span class="text-[#ffa657]">ti.i32</span>
+
+    <span class="text-[#d2a8ff]">@ti.func</span>
+    <span class="text-[#ff7b72]">def</span> <span class="text-[#d2a8ff]">L</span>(<span class="text-[#ffa657]">self</span>, p, n, w, scale=<span class="text-[#79c0ff]">1</span>):
+        sampled_light = <span class="text-[#d2a8ff]">vec3</span>(<span class="text-[#79c0ff]">0.0</span>)
+        <span class="text-[#ff7b72]">if</span> <span class="text-[#d2a8ff]">dot</span>(n, w) &gt;= <span class="text-[#79c0ff]">0</span>:
+            sampled_light = <span class="text-[#ffa657]">self</span>.Le * scale
+
+        <span class="text-[#ff7b72]">return</span> sampled_light
+
+    <span class="text-[#d2a8ff]">@ti.func</span>
+    <span class="text-[#ff7b72]">def</span> <span class="text-[#d2a8ff]">sample_Li</span>(<span class="text-[#ffa657]">self</span>, p, u, shape):
+        ss = shape.<span class="text-[#d2a8ff]">sample_p</span>(p, u)
+        li_sample = <span class="text-[#d2a8ff]">LightLiSample</span>()
+        <span class="text-[#ff7b72]">if</span> ss.pdf != <span class="text-[#79c0ff]">0</span> <span class="text-[#ff7b72]">and</span> <span class="text-[#d2a8ff]">length_squared</span>(ss.p - p) != <span class="text-[#79c0ff]">0</span>:
+            wi = <span class="text-[#d2a8ff]">normalize</span>(ss.p - p)
+            Le = <span class="text-[#ffa657]">self</span>.<span class="text-[#d2a8ff]">L</span>(ss.p, ss.n, -wi)
+            li_sample.L = Le
+            li_sample.wi = wi
+            li_sample.pdf = ss.pdf
+            li_sample.intr_p = ss.p
+            li_sample.intr_n = ss.n
+        <span class="text-[#ff7b72]">return</span> li_sample
+
+    <span class="text-[#d2a8ff]">@ti.func</span>
+    <span class="text-[#ff7b72]">def</span> <span class="text-[#d2a8ff]">pdf_Li</span>(<span class="text-[#ffa657]">self</span>, isect, wi, shape):
+        pdf = <span class="text-[#79c0ff]">0.0</span>
+        <span class="text-[#ff7b72]">if</span> isect.intersected:
+            pdf = shape.<span class="text-[#d2a8ff]">PDF</span>(isect.intersected_point, wi)
+        <span class="text-[#ff7b72]">return</span> pdf
+
+    <span class="text-[#d2a8ff]">@ti.func</span>
+    <span class="text-[#ff7b72]">def</span> <span class="text-[#d2a8ff]">sample_Le</span>(<span class="text-[#ffa657]">self</span>, u1, u2, shape):
+        ss = shape.<span class="text-[#d2a8ff]">sample</span>(u1)
+        light_sample = <span class="text-[#d2a8ff]">LightLeSample</span>()
+
+        w = <span class="text-[#d2a8ff]">vec3</span>([<span class="text-[#79c0ff]">0.0</span>])
+        pdf_dir = <span class="text-[#79c0ff]">0.0</span>
+        <span class="text-[#ff7b72]">if</span> <span class="text-[#ffa657]">self</span>.two_sided:
+            <span class="text-[#ff7b72]">if</span> u2[<span class="text-[#79c0ff]">0</span>] &lt; <span class="text-[#79c0ff]">0.5</span>:
+                u2[<span class="text-[#79c0ff]">0</span>] = ti.<span class="text-[#d2a8ff]">min</span>(u2[<span class="text-[#79c0ff]">0</span>] * <span class="text-[#79c0ff]">2</span>, <span class="text-[#79c0ff]">0.99999</span>)
+                w = <span class="text-[#d2a8ff]">sample_cosine_hemisphere</span>(u2)
+            <span class="text-[#ff7b72]">else</span>:
+                u2[<span class="text-[#79c0ff]">0</span>] = ti.<span class="text-[#d2a8ff]">min</span>((u2[<span class="text-[#79c0ff]">0</span>] - <span class="text-[#79c0ff]">0.5</span>) * <span class="text-[#79c0ff]">2</span>, <span class="text-[#79c0ff]">0.99999</span>)
+                w = <span class="text-[#d2a8ff]">sample_cosine_hemisphere</span>(u2)
+                w.z *= -<span class="text-[#79c0ff]">1</span>
+            pdf_dir = <span class="text-[#d2a8ff]">cosine_hemisphere_pdf</span>(<span class="text-[#d2a8ff]">abs</span>(w.z)) / <span class="text-[#79c0ff]">2</span>
+        <span class="text-[#ff7b72]">else</span>:
+            w = <span class="text-[#d2a8ff]">sample_cosine_hemisphere</span>(u2)
+            pdf_dir = <span class="text-[#d2a8ff]">cosine_hemisphere_pdf</span>(w.z)
+
+        <span class="text-[#ff7b72]">if</span> pdf_dir != <span class="text-[#79c0ff]">0</span>:
+            n_frame = <span class="text-[#d2a8ff]">frame_from_z</span>(ss.n)
+            w = n_frame.<span class="text-[#d2a8ff]">from_local</span>(w)
+            Le = <span class="text-[#ffa657]">self</span>.<span class="text-[#d2a8ff]">L</span>(ss.p, ss.n)
+            light_sample.L = Le
+            light_sample.ray_origin = ss.p
+            light_sample.ray_dir = w
+            light_sample.intr_p = ss.p
+            light_sample.intr_n = ss.n
+            light_sample.pdf_pos = ss.pdf
+            light_sample.pdf_dir = pdf_dir
+
+        <span class="text-[#ff7b72]">return</span> light_sample
+
+    <span class="text-[#d2a8ff]">@ti.func</span>
+    <span class="text-[#ff7b72]">def</span> <span class="text-[#d2a8ff]">pdf_Le</span>(<span class="text-[#ffa657]">self</span>, n, w, shape):
+        pdf_pos = shape.<span class="text-[#d2a8ff]">get_pdf</span>()
+        pdf_dir = (<span class="text-[#d2a8ff]">cosine_hemisphere_pdf</span>(<span class="text-[#d2a8ff]">abs</span>(<span class="text-[#d2a8ff]">dot</span>(n, w))) / <span class="text-[#79c0ff]">2</span>) <span class="text-[#ff7b72]">if</span> <span class="text-[#ffa657]">self</span>.two_sided <span class="text-[#ff7b72]">else</span> <span class="text-[#d2a8ff]">cosine_hemisphere_pdf</span>(<span class="text-[#d2a8ff]">dot</span>(n, w))
+        <span class="text-[#ff7b72]">return</span> pdf_pos, pdf_dir</code></pre>`
             },
             2: {
                 title: "Shadow Ray",
-                desc: "<p>A <strong>Shadow Ray</strong> is a secondary ray cast from the intersection point on the object's surface towards the light sample point.</p><p>If this ray reaches the light source without colliding with any blocking geometry, the point is lit. If a collision is detected along the path, the point lies in shadow. This mathematical check is the foundation of realistic direct illumination rendering.</p>"
+                desc: `<p>A <strong>Shadow Ray</strong> is a secondary ray cast from the intersection point on the object's surface towards the light sample point.</p><p>If this ray reaches the light source without colliding with any blocking geometry, the point is lit. If a collision is detected along the path, the point lies in shadow. This mathematical check is the foundation of realistic direct illumination rendering.</p>
+<pre class='bg-[#0d1117] text-[#c9d1d9] p-4 rounded-md font-mono text-[13px] mt-4 overflow-x-auto leading-normal border border-stone-800 shadow-inner'><code><span class="text-[#d2a8ff]">@ti.dataclass</span>
+<span class="text-[#ff7b72]">class</span> <span class="text-[#ffa657]">Ray</span>:
+    <span class="text-[#8b949e]">"""
+    Represents a ray with an origin and a direction.
+    Provides a method to compute a point along the ray at a given distance.
+    """</span>
+    origin: <span class="text-[#ffa657]">vec3</span>
+    direction: <span class="text-[#ffa657]">vec3</span>
+
+    <span class="text-[#d2a8ff]">@ti.func</span>
+    <span class="text-[#ff7b72]">def</span> <span class="text-[#d2a8ff]">at</span>(<span class="text-[#ffa657]">self</span>, t):
+        <span class="text-[#8b949e]">"""
+        Computes a point along the ray at a given distance t from the origin.
+
+        Args:
+            t (float): The distance from the ray origin.
+
+        Returns:
+            vec3: The point along the ray.
+        """</span>
+        <span class="text-[#ff7b72]">return</span> <span class="text-[#ffa657]">self</span>.origin + t * <span class="text-[#ffa657]">self</span>.direction</code></pre>`
             }
         };
 
