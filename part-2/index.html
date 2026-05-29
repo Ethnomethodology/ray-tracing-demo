@@ -337,6 +337,20 @@
                         <h3 class="font-serif font-newsreader text-[24px] font-medium leading-[1.2] text-ink-charcoal mb-8 w-full">
                             Importance Sampling
                         </h3>
+                        <div class="font-body-reading text-[20px] leading-[1.6] text-ink-charcoal space-y-4 mb-8 w-full" style="font-family: 'Newsreader', serif;">
+                            <p>This way of randomly determining direction to construct
+                            a path is known as a ‘random walk algorithm.’ The path tracing algorithm uses a
+                            random walk to determine which direction to take at the boundary between two
+                            media. This random sampling strategy, however, changes in the case of matte-like
+                            diffuse surfaces. In this case, the process differs significantly from mirrors and
+                            dielectrics, as light is scattered in all directions uniformly (refer to Figure 8). When
+                            a ray hits a diffuse surface, the reflected direction ($\omega_i$) is calculated by sampling a
+                            random direction over the unit hemisphere oriented around the surface normal ($n$).
+                            The amount of light travelling in the reflected direction is proportional to the cosine
+                            of the angle between the surface normal and the reflected direction, as described by
+                            Lambert’s cosine law.</p>
+                            <p>Based on this law we can focus our samples on directions that are more likely to contribute significantly to the final result.</p>
+                        </div>
                         <div class="w-full bg-white border border-[#E5E1D8] shadow-sm rounded-lg p-6 md:p-8 flex flex-col gap-6 items-center">
                             <svg viewBox="0 0 500 260" width="100%" class="max-w-[450px] mx-auto overflow-visible">
                                 <defs>
