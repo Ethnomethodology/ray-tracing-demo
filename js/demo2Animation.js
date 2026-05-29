@@ -184,23 +184,51 @@
         const pillDescriptions = {
             1: {
                 title: "Camera",
-                desc: "<p>The virtual <strong>Camera</strong> represents the eye or sensor position. In this scene, it is modeled as a single point in space (at coordinates <code>[0.0, 8.0, 14.0]</code>).</p><p>Unlike traditional rasterization engines that process geometry from a camera frustum, a ray tracer starts by casting rays outwards from this single point through each pixel on the image plane.</p>"
+                desc: "<ul class='list-disc pl-6 space-y-2 marker:text-[#722F37]'><li>The ‘camera’ is a fixed point from which rays can be traced.</li><li>The point camera is an example of the pinhole camera.</li><li>A pinhole camera model is used to form an image from the perspective of a single point (the pinhole), resulting in a perspective-based projection as objects appear smaller with distance.</li></ul>"
             },
             2: {
                 title: "Image Plane",
-                desc: "<p>The <strong>Image Plane</strong> is a virtual grid of pixels (represented here as a 16x16 frame). It is placed in front of the camera point.</p><p>For each pixel in this grid, the renderer determines the color by calculating the path of light passing through the pixel center. A higher resolution grid results in a sharper, higher quality rendered output.</p>"
+                desc: "<ul class='list-disc pl-6 space-y-2 marker:text-[#722F37]'><li>The image plane acts as a window onto the scene in this setup.</li><li>When we look through a window, what we can see is restricted by the window's frame. While the window makes several aspects of the scene available to us, as much as we might try to peer around it, its frame also limits what we can see.</li><li>In a similar fashion to Renaissance artists’ grid-based drawing tablets, here we imagine our window onto the scene, i.e., the image plane, to be divided into smaller squares.</li><li>The more squares we add the greater number of rays we can trace from the camera to the scene. The resolution of the final image will depend on the number of squares we will specify in our computation.</li><li>In this experimental setup, each square contributes to the colour of each pixel—the smallest units of the final image.</li></ul>"
             },
             3: {
                 title: "Ray",
-                desc: "<p>A <strong>Ray</strong> (specifically, a primary camera ray) is cast from the camera origin through a specific cell on the image plane into the 3D scene.</p><p>The algorithm calculates the ray's mathematical equation and checks for intersections with all geometric objects in the scene. The closest intersection point defines what the camera 'sees' through that pixel.</p>"
+                desc: "<ul class='list-disc pl-6 space-y-2 marker:text-[#722F37]'><li>Ray Tracing relies on the fundamental assumption of geometrical optics that we see objects because light rays hit them and then reflect back to our eyes, where light travels in straight lines.</li><li>Here, a ray is conceptualised as an imaginary straight line drawn from a virtual camera, passing through a 2D 'image plane', and out into a 3D scene.</li><li>The theoretical ideals (such as “light rays”) and the corresponding inference drawing techniques (such as drawing light rays as straight lines) are “logically indispensable” (Toulmin, 1953, p. 26) in this. By formally conceiving light as a ray, scientists can draw principled inferences about such things as where to show shadows and how long such shadows should be.</li><li>The pairing of the diagrams and their associated inference drawing techniques helps computer graphics researchers think about what they need to model in code and how to do it. More specifically, they need to model how light rays travel in a physical medium and interact with different objects, resulting in optical phenomena such as reflection, refraction, and shadows.</li></ul>"
             },
             4: {
                 title: "Glass Sphere",
-                desc: "<p>The subject of our scene is a <strong>Glass Sphere</strong>. In a ray tracer, spheres are represented mathematically, allowing for perfect, infinitely smooth intersection calculations.</p><p>Here, the sphere uses a custom unlit Fresnel material, making the edges visible as white borders while the center remains transparent to represent thin glass.</p>"
+                desc: `<p>Any natural scene is far more complicated than the abstract scene presented in Part 1. In nature we find objects with complex geometries, and formalising such shapes in geometric terms is quite a complicated task.</p>
+<p>For rendering these shapes, computer scientists break them down into elementary ideal shapes, such as points, lines, planes, triangles, spheres, or cubes.</p>
+<pre class='bg-stone-900 text-stone-100 p-4 rounded-md font-mono text-[14px] mt-4 overflow-x-auto leading-normal'><code># Sphere geometry (dielectric)
+AttributeBegin
+    NamedMaterial "Glass"
+    Transform [ 1 0 0 0 0 1 0 0 0 0 1 0 0.3 0.3 0 1 ]
+    Shape "sphere"
+        "float radius" [ 0.3 ]
+AttributeEnd
+
+# Sphere geometry (conductor)
+AttributeBegin
+    NamedMaterial "Mirror"
+    Transform [ 1 0 0 0 0 1 0 0 0 0 1 0 -0.3 0.3 0 1 ]
+    Shape "sphere"
+        "float radius" [ 0.3 ]
+AttributeEnd</code></pre>`
             },
             5: {
-                title: "Light Source",
-                desc: "<p>The <strong>Light Source</strong> is a flat, square emitting surface. When a primary ray hits an object, the renderer casts a secondary 'shadow ray' from the hit point to the light source.</p><p>If the path to the light is clear, the point is illuminated. If another object blocks the path, the point is in shadow. The triangulated borders show the grid lines of the square light.</p>"
+                title: "Area Light Source",
+                desc: `<p>An 'area light source' is a mathematical model of a light emitter defined by a physical geometric shape that radiates light from its surface, which naturally produces soft shadows and realistic, smooth shading.</p>
+<pre class='bg-stone-900 text-stone-100 p-4 rounded-md font-mono text-[14px] mt-4 overflow-x-auto leading-normal'><code>AttributeBegin
+    AreaLightSource "diffuse"
+        "rgb L" [ 17 12 4 ]
+    NamedMaterial "Light"
+    Shape "trianglemesh"
+        "point2 uv" [ 0 0 1 0 1 1 0 1 
+            ]
+        "normal N" [ -8.74228e-8 -1 1.86006e-7 -8.74228e-8 -1 1.86006e-7 -8.74228e-8 
+                     -1 1.86006e-7 -8.74228e-8 -1 1.86006e-7 ]
+        "point3 P" [ -0.24 1.98 -0.22 0.23 1.98 -0.22 0.23 1.98 0.16 -0.24 1.98 0.16 ]
+        "integer indices" [ 0 1 2 0 2 3 ]
+AttributeEnd</code></pre>`
             }
         };
 
@@ -445,7 +473,7 @@
         const pillDescriptions2 = {
             1: {
                 title: "Light Sample",
-                desc: "<p>To calculate shadows and illumination, a ray tracer samples the light source. Here, the <strong>Light Sample</strong> is represented by the black dot on the square light's surface.</p><p>By casting a secondary ray from the surface intersection point to this specific light coordinate, the engine verifies if the path is clear or blocked by obstacles.</p>"
+                desc: "<p>To calculate shadows and illumination, a ray tracer samples the light source. Here, the <strong>Light Sample</strong> is represented by the black dot on the square light's surface.</p><p>By casting a secondary ray from the surface intersection point to this specific light coordinate, the algorithm verifies if the path is clear or blocked by obstacles.</p>"
             },
             2: {
                 title: "Shadow Ray",
